@@ -1,0 +1,23 @@
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
+.page-header h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 2px; }
+.text-secondary { font-size: 0.88rem; color: var(--color-text-secondary); }
+
+.filter-bar { margin-bottom: var(--space-md); }
+.search-box { display: flex; align-items: center; gap: var(--space-sm);
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 0 var(--space-md); background: #fff; }
+.search-box .material-icons-outlined { color: var(--color-text-muted); font-size: 20px; }
+.search-box input { border: none; outline: none; padding: 10px 0; font-size: 0.9rem; width: 100%; background: transparent; font-family: var(--font-body); }
+
+.clickable-row { cursor: pointer; }
+.clickable-row:hover { background: var(--color-surface-hover); }
+.fw-600 { font-weight: 600; }
+.row-arrow { font-size: 18px; color: var(--color-text-muted); }
+
+.badge-inside { background: var(--color-primary-light); color: var(--color-primary); }
+.badge-outside { background: var(--color-info-light); color: var(--color-info); }
+.badge-other { background: #f1f1ef; color: var(--color-text-muted); }
+
+.empty-state { text-align: center; padding: var(--space-2xl); }
+.empty-icon { font-size: 48px; color: var(--color-text-muted); margin-bottom: var(--space-md); }
+.empty-state p { color: var(--color-text-secondary); margin-bottom: var(--space-lg); }
+.loading-state { text-align: center; padding: var(--space-2xl); color: var(--color-text-secondary); }

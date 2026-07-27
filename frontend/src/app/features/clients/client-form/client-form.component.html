@@ -1,0 +1,155 @@
+<div class="page-header">
+  <div>
+    <a routerLink="../../clients" class="back-link">
+      <span class="material-icons-outlined">arrow_back</span> Back to Clients
+    </a>
+    <h1>{{ isEdit ? 'Edit Client' : 'New Client' }}</h1>
+    <p class="text-secondary" *ngIf="isEdit && client.clientNumber">Client # {{ client.clientNumber }}</p>
+  </div>
+</div>
+
+<div class="form-layout">
+  <div class="card form-card">
+
+    <!-- Personal Information -->
+    <h2 class="section-title">Personal Information</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" class="form-control" [(ngModel)]="client.fullName" placeholder="Full legal name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" class="form-control" [(ngModel)]="client.dateOfBirth">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Country of Citizenship</label>
+        <input type="text" class="form-control" [(ngModel)]="client.countryOfCitizenship" placeholder="e.g. India, Nigeria, Philippines">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Passport Number</label>
+        <input type="text" class="form-control" [(ngModel)]="client.passportNumber" placeholder="Passport number">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Marital Status</label>
+        <select class="form-control" [(ngModel)]="client.maritalStatus">
+          <option value="">Select...</option>
+          <option value="Single">Single</option>
+          <option value="Married">Married</option>
+          <option value="Common-law">Common-law</option>
+          <option value="Divorced">Divorced</option>
+          <option value="Separated">Separated</option>
+          <option value="Widowed">Widowed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Current Status</label>
+        <select class="form-control" [(ngModel)]="client.currentStatus">
+          <option value="">Select...</option>
+          <option value="Inside Canada - Student">Inside Canada - Student</option>
+          <option value="Inside Canada - Worker">Inside Canada - Worker</option>
+          <option value="Inside Canada - Visitor">Inside Canada - Visitor</option>
+          <option value="Inside Canada - PR">Inside Canada - PR</option>
+          <option value="Inside Canada - Other">Inside Canada - Other</option>
+          <option value="Outside Canada">Outside Canada</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Contact Information -->
+    <h2 class="section-title mt-xl">Contact Information</h2>
+    <div class="form-group">
+      <label class="form-label">Email *</label>
+      <input type="email" class="form-control" [(ngModel)]="client.email" placeholder="client@email.com"
+             [class.input-error]="duplicateEmail">
+      <div class="field-error" *ngIf="duplicateEmail">
+        <span class="material-icons-outlined">error_outline</span>
+        {{ errorMsg }}
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="tel" class="form-control" [(ngModel)]="client.phone" placeholder="+1 (xxx) xxx-xxxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">WhatsApp</label>
+        <input type="tel" class="form-control" [(ngModel)]="client.whatsapp" placeholder="+1 (xxx) xxx-xxxx">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Current Location</label>
+        <input type="text" class="form-control" [(ngModel)]="client.currentLocation" placeholder="City, Country">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preferred Language</label>
+        <select class="form-control" [(ngModel)]="client.preferredLanguage">
+          <option value="">Select...</option>
+          <option value="English">English</option>
+          <option value="French">French</option>
+          <option value="Punjabi">Punjabi</option>
+          <option value="Hindi">Hindi</option>
+          <option value="Urdu">Urdu</option>
+          <option value="Mandarin">Mandarin</option>
+          <option value="Tagalog">Tagalog</option>
+          <option value="Arabic">Arabic</option>
+          <option value="Spanish">Spanish</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <h2 class="section-title mt-xl">Notes</h2>
+    <div class="form-group">
+      <textarea class="form-control" rows="3" [(ngModel)]="client.notes"
+                placeholder="Internal notes about this client..."></textarea>
+    </div>
+  </div>
+
+  <div class="card info-card">
+    <h3 class="info-title">Client Records</h3>
+    <p class="info-text">Client records become case files once a retainer agreement is signed and a case is created.</p>
+    <div class="info-item">
+      <span class="material-icons-outlined">shield</span>
+      <span>Personal data is stored securely and used only for case management</span>
+    </div>
+    <div class="info-item">
+      <span class="material-icons-outlined">history</span>
+      <span>All changes are logged in the audit trail</span>
+    </div>
+  </div>
+</div>
+
+<div class="form-actions">
+  <a routerLink="../../clients" class="btn btn-secondary">Cancel</a>
+  <button class="btn btn-primary" (click)="submit()" [disabled]="!canSubmit() || submitting">
+    {{ submitting ? 'Saving...' : (isEdit ? 'Update Client' : 'Create Client') }}
+  </button>
+</div>
+
+<!-- Duplicate Client Warning -->
+<div class="duplicate-banner" *ngIf="duplicateClientId">
+  <div class="duplicate-content">
+    <span class="material-icons-outlined duplicate-icon">warning</span>
+    <div class="duplicate-text">
+      <strong>Duplicate Client Detected</strong>
+      <p>{{ errorMsg }}</p>
+      <p class="duplicate-hint" *ngIf="!isAdmin">Contact an admin consultant to view or edit the existing client record.</p>
+    </div>
+    <div class="duplicate-actions">
+      <button class="btn btn-secondary btn-sm" (click)="dismissDuplicate()">Dismiss</button>
+      <button *ngIf="isAdmin" class="btn btn-primary btn-sm" (click)="viewExistingClient()">
+        <span class="material-icons-outlined">person</span> View Existing Client
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast toast-error" *ngIf="errorMsg && !duplicateClientId && !duplicateEmail">{{ errorMsg }}</div>
+<div class="toast toast-success" *ngIf="successMsg">{{ successMsg }}</div>

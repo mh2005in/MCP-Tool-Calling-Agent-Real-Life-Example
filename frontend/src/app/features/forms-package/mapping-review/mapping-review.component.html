@@ -1,0 +1,230 @@
+<div class="mapping-review">
+
+  <div class="page-head">
+    <div>
+      <a class="back-link" [routerLink]="['/consultant', consultantId, 'cases', caseId]">&larr; Back to case</a>
+      <h2>Forms &amp; Package — Mapping Review</h2>
+    </div>
+  </div>
+
+  <!-- Governance disclaimers -->
+  <div class="disclaimer">
+    <strong>Draft — not approved for filing.</strong>
+    Official portal submission is not automated. The consultant remains responsible for final review of all mapped values against official IRCC instructions.
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+  <!-- Profile selection -->
+  <section class="panel">
+    <h3>1. Select a package profile</h3>
+    <div *ngIf="loadingProfiles" class="muted">Loading profiles…</div>
+    <div *ngIf="!loadingProfiles && profiles.length === 0" class="muted">
+      No active package profiles are available for this case type yet.
+    </div>
+    <div class="profile-grid">
+      <button
+        *ngFor="let p of profiles"
+        type="button"
+        class="profile-card"
+        [class.selected]="selectedProfileId === p.id"
+        (click)="selectProfile(p.id)">
+        <div class="profile-name">{{ p.displayName }}</div>
+        <div class="profile-meta">
+          <span class="badge">{{ p.profileCode }}</span>
+          <span *ngIf="p.jurisdiction" class="badge">{{ p.jurisdiction }}</span>
+        </div>
+        <div class="profile-counts">
+          {{ p.formCount }} form(s) · {{ p.documentRequirementCount }} document requirement(s)
+        </div>
+        <div *ngIf="p.description" class="profile-desc">{{ p.description }}</div>
+      </button>
+    </div>
+  </section>
+
+  <div *ngIf="loadingPreview" class="muted">Building mapping preview…</div>
+
+  <ng-container *ngIf="preview && !loadingPreview">
+
+    <!-- Snapshot summary -->
+    <section class="panel">
+      <h3>2. Canonical data snapshot</h3>
+      <div class="summary-row">
+        <span class="badge badge-ok">{{ preview.snapshot.values.length }} fields</span>
+        <span class="badge" [class.badge-warn]="reviewCount() > 0">{{ reviewCount() }} need review</span>
+        <span class="badge" [class.badge-error]="missingCount() > 0">{{ missingCount() }} missing</span>
+        <span class="badge" [class.badge-error]="preview.snapshot.conflicts.length > 0">
+          {{ preview.snapshot.conflicts.length }} conflict(s)
+        </span>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Value</th>
+            <th>Source</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of preview.snapshot.values"
+              [class.row-warn]="v.reviewRequired"
+              [class.row-missing]="!v.present">
+            <td>
+              <div class="field-name">{{ v.displayName }}</div>
+              <div class="field-key">{{ v.fieldKey }}</div>
+            </td>
+            <td>
+              <span *ngIf="v.present">{{ v.sensitive ? '••• ' + (v.value || '') : v.value }}</span>
+              <span *ngIf="!v.present" class="muted">—</span>
+            </td>
+            <td>
+              <div>{{ selectedSourceLabel(v) }}</div>
+              <div *ngIf="v.sources.length > 1" class="field-key">{{ v.sources.length }} candidate sources</div>
+            </td>
+            <td>
+              <span *ngIf="v.conflict" class="badge badge-error">Conflict</span>
+              <span *ngIf="!v.conflict && v.reviewRequired" class="badge badge-warn">Review</span>
+              <span *ngIf="!v.reviewRequired && v.present" class="badge badge-ok">OK</span>
+              <span *ngIf="!v.present" class="badge badge-error">Missing</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Per-form mapped fields -->
+    <section class="panel">
+      <div class="section-head">
+        <h3>3. Mapped form fields</h3>
+        <button type="button" class="btn-primary"
+                [disabled]="!selectedProfileId || generating"
+                (click)="generateDrafts()">
+          {{ generating ? 'Generating…' : 'Generate draft forms' }}
+        </button>
+      </div>
+      <div *ngIf="draftError" class="alert alert-error">{{ draftError }}</div>
+
+      <div *ngFor="let form of preview.forms" class="form-block">
+        <div class="form-head">
+          <div>
+            <span class="form-code">{{ form.formCode }}</span>
+            <span class="form-title">{{ form.displayName }}</span>
+            <span *ngIf="form.editionLabel" class="field-key">ed. {{ form.editionLabel }}</span>
+          </div>
+          <div>
+            <span *ngIf="form.mappingStatus" class="badge badge-ok">mapping v{{ form.mappingVersion }} · {{ form.mappingStatus }}</span>
+            <span *ngIf="isAutoFillable(form)" class="badge badge-ok">Auto-fill</span>
+            <span *ngIf="!isAutoFillable(form)" class="badge badge-warn">Manual upload</span>
+          </div>
+        </div>
+
+        <!-- Manual-upload path for forms that cannot be auto-filled (XFA/certified/no mapping) -->
+        <div *ngIf="!isAutoFillable(form)" class="upload-row">
+          <span class="upload-hint">
+            This form can't be auto-filled. Fill the official {{ form.formCode }} in Adobe, then upload it:
+          </span>
+          <label class="upload-btn">
+            <input type="file" accept="application/pdf" hidden
+                   [disabled]="uploadingFormId === form.formDefinitionId"
+                   (change)="uploadFilledForm(form, $event)">
+            {{ uploadingFormId === form.formDefinitionId ? 'Uploading…' : 'Upload filled PDF' }}
+          </label>
+        </div>
+
+        <div *ngIf="form.diagnostic" class="alert alert-warn">{{ form.diagnostic }}</div>
+
+        <div *ngIf="form.unmappedRequiredFieldNames.length > 0" class="alert alert-warn">
+          Required PDF fields with no mapping:
+          <strong>{{ form.unmappedRequiredFieldNames.join(', ') }}</strong>
+        </div>
+
+        <table class="data-table" *ngIf="form.fields.length > 0">
+          <thead>
+            <tr>
+              <th>PDF field</th>
+              <th>Canonical key</th>
+              <th>Transform</th>
+              <th>Resolved value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of form.fields">
+              <td>
+                <div class="field-name">{{ f.label || f.pdfFieldName }}</div>
+                <div class="field-key">{{ f.pdfFieldName }}<span *ngIf="f.requiredForPackage"> · required</span></div>
+              </td>
+              <td class="field-key">{{ f.canonicalFieldKey }}</td>
+              <td>{{ f.transformType }}</td>
+              <td>
+                <span *ngIf="f.present">{{ f.resolvedValue }}</span>
+                <span *ngIf="!f.present" class="muted">—</span>
+                <div *ngIf="f.diagnostic" class="field-key diag">{{ f.diagnostic }}</div>
+              </td>
+              <td><span [class]="statusClass(f.status)">{{ statusLabel(f.status) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="muted generated-at">Preview generated {{ preview.generatedAt }}</p>
+
+    <!-- Validation & readiness -->
+    <section class="panel">
+      <h3>4. Validation &amp; readiness</h3>
+      <app-validation-readiness [caseId]="caseId" [packageProfileId]="selectedProfileId"></app-validation-readiness>
+    </section>
+  </ng-container>
+
+  <!-- Generated drafts (persist independently of the preview) -->
+  <section class="panel" *ngIf="activeDrafts().length > 0">
+    <h3>5. Generated draft forms</h3>
+    <p class="disclaimer-inline">Draft PDFs are filled from mapped data and are <strong>not approved for filing</strong>. Approval &amp; packaging arrive in a later milestone.</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Form</th>
+          <th>Origin</th>
+          <th>Status</th>
+          <th>File</th>
+          <th>Generated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of activeDrafts()">
+          <td>
+            <div class="field-name">{{ d.formCode }}</div>
+            <div class="field-key">{{ d.formDisplayName }}<span *ngIf="d.mappingVersion"> · mapping v{{ d.mappingVersion }}</span></div>
+          </td>
+          <td>
+            <span class="badge" [class.badge-ok]="d.origin === 'UPLOADED'">{{ originLabel(d.origin) }}</span>
+          </td>
+          <td><span [class]="draftStatusClass(d.status)">{{ d.status }}</span></td>
+          <td>
+            <span *ngIf="d.originalFileName" class="field-key">{{ d.originalFileName }}</span>
+            <span *ngIf="!d.originalFileName && d.fileName" class="field-key">{{ d.fileName }}</span>
+            <span *ngIf="!d.fileName && !d.originalFileName" class="muted">—</span>
+          </td>
+          <td>
+            <div>{{ d.generatedAt }}</div>
+            <div class="field-key">{{ d.generatedBy }}</div>
+          </td>
+          <td class="actions">
+            <button type="button" class="btn-link" [disabled]="!d.fileName" (click)="download(d)">Download</button>
+            <button type="button" class="btn-link" *ngIf="d.origin === 'GENERATED'" (click)="regenerate(d)">Regenerate</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Package assembly & approval (Milestone 5) -->
+  <section class="panel" *ngIf="selectedProfileId">
+    <h3>6. Submission package &amp; approval</h3>
+    <app-package-approval [caseId]="caseId" [packageProfileId]="selectedProfileId"></app-package-approval>
+  </section>
+</div>

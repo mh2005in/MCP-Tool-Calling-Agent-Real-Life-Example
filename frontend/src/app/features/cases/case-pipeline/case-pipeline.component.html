@@ -1,0 +1,211 @@
+<div class="pipeline-container">
+  <div class="pipeline">
+    <div class="pipeline-step" *ngFor="let stage of stages; let i = index; let last = last">
+      <div class="step-connector" *ngIf="!last" [ngClass]="stageState(i) === 'completed' ? 'completed' : ''"></div>
+      <div class="step-circle" [ngClass]="stageState(i)" (click)="toggleExpand(stage.key)">
+        <span class="material-icons-outlined" *ngIf="stageState(i) === 'completed'">check</span>
+        <span class="material-icons-outlined" *ngIf="stageState(i) !== 'completed'">{{ stage.icon }}</span>
+      </div>
+      <span class="step-label" [class.current-label]="stageState(i) === 'current'">{{ stage.label }}</span>
+    </div>
+  </div>
+
+  <!-- Expanded detail card for current stage -->
+  <div class="stage-detail card" *ngIf="expandedStage">
+
+    <!-- Retainer stage detail -->
+    <ng-container *ngIf="expandedStage === 'retainer'">
+      <h3><span class="material-icons-outlined">description</span> Retainer & Engagement Letter</h3>
+      <div class="detail-row">
+        <span class="detail-label">Engagement Letter Status</span>
+        <select class="form-control detail-select" [(ngModel)]="engagementLetterStatus" (change)="updateEngagementStatus(engagementLetterStatus)">
+          <option value="">Not set</option>
+          <option value="DRAFT">Draft</option>
+          <option value="SENT">Sent</option>
+          <option value="SIGNED">Signed</option>
+          <option value="EXPIRED">Expired</option>
+        </select>
+      </div>
+      <div class="detail-row" *ngIf="case.retainerSignedDate">
+        <span class="detail-label">Retainer Signed</span>
+        <span>{{ case.retainerSignedDate | date:'MMM d, yyyy' }}</span>
+      </div>
+      <div class="detail-row" *ngIf="case.retainerDocumentPath">
+        <span class="detail-label">Document</span>
+        <span class="mono">{{ case.retainerDocumentPath }}</span>
+      </div>
+      <div class="stage-actions" *ngIf="case.leadStatus === 'RETAINER_SENT'">
+        <button class="btn btn-primary btn-sm" (click)="markRetainerSigned()">
+          <span class="material-icons-outlined">check</span> Mark Retainer as Signed
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Questionnaire stage detail -->
+    <ng-container *ngIf="expandedStage === 'intake'">
+      <h3><span class="material-icons-outlined">quiz</span> Intake Questionnaire</h3>
+      <p class="stage-desc">Client intake questionnaire {{ case.caseStatus === 'INTAKE_COMPLETED' ? 'has been completed' : 'is pending' }}.</p>
+      <div class="detail-row">
+        <span class="detail-label">Status</span>
+        <span class="badge" [ngClass]="case.caseStatus === 'INTAKE_COMPLETED' ? 'badge-status-done' : 'badge-status-pending'">
+          {{ formatEnum(case.caseStatus) }}
+        </span>
+      </div>
+    </ng-container>
+
+    <!-- Checklist stage detail -->
+    <ng-container *ngIf="expandedStage === 'checklist'">
+      <h3><span class="material-icons-outlined">checklist</span> Document Checklist</h3>
+      <p class="stage-desc">The document checklist is being prepared for the client.</p>
+      <div class="detail-row">
+        <span class="detail-label">Total Items</span>
+        <span>{{ case.totalChecklistItems || 0 }}</span>
+      </div>
+    </ng-container>
+
+    <!-- Documents stage detail -->
+    <ng-container *ngIf="expandedStage === 'documents'">
+      <h3><span class="material-icons-outlined">upload_file</span> Document Collection</h3>
+      <div class="detail-row">
+        <span class="detail-label">Completed</span>
+        <span>{{ case.completedItems || 0 }} / {{ case.totalChecklistItems || 0 }}</span>
+      </div>
+      <div class="detail-row" *ngIf="case.missingItems">
+        <span class="detail-label">Missing</span>
+        <span class="text-danger">{{ case.missingItems }} items</span>
+      </div>
+    </ng-container>
+
+    <!-- File Review stage detail -->
+    <ng-container *ngIf="expandedStage === 'review'">
+      <h3><span class="material-icons-outlined">rate_review</span> File Review</h3>
+      <p class="stage-desc">All documents collected. The file is ready for consultant review before application preparation.</p>
+    </ng-container>
+
+    <!-- Application Prep stage detail (Task 10.3) -->
+    <ng-container *ngIf="expandedStage === 'prep'">
+      <h3><span class="material-icons-outlined">build</span> Application Preparation</h3>
+      <p class="stage-desc">Complete the preparation tasks before advancing to final review.</p>
+      <div class="prep-checklist">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="prepFormsCompleted">
+          Application forms completed
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="prepFeesPaid">
+          Government fees paid
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="prepPackageAssembled">
+          Application package assembled
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Consultant Notes</label>
+        <textarea class="form-control" rows="3" [(ngModel)]="prepNotes" placeholder="Notes about the application preparation..."></textarea>
+      </div>
+      <div class="stage-actions">
+        <button class="btn btn-secondary btn-sm" (click)="savePrepNotes()">
+          <span class="material-icons-outlined">save</span> Save Notes
+        </button>
+        <button class="btn btn-primary btn-sm" (click)="advanceToFinalReview()"
+                [disabled]="!prepFormsCompleted || !prepFeesPaid || !prepPackageAssembled">
+          <span class="material-icons-outlined">arrow_forward</span> Advance to Final Review
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Final Review stage detail (Task 10.4) -->
+    <ng-container *ngIf="expandedStage === 'final_review'">
+      <h3><span class="material-icons-outlined">verified</span> Final Review & Sign-off</h3>
+
+      <div class="readiness-summary">
+        <div class="readiness-item">
+          <span class="material-icons-outlined" [class.text-success]="(case.completedItems || 0) === (case.totalChecklistItems || 0)" [class.text-danger]="(case.completedItems || 0) !== (case.totalChecklistItems || 0)">
+            {{ (case.completedItems || 0) === (case.totalChecklistItems || 0) ? 'check_circle' : 'cancel' }}
+          </span>
+          <span>All documents accepted ({{ case.completedItems || 0 }}/{{ case.totalChecklistItems || 0 }})</span>
+        </div>
+        <div class="readiness-item">
+          <span class="material-icons-outlined" [class.text-success]="!case.missingItems" [class.text-danger]="case.missingItems">
+            {{ !case.missingItems ? 'check_circle' : 'cancel' }}
+          </span>
+          <span>No missing items{{ case.missingItems ? ' (' + case.missingItems + ' missing)' : '' }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Final Review Notes</label>
+        <textarea class="form-control" rows="3" [(ngModel)]="finalReviewNotes" placeholder="Notes about the final review..."></textarea>
+      </div>
+
+      <div class="signoff-confirmation" *ngIf="!case.consultantSignedOff">
+        <label class="checkbox-label signoff-checkbox">
+          <input type="checkbox" [(ngModel)]="signoffConfirmed">
+          I confirm this application is ready for submission
+        </label>
+        <button class="btn btn-primary" (click)="signOffAndSubmit()" [disabled]="!signoffConfirmed || signingOff">
+          <span class="material-icons-outlined">verified</span>
+          {{ signingOff ? 'Signing off...' : 'Sign Off & Submit' }}
+        </button>
+      </div>
+
+      <div class="signed-off-notice" *ngIf="case.consultantSignedOff">
+        <span class="material-icons-outlined text-success">check_circle</span>
+        <span>Application signed off and submitted{{ case.finalReviewedAt ? ' on ' + (case.finalReviewedAt | date:'MMM d, yyyy') : '' }}</span>
+      </div>
+    </ng-container>
+
+    <!-- Submitted stage detail -->
+    <ng-container *ngIf="expandedStage === 'submitted'">
+      <h3><span class="material-icons-outlined">send</span> Application Submitted</h3>
+      <div class="detail-row" *ngIf="case.submissionDate">
+        <span class="detail-label">Submission Date</span>
+        <span>{{ case.submissionDate | date:'MMM d, yyyy' }}</span>
+      </div>
+      <div class="detail-row" *ngIf="case.applicationNumber">
+        <span class="detail-label">Application Number</span>
+        <span class="mono">{{ case.applicationNumber }}</span>
+      </div>
+      <div class="detail-row" *ngIf="case.portalUsed">
+        <span class="detail-label">Portal Used</span>
+        <span>{{ case.portalUsed }}</span>
+      </div>
+    </ng-container>
+
+    <!-- Post-Submission stage detail -->
+    <ng-container *ngIf="expandedStage === 'post_sub'">
+      <h3><span class="material-icons-outlined">hourglass_top</span> Post-Submission</h3>
+      <div class="detail-row" *ngIf="case.biometricsStatus">
+        <span class="detail-label">Biometrics</span>
+        <span>{{ case.biometricsStatus }}</span>
+      </div>
+      <div class="detail-row" *ngIf="case.medicalStatus">
+        <span class="detail-label">Medical Exam</span>
+        <span>{{ case.medicalStatus }}</span>
+      </div>
+    </ng-container>
+
+    <!-- Decision stage detail -->
+    <ng-container *ngIf="expandedStage === 'decision'">
+      <h3><span class="material-icons-outlined">gavel</span> Decision Received</h3>
+      <p class="stage-desc">A decision has been received for this application.</p>
+    </ng-container>
+
+    <!-- Lead stages detail -->
+    <ng-container *ngIf="expandedStage === 'lead_intake'">
+      <h3><span class="material-icons-outlined">person_add</span> Lead Intake</h3>
+      <p class="stage-desc">New lead has been registered in the system.</p>
+    </ng-container>
+
+    <ng-container *ngIf="expandedStage === 'pre_screen'">
+      <h3><span class="material-icons-outlined">fact_check</span> Pre-Screening</h3>
+      <p class="stage-desc">Lead has been pre-screened for eligibility.</p>
+    </ng-container>
+
+    <ng-container *ngIf="expandedStage === 'consultation'">
+      <h3><span class="material-icons-outlined">event</span> Consultation Booked</h3>
+      <p class="stage-desc">A consultation has been scheduled with the client.</p>
+    </ng-container>
+  </div>
+</div>

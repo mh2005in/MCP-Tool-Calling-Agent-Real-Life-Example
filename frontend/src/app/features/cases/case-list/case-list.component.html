@@ -1,0 +1,95 @@
+<div class="page-header">
+  <div>
+    <h1>Cases</h1>
+    <p class="text-secondary">Manage immigration cases and track progress</p>
+  </div>
+  <a [routerLink]="['/consultant', consultantId, 'cases', 'new']" class="btn btn-primary">
+    <span class="material-icons-outlined">add</span> New Case
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card filter-bar">
+  <div class="filter-row">
+    <div class="search-box">
+      <span class="material-icons-outlined">search</span>
+      <input type="text" placeholder="Search by case number or client name..."
+             [(ngModel)]="searchQuery" (input)="applyFilters()">
+    </div>
+    <select [(ngModel)]="filterServiceType" (change)="applyFilters()">
+      <option value="">All Service Types</option>
+      <option value="STUDY_PERMIT">Study Permit</option>
+      <option value="VISITOR_VISA">Visitor Visa</option>
+      <option value="SPOUSAL_SPONSORSHIP">Spousal Sponsorship</option>
+      <option value="EXPRESS_ENTRY">Express Entry</option>
+      <option value="WORK_PERMIT">Work Permit</option>
+      <option value="LMIA">LMIA</option>
+      <option value="CITIZENSHIP">Citizenship</option>
+    </select>
+    <select [(ngModel)]="filterCaseStatus" (change)="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="INTAKE_PENDING">Intake Pending</option>
+      <option value="INTAKE_COMPLETED">Intake Completed</option>
+      <option value="CHECKLIST_PENDING">Checklist Pending</option>
+      <option value="DOCUMENTS_COLLECTING">Collecting Documents</option>
+      <option value="DOCUMENTS_UNDER_REVIEW">Under Review</option>
+      <option value="FILE_READY">File Ready</option>
+      <option value="APPLICATION_SUBMITTED">Submitted</option>
+      <option value="DECISION_RECEIVED">Decision Received</option>
+      <option value="CLOSED">Closed</option>
+    </select>
+  </div>
+</div>
+
+<!-- Cases Table -->
+<div class="card">
+  <table class="data-table" *ngIf="filteredCases.length > 0">
+    <thead>
+      <tr>
+        <th>Case #</th>
+        <th>Client</th>
+        <th>Service Type</th>
+        <th>Lead Status</th>
+        <th>Case Status</th>
+        <th>Checklist Progress</th>
+        <th>Deadline</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of filteredCases" [routerLink]="['/consultant', consultantId, 'cases', c.id]" class="clickable-row">
+        <td><span class="mono">{{ c.caseNumber }}</span></td>
+        <td class="fw-600">{{ c.clientName || '—' }}</td>
+        <td><span class="badge" [ngClass]="serviceClass(c.serviceType)">{{ formatServiceType(c.serviceType) }}</span></td>
+        <td><span class="badge" [ngClass]="leadClass(c.leadStatus)">{{ formatEnum(c.leadStatus) }}</span></td>
+        <td><span class="badge" [ngClass]="statusClass(c.caseStatus)">{{ formatEnum(c.caseStatus) }}</span></td>
+        <td>
+          <div class="progress-cell" *ngIf="c.totalChecklistItems">
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" [style.width.%]="progressPct(c)"></div>
+            </div>
+            <span class="progress-label">{{ c.completedItems }}/{{ c.totalChecklistItems }}</span>
+          </div>
+          <span *ngIf="!c.totalChecklistItems" class="text-muted">—</span>
+        </td>
+        <td>
+          <span *ngIf="c.deadline" [class.text-danger]="isOverdue(c.deadline)">
+            {{ c.deadline | date:'MMM d, yyyy' }}
+          </span>
+          <span *ngIf="!c.deadline" class="text-muted">—</span>
+        </td>
+        <td><span class="material-icons-outlined row-arrow">chevron_right</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="empty-state" *ngIf="filteredCases.length === 0 && !loading">
+    <span class="material-icons-outlined empty-icon">folder_open</span>
+    <p>No cases found</p>
+    <a [routerLink]="['/consultant', consultantId, 'cases', 'new']" class="btn btn-primary">Create your first case</a>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <p>Loading cases...</p>
+  </div>
+</div>

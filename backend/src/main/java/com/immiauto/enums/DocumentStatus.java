@@ -1,0 +1,15 @@
+package com.immiauto.enums;
+
+public enum DocumentStatus {
+    NOT_UPLOADED,
+    UPLOADED,
+    NEEDS_REVIEW,
+    ACCEPTED,
+    REJECTED,
+    EXPIRED,
+    INCORRECT_DOCUMENT,
+    TRANSLATION_REQUIRED,
+    NOTARIZATION_REQUIRED,
+    CLIENT_ACTION_NEEDED,
+    CONSULTANT_ACTION_NEEDED
+}

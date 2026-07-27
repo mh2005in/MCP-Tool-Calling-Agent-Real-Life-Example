@@ -1,0 +1,56 @@
+<div class="page-header">
+  <div>
+    <h1>Clients</h1>
+    <p class="text-secondary">Manage client profiles and contact information</p>
+  </div>
+  <a [routerLink]="['/consultant', consultantId, 'clients', 'new']" class="btn btn-primary">
+    <span class="material-icons-outlined">person_add</span> New Client
+  </a>
+</div>
+
+<div class="card filter-bar">
+  <div class="search-box">
+    <span class="material-icons-outlined">search</span>
+    <input type="text" placeholder="Search by name, email, or phone..."
+           [(ngModel)]="searchQuery" (input)="applyFilter()">
+  </div>
+</div>
+
+<div class="card" *ngIf="filteredClients.length > 0">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Client #</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Citizenship</th>
+        <th>Location</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of filteredClients" [routerLink]="['/consultant', consultantId, 'clients', c.id]" class="clickable-row">
+        <td><span class="mono">{{ c.clientNumber || '—' }}</span></td>
+        <td class="fw-600">{{ c.fullName }}</td>
+        <td>{{ c.email }}</td>
+        <td>{{ c.phone || '—' }}</td>
+        <td>{{ c.countryOfCitizenship || '—' }}</td>
+        <td>{{ c.currentLocation || '—' }}</td>
+        <td><span class="badge" [ngClass]="statusBadge(c.currentStatus)">{{ c.currentStatus || 'Unknown' }}</span></td>
+        <td><span class="material-icons-outlined row-arrow">chevron_right</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card empty-state" *ngIf="filteredClients.length === 0 && !loading">
+  <span class="material-icons-outlined empty-icon">people_outline</span>
+  <p>No clients found</p>
+  <a [routerLink]="['/consultant', consultantId, 'clients', 'new']" class="btn btn-primary">Add your first client</a>
+</div>
+
+<div class="loading-state" *ngIf="loading">
+  <p>Loading clients...</p>
+</div>

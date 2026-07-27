@@ -1,0 +1,159 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <div class="logo-section">
+      <span class="logo-icon">◈</span>
+      <div>
+        <span class="logo-text">ImmiAuto</span>
+        <span class="logo-sub">Admin Portal</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-body">
+    <!-- Left: Consultant List -->
+    <div class="panel consultant-list-panel">
+      <div class="panel-header">
+        <h2>Consultants</h2>
+        <span class="count-badge">{{ consultants.length }}</span>
+      </div>
+
+      <div class="search-box" *ngIf="consultants.length > 0">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Search consultants..."
+               [(ngModel)]="searchQuery" (input)="applyFilter()">
+      </div>
+
+      <div class="consultant-cards">
+        <div *ngFor="let c of filteredConsultants"
+             class="consultant-card"
+             (click)="selectConsultant(c)"
+             [class.selected]="selectedConsultant?.id === c.id">
+          <div class="card-top">
+            <div class="avatar">{{ getInitials(c.fullName) }}</div>
+            <div class="card-info">
+              <div class="card-name">
+                {{ c.fullName }}
+                <span class="admin-badge" *ngIf="c.admin">Admin</span>
+              </div>
+              <div class="card-number" *ngIf="c.consultantNumber">{{ c.consultantNumber }}</div>
+              <div class="card-email">{{ c.email }}</div>
+            </div>
+            <span class="badge" [ngClass]="c.active ? 'badge-success' : 'badge-neutral'">
+              {{ c.active ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="card-meta">
+            <span *ngIf="c.licenseNumber" class="meta-item">
+              <span class="material-icons-outlined">verified</span>
+              {{ c.licenseNumber }}
+            </span>
+            <span *ngIf="c.companyName" class="meta-item">
+              <span class="material-icons-outlined">business</span>
+              {{ c.companyName }}
+            </span>
+            <span class="meta-item">
+              <span class="material-icons-outlined">folder_open</span>
+              {{ c.activeCaseCount }} active cases
+            </span>
+          </div>
+          <div style="margin-top:8px">
+            <button type="button"
+                    (click)="$event.stopPropagation(); toggleActive(c)"
+                    style="display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;
+                           padding:4px 10px;border-radius:6px;cursor:pointer;background:transparent;
+                           border:1px solid var(--color-border-light)"
+                    [style.color]="c.active ? 'var(--color-danger, #c0392b)' : 'var(--color-success, #1e7e34)'">
+              <span class="material-icons-outlined" style="font-size:15px">{{ c.active ? 'block' : 'check_circle' }}</span>
+              {{ c.active ? 'Disable login' : 'Enable login' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="filteredConsultants.length === 0 && !loading" class="empty-state">
+        <span class="material-icons-outlined empty-icon">person_off</span>
+        <p *ngIf="consultants.length === 0">No consultants yet. Add one to get started.</p>
+        <p *ngIf="consultants.length > 0">No consultants match your search.</p>
+      </div>
+
+      <div *ngIf="loading" class="loading-state">
+        <p>Loading consultants...</p>
+      </div>
+    </div>
+
+    <!-- Right: Add Consultant Form -->
+    <div class="panel form-panel">
+      <div class="panel-header">
+        <h2>Add Consultant</h2>
+      </div>
+
+      <form (ngSubmit)="addConsultant()" class="consultant-form">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" type="text" [(ngModel)]="newConsultant.fullName"
+                 name="fullName" placeholder="e.g. Jane Smith" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input class="form-input" type="email" [(ngModel)]="newConsultant.email"
+                 name="email" placeholder="e.g. jane@example.com" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input class="form-input" type="tel" [(ngModel)]="newConsultant.phone"
+                   name="phone" placeholder="e.g. +1 (555) 123-4567">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RCIC License #</label>
+            <input class="form-input" type="text" [(ngModel)]="newConsultant.licenseNumber"
+                   name="licenseNumber" placeholder="e.g. R000000">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Company Name</label>
+          <input class="form-input" type="text" [(ngModel)]="newConsultant.companyName"
+                 name="companyName" placeholder="e.g. Immigration Solutions Inc.">
+        </div>
+
+        <div class="form-group toggle-group">
+          <label class="toggle-label">
+            <input type="checkbox" [(ngModel)]="newConsultant.admin" name="admin">
+            <span class="toggle-text">Admin Consultant</span>
+          </label>
+          <span class="toggle-hint">Admin consultants can view the organization dashboard and all consultant dashboards</span>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-banner">
+          <span class="material-icons-outlined">error_outline</span>
+          {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="success-banner">
+          <span class="material-icons-outlined">check_circle</span>
+          {{ successMessage }}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="saving">
+          <span class="material-icons-outlined">person_add</span>
+          {{ saving ? 'Adding...' : 'Add Consultant' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bottom Action: Go to Dashboard -->
+  <div class="action-bar" *ngIf="selectedConsultant">
+    <div class="selected-info">
+      <span class="material-icons-outlined">person</span>
+      Selected: <strong>{{ selectedConsultant.fullName }}</strong>
+    </div>
+    <button class="btn btn-primary btn-lg" (click)="goToDashboard()">
+      <span class="material-icons-outlined">dashboard</span>
+      Open Dashboard
+    </button>
+  </div>
+</div>

@@ -1,0 +1,349 @@
+{
+  "tools": [
+    {
+      "name": "list_clients",
+      "description": "List your immigration consultation clients. The consultant is identified automatically from the authenticated user. All PII fields (name, email, phone, passport, DOB) are pre-masked by the backend.",
+      "requiredScope": "mcp.cases.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/clients",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "get_client",
+      "description": "Get one immigration consultation client by ID. The consultant is identified automatically from the authenticated user. All PII fields (name, email, phone, passport, DOB) are pre-masked by the backend.",
+      "requiredScope": "mcp.cases.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "integer",
+            "description": "The client identifier"
+          }
+        },
+        "required": ["clientId"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/clients/{{clientId}}",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "summarize_intake",
+      "description": "Retrieve masked intake responses for a case, grouped by section. Use the returned data to produce a structured summary for the consultant. All PII fields are pre-masked by the backend. IMPORTANT: After generating any summary text, call validate_output to ensure regulatory compliance before presenting to the user.",
+      "requiredScope": "mcp.cases.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "integer",
+            "description": "The immigration case identifier"
+          }
+        },
+        "required": ["caseId"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/intake-summary",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "classify_document",
+      "description": "Classify an uploaded document by filename. Returns a rule-based classification with category, type, and confidence. If the result confidence is LOW or category is 'Uncategorized', use your knowledge to suggest a better classification based on the filename, mimeType, and case context.",
+      "requiredScope": "mcp.documents.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "integer",
+            "description": "The immigration case identifier"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Original filename of the uploaded document"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the document (e.g. application/pdf)"
+          },
+          "size": {
+            "type": "integer",
+            "description": "File size in bytes"
+          }
+        },
+        "required": ["caseId", "filename"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/classify-document",
+        "headers": {},
+        "query": {},
+        "body": {
+          "filename": "{{filename}}",
+          "mimeType": "{{mimeType}}",
+          "size": "{{size}}"
+        },
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "detect_missing_documents",
+      "description": "Retrieve the checklist status for a case showing all required and conditional items with their completion status. Use this data together with the intake summary (call summarize_intake separately if needed) to identify documents that are implicitly required based on the applicant's answers but not yet on the checklist. For example, if the intake says 'married' but no marriage certificate is on the checklist, flag it. IMPORTANT: After generating findings, call validate_output before presenting to the user.",
+      "requiredScope": "mcp.documents.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "integer",
+            "description": "The immigration case identifier"
+          }
+        },
+        "required": ["caseId"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/checklist-status",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "check_inconsistencies",
+      "description": "Retrieve the consistency report for a case including expired documents, missing required items, and duplicates. Also retrieves sanitized document metadata. Use both datasets to flag name/date mismatches, gaps in documentation, and cross-document issues. IMPORTANT: After generating findings, call validate_output before presenting to the user.",
+      "requiredScope": "mcp.documents.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "integer",
+            "description": "The immigration case identifier"
+          }
+        },
+        "required": ["caseId"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/consistency-report",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "draft_reminder_email",
+      "description": "Retrieve pending reminders and checklist status for a case. Use this data to generate a polite, professional reminder email for the consultant to review and approve. The email should list specific missing or expiring documents. Never include actual PII — use generic references. IMPORTANT: After generating the email draft, call validate_output before presenting to the user.",
+      "requiredScope": "mcp.messages.draft",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "integer",
+            "description": "The immigration case identifier"
+          }
+        },
+        "required": ["caseId"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/reminders/pending",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "extract_timeline",
+      "description": "Retrieve the combined travel, work, and relationship timeline for a case. Dates and categories are included; names are masked. Use this data to identify date gaps, overlaps, or inconsistencies in the applicant's history. IMPORTANT: After generating analysis, call validate_output before presenting to the user.",
+      "requiredScope": "mcp.cases.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "integer",
+            "description": "The immigration case identifier"
+          }
+        },
+        "required": ["caseId"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/timeline",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "summarize_translation",
+      "description": "Accepts translated document text provided by the user and summarizes the key content. This tool does not call the backend — pass the full translated text in the 'text' parameter and use the response from validate_output to ensure the summary is compliant. Workflow: 1) receive translated text, 2) generate summary, 3) call validate_output with the summary, 4) return the validated summary.",
+      "requiredScope": "mcp.tools.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The full translated document text to summarize"
+          }
+        },
+        "required": ["text"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/mcp/validate-output",
+        "headers": {},
+        "query": {},
+        "body": {
+          "text": "{{text}}"
+        },
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "get_case_overview",
+      "description": "Retrieve a holistic case summary combining masked intake responses, sanitized document metadata, and checklist completion status. Returns service type, subtype, case status, checklist counts, all documents (sanitized), and all intake answers (masked). Use this for a high-level dashboard view of a case. IMPORTANT: After generating any narrative, call validate_output before presenting to the user.",
+      "requiredScope": "mcp.cases.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "integer",
+            "description": "The immigration case identifier"
+          }
+        },
+        "required": ["caseId"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/overview",
+        "headers": {},
+        "query": {},
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "validate_output",
+      "description": "AI guardrail — pass any AI-generated text through the AiBoundaryService before returning it to the user. This checks for prohibited immigration advice patterns (eligibility claims, approval predictions, NOC classifications, etc.) and sanitizes violations. You MUST call this tool with your generated text before presenting any analysis, summary, or recommendation to the user.",
+      "requiredScope": "mcp.tools.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The AI-generated text to validate and sanitize"
+          }
+        },
+        "required": ["text"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/mcp/validate-output",
+        "headers": {},
+        "query": {},
+        "body": {
+          "text": "{{text}}"
+        },
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "search_by_case_number",
+      "description": "Look up a case by its human-readable case number (format: CS + 13 digits, e.g. CS0000000000001). Returns a case overview with masked intake responses, sanitized documents, and checklist status.",
+      "requiredScope": "mcp.cases.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caseNumber": {
+            "type": "string",
+            "description": "The human-readable case number (e.g. CS0000000000001)"
+          }
+        },
+        "required": ["caseNumber"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/search/case-number",
+        "headers": {},
+        "query": {
+          "caseNumber": "{{caseNumber}}"
+        },
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "search_by_client_number",
+      "description": "Look up a client by their human-readable client number (format: CN + 13 digits, e.g. CN0000000000001). Returns masked client details.",
+      "requiredScope": "mcp.cases.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientNumber": {
+            "type": "string",
+            "description": "The human-readable client number (e.g. CN0000000000001)"
+          }
+        },
+        "required": ["clientNumber"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/search/client-number",
+        "headers": {},
+        "query": {
+          "clientNumber": "{{clientNumber}}"
+        },
+        "timeoutSeconds": 30
+      }
+    },
+    {
+      "name": "search_by_consultant_number",
+      "description": "Look up a consultant by their human-readable consultant number (format: CO + 13 digits, e.g. CO0000000000001). Returns basic consultant info.",
+      "requiredScope": "mcp.tools.read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "consultantNumber": {
+            "type": "string",
+            "description": "The human-readable consultant number (e.g. CO0000000000001)"
+          }
+        },
+        "required": ["consultantNumber"],
+        "additionalProperties": false
+      },
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/mcp/search/consultant-number",
+        "headers": {},
+        "query": {
+          "consultantNumber": "{{consultantNumber}}"
+        },
+        "timeoutSeconds": 30
+      }
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+<!-- Mode toggle -->
+<div class="intake-header" *ngIf="hasSubmitted">
+  <div class="mode-toggle">
+    <button class="mode-btn" [class.active]="mode === 'form'" (click)="switchMode('form')">
+      <span class="material-icons-outlined">edit_note</span> Edit Intake
+    </button>
+    <button class="mode-btn" [class.active]="mode === 'summary'" (click)="switchMode('summary')">
+      <span class="material-icons-outlined">summarize</span> Summary
+    </button>
+  </div>
+  <button class="btn btn-primary btn-sm" (click)="generateChecklist()" [disabled]="generating">
+    <span class="material-icons-outlined">playlist_add_check</span>
+    {{ generating ? 'Generating...' : 'Generate Checklist from Intake' }}
+  </button>
+</div>
+
+<!-- FORM MODE -->
+<div *ngIf="mode === 'form'" class="intake-layout">
+  <!-- Section sidebar -->
+  <div class="section-nav">
+    <h4 class="nav-title">Sections</h4>
+    <button *ngFor="let s of sections; let i = index"
+            class="section-btn" [class.active]="activeSection === s"
+            [class.complete]="sectionComplete(s)" (click)="goToSection(s)">
+      <span class="section-num">{{ i + 1 }}</span>
+      <span class="section-label">{{ s }}</span>
+      <span class="section-progress">{{ sectionProgress(s).answered }}/{{ sectionProgress(s).total }}</span>
+      <span class="material-icons-outlined section-check" *ngIf="sectionComplete(s)">check_circle</span>
+    </button>
+  </div>
+
+  <!-- Questions -->
+  <div class="section-content">
+    <div class="section-header">
+      <h3>{{ activeSection }}</h3>
+      <span class="section-counter">Section {{ sections.indexOf(activeSection) + 1 }} of {{ sections.length }}</span>
+    </div>
+
+    <div class="question-list">
+      <div class="question" *ngFor="let q of questionsBySection[activeSection]">
+        <label class="question-label" [class.required]="q.required">
+          {{ q.questionLabel }}
+          <span class="required-star" *ngIf="q.required">*</span>
+          <span class="trigger-badge" *ngIf="q.isTriggerQuestion">Trigger</span>
+        </label>
+        <p class="help-text" *ngIf="q.helpText">{{ q.helpText }}</p>
+
+        <!-- TEXT -->
+        <input *ngIf="q.inputType === 'TEXT'" type="text" class="form-control"
+               [(ngModel)]="answers[q.questionKey]" [placeholder]="q.questionLabel">
+
+        <!-- TEXTAREA -->
+        <textarea *ngIf="q.inputType === 'TEXTAREA'" class="form-control" rows="3"
+                  [(ngModel)]="answers[q.questionKey]" [placeholder]="q.questionLabel"></textarea>
+
+        <!-- DATE -->
+        <input *ngIf="q.inputType === 'DATE'" type="date" class="form-control"
+               [(ngModel)]="answers[q.questionKey]">
+
+        <!-- SELECT -->
+        <select *ngIf="q.inputType === 'SELECT'" class="form-control"
+                [(ngModel)]="answers[q.questionKey]">
+          <option value="">Select...</option>
+          <option *ngFor="let opt of getOptions(q)" [value]="opt">{{ opt }}</option>
+        </select>
+
+        <!-- RADIO -->
+        <div *ngIf="q.inputType === 'RADIO'" class="radio-group">
+          <label *ngFor="let opt of getOptions(q)" class="radio-label">
+            <input type="radio" [name]="q.questionKey" [value]="opt"
+                   [(ngModel)]="answers[q.questionKey]">
+            <span>{{ opt }}</span>
+          </label>
+        </div>
+
+        <!-- CHECKBOX -->
+        <div *ngIf="q.inputType === 'CHECKBOX'" class="checkbox-group-inline">
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="answers[q.questionKey] === 'Yes'"
+                   (change)="answers[q.questionKey] = $any($event.target).checked ? 'Yes' : 'No'">
+            <span>Yes</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="section-nav-actions">
+      <button class="btn btn-secondary btn-sm" (click)="prevSection()" [disabled]="isFirstSection()">
+        <span class="material-icons-outlined">arrow_back</span> Previous
+      </button>
+      <button *ngIf="!isLastSection()" class="btn btn-primary btn-sm" (click)="nextSection()">
+        Next <span class="material-icons-outlined">arrow_forward</span>
+      </button>
+      <button *ngIf="isLastSection()" class="btn btn-primary btn-sm" (click)="submit()" [disabled]="submitting">
+        <span class="material-icons-outlined">send</span>
+        {{ submitting ? 'Submitting...' : (hasSubmitted ? 'Re-submit Intake' : 'Submit Intake') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY MODE -->
+<div *ngIf="mode === 'summary' && summary" class="summary-view">
+  <div class="card summary-card" *ngIf="summary.flaggedResponses.length > 0">
+    <h4 class="flagged-title">
+      <span class="material-icons-outlined">flag</span>
+      Flagged for Review ({{ summary.flaggedResponses.length }})
+    </h4>
+    <div class="flagged-item" *ngFor="let r of summary.flaggedResponses">
+      <span class="flagged-label">{{ r.questionLabel }}</span>
+      <span class="flagged-answer">{{ r.answer }}</span>
+    </div>
+  </div>
+
+  <div class="card summary-card" *ngFor="let section of sections">
+    <h4 class="summary-section-title">{{ section }}</h4>
+    <div class="summary-row" *ngFor="let r of summary.responsesBySection[section]">
+      <span class="summary-label">{{ r.questionLabel }}</span>
+      <span class="summary-value" [class.empty]="!r.answer">{{ r.answer || '—' }}</span>
+      <button class="btn-icon-sm flag-btn" (click)="toggleFlag(r)"
+              [class.flagged]="r.flaggedForReview" [title]="r.flaggedForReview ? 'Unflag' : 'Flag for review'">
+        <span class="material-icons-outlined">{{ r.flaggedForReview ? 'flag' : 'outlined_flag' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card summary-card" *ngIf="summary.aiSummary">
+    <h4 class="summary-section-title">
+      <span class="material-icons-outlined">auto_awesome</span> AI Summary
+    </h4>
+    <pre class="ai-summary-text">{{ summary.aiSummary }}</pre>
+    <p class="approval-notice">
+      <span class="material-icons-outlined">info</span>
+      This summary is generated to assist the consultant. It does not constitute immigration advice.
+    </p>
+  </div>
+</div>
+
+<!-- Empty state -->
+<div class="card empty-state" *ngIf="sections.length === 0">
+  <span class="material-icons-outlined empty-icon">quiz</span>
+  <p>No intake questions configured for this service type.</p>
+</div>
+
+<!-- Toasts -->
+<div class="toast toast-success" *ngIf="successMsg">{{ successMsg }}</div>
+<div class="toast toast-error" *ngIf="errorMsg">{{ errorMsg }}</div>

@@ -1,0 +1,201 @@
+<div class="workflow-section">
+  <div class="section-header">
+    <h3><span class="material-icons-outlined">person_search</span> LMIA Recruitment Tracker</h3>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button [class.active]="activeTab === 'evidence'" (click)="activeTab = 'evidence'">Recruitment Ads</button>
+    <button [class.active]="activeTab === 'candidates'" (click)="activeTab = 'candidates'">Candidate Matrix</button>
+    <button [class.active]="activeTab === 'compliance'" (click)="activeTab = 'compliance'">Preliminary Review</button>
+  </div>
+
+  <!-- Evidence Tab -->
+  <div *ngIf="activeTab === 'evidence'">
+    <div class="sub-header">
+      <span>{{ evidence.length }} advertisement(s) recorded</span>
+      <button class="btn btn-primary btn-sm" (click)="showEvidenceForm = !showEvidenceForm">
+        <span class="material-icons-outlined">add</span> Add Ad
+      </button>
+    </div>
+
+    <div class="entry-form card" *ngIf="showEvidenceForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Type <span class="required">*</span></label>
+          <select [(ngModel)]="evidenceForm.evidenceType">
+            <option *ngFor="let t of evidenceTypes" [value]="t">{{ t.replace('_', ' ') }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Platform <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="evidenceForm.platform" placeholder="e.g. Indeed, Job Bank" required />
+        </div>
+        <div class="form-group">
+          <label>Posting Date <span class="required">*</span></label>
+          <input type="date" [(ngModel)]="evidenceForm.postingDate" [max]="today" required />
+        </div>
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input type="date" [(ngModel)]="evidenceForm.expiryDate" [min]="evidenceForm.postingDate" />
+        </div>
+        <div class="form-group">
+          <label>Applicants Received</label>
+          <input type="number" [(ngModel)]="evidenceForm.applicantsReceived" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Interviews Conducted</label>
+          <input type="number" [(ngModel)]="evidenceForm.interviewsConducted" min="0" [max]="evidenceForm.applicantsReceived ?? 9999" />
+        </div>
+        <div class="form-group full-width">
+          <label>Notes / Non-hire Reasons</label>
+          <textarea [(ngModel)]="evidenceForm.notes" rows="2"></textarea>
+        </div>
+      </div>
+      <div *ngIf="evidenceFormError" class="form-error">{{ evidenceFormError }}</div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="showEvidenceForm = false">Cancel</button>
+        <button class="btn btn-primary" (click)="addEvidence()">Add</button>
+      </div>
+    </div>
+
+    <div class="data-table" *ngIf="evidence.length > 0">
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Platform</th><th>Posted</th><th>Applicants</th><th>Interviews</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of evidence">
+            <td><span class="type-badge">{{ e.evidenceType.replace('_', ' ') }}</span></td>
+            <td>{{ e.platform }}</td>
+            <td>{{ e.postingDate | date:'mediumDate' }}</td>
+            <td>{{ e.applicantsReceived }}</td>
+            <td>{{ e.interviewsConducted }}</td>
+            <td><button class="btn-icon danger" (click)="deleteEvidence(e.id!)"><span class="material-icons-outlined">delete</span></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Candidates Tab -->
+  <div *ngIf="activeTab === 'candidates'">
+    <div class="sub-header">
+      <span>{{ candidates.length }} candidate(s)</span>
+      <button class="btn btn-primary btn-sm" (click)="showCandidateForm = !showCandidateForm">
+        <span class="material-icons-outlined">add</span> Add Candidate
+      </button>
+    </div>
+
+    <div class="entry-form card" *ngIf="showCandidateForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="candidateForm.candidateName" />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select [(ngModel)]="candidateForm.candidateType">
+            <option *ngFor="let t of candidateTypes" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Years Experience</label>
+          <input type="number" [(ngModel)]="candidateForm.yearsExperience" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Education Level</label>
+          <input type="text" [(ngModel)]="candidateForm.educationLevel" />
+        </div>
+        <div class="form-group">
+          <label>Outcome</label>
+          <select [(ngModel)]="candidateForm.outcome">
+            <option value="">-- Pending --</option>
+            <option *ngFor="let o of outcomeOptions" [value]="o">{{ o.replace('_', ' ') }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" [(ngModel)]="candidateForm.interviewed" /> Interviewed</label>
+        </div>
+        <div class="form-group full-width">
+          <label>Non-hire Reason</label>
+          <textarea [(ngModel)]="candidateForm.nonHireReason" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="showCandidateForm = false">Cancel</button>
+        <button class="btn btn-primary" (click)="addCandidate()">Add</button>
+      </div>
+    </div>
+
+    <div class="data-table" *ngIf="candidates.length > 0">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Type</th><th>Exp</th><th>Education</th><th>Interviewed</th><th>Outcome</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of candidates" [class.foreign-row]="c.candidateType === 'FOREIGN'">
+            <td>{{ c.candidateName }}</td>
+            <td><span class="type-badge" [class.foreign]="c.candidateType === 'FOREIGN'">{{ c.candidateType }}</span></td>
+            <td>{{ c.yearsExperience }}y</td>
+            <td>{{ c.educationLevel }}</td>
+            <td>{{ c.interviewed ? 'Yes' : 'No' }}</td>
+            <td>{{ c.outcome?.replace('_', ' ') || '—' }}</td>
+            <td><button class="btn-icon danger" (click)="deleteCandidate(c.id!)"><span class="material-icons-outlined">delete</span></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Compliance Tab -->
+  <div *ngIf="activeTab === 'compliance' && compliance">
+    <div class="compliance-card card">
+      <div class="compliance-header">
+        <span class="material-icons-outlined" [class.pass]="compliance.preliminaryReviewStatus === 'REQUIREMENTS_APPEAR_MET'" [class.fail]="compliance.preliminaryReviewStatus !== 'REQUIREMENTS_APPEAR_MET'">
+          {{ compliance.preliminaryReviewStatus === 'REQUIREMENTS_APPEAR_MET' ? 'check_circle' : 'error' }}
+        </span>
+        <h4>{{ compliance.preliminaryReviewStatus === 'REQUIREMENTS_APPEAR_MET' ? 'Requirements Appear Met (Preliminary)' : 'Requirements Not Yet Met' }}</h4>
+      </div>
+      <div class="compliance-checks">
+        <div class="check-row">
+          <span class="material-icons-outlined" [class.pass]="compliance.jobBankMeetsMinimum">
+            {{ compliance.jobBankMeetsMinimum ? 'check' : 'close' }}
+          </span>
+          <span>Job Bank posting ({{ compliance.jobBankDaysPosted || 0 }} / 28 days minimum)</span>
+        </div>
+        <div class="check-row" *ngIf="compliance.jobBankPosted">
+          <span class="material-icons-outlined" [class.pass]="compliance.jobBankWithinWindow">
+            {{ compliance.jobBankWithinWindow ? 'check' : 'close' }}
+          </span>
+          <span>Job Bank within 3-month pre-application window</span>
+        </div>
+        <div class="check-row">
+          <span class="material-icons-outlined" [class.pass]="compliance.additionalAdsMeetMinimum">
+            {{ compliance.additionalAdsMeetMinimum ? 'check' : 'close' }}
+          </span>
+          <span>Additional ads ({{ compliance.additionalAdsCount }} / 2 minimum)</span>
+        </div>
+        <div class="check-row">
+          <span class="material-icons-outlined" [class.pass]="compliance.distinctAudiencesVerified">
+            {{ compliance.distinctAudiencesVerified ? 'check' : 'close' }}
+          </span>
+          <span>Distinct audiences ({{ compliance.distinctPlatforms }} platform(s))</span>
+        </div>
+        <div class="check-row">
+          <span class="material-icons-outlined" [class.pass]="compliance.totalInterviews > 0">
+            {{ compliance.totalInterviews > 0 ? 'check' : 'close' }}
+          </span>
+          <span>Interviews conducted ({{ compliance.totalInterviews }})</span>
+        </div>
+      </div>
+      <div class="compliance-warnings" *ngIf="compliance.warnings.length > 0">
+        <h5>Warnings</h5>
+        <ul>
+          <li *ngFor="let w of compliance.warnings">{{ w }}</li>
+        </ul>
+      </div>
+      <p class="disclaimer-text">{{ compliance.disclaimer }}</p>
+    </div>
+  </div>
+</div>

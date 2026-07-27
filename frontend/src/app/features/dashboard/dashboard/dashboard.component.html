@@ -1,0 +1,240 @@
+﻿<div class="page-header">
+  <div>
+    <div class="page-kicker">Practice overview</div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle" *ngIf="consultant">
+      {{ consultant.fullName }}
+      <span *ngIf="consultant.licenseNumber" class="text-mono"> · {{ consultant.licenseNumber }}</span>
+    </p>
+    <p class="page-subtitle" *ngIf="!consultant">Case overview and pending actions</p>
+  </div>
+  <a [routerLink]="['/consultant', consultantId, 'cases', 'new']" class="btn btn-primary">
+    <span class="material-icons-outlined">add</span>
+    New Case
+  </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-4 mb-md stats-grid">
+  <div class="stat-card stat-primary">
+    <div class="stat-icon" style="background:var(--color-primary-light);color:var(--color-primary)">
+      <span class="material-icons-outlined">folder_open</span>
+    </div>
+    <div class="stat-value">{{ dashboard?.totalActiveCases || 0 }}</div>
+    <div class="stat-label">Active Cases</div>
+  </div>
+  <div class="stat-card stat-warning">
+    <div class="stat-icon" style="background:var(--color-warning-light);color:var(--color-warning)">
+      <span class="material-icons-outlined">upload_file</span>
+    </div>
+    <div class="stat-value">{{ dashboard?.casesAwaitingDocuments || 0 }}</div>
+    <div class="stat-label">Awaiting Documents</div>
+  </div>
+  <div class="stat-card stat-success">
+    <div class="stat-icon" style="background:var(--color-success-light);color:var(--color-success)">
+      <span class="material-icons-outlined">check_circle</span>
+    </div>
+    <div class="stat-value">{{ dashboard?.casesFileReady || 0 }}</div>
+    <div class="stat-label">File Ready</div>
+  </div>
+  <div class="stat-card stat-danger">
+    <div class="stat-icon" style="background:var(--color-danger-light);color:var(--color-danger)">
+      <span class="material-icons-outlined">schedule</span>
+    </div>
+    <div class="stat-value">{{ dashboard?.casesWithUpcomingDeadlines || 0 }}</div>
+    <div class="stat-label">Upcoming Deadlines</div>
+  </div>
+</div>
+
+<!-- Middle row: Pending Approvals + Quick Actions + AI Insights -->
+<div class="grid-3 mb-md" *ngIf="!loading">
+  <!-- Pending Approvals -->
+  <div class="card section-card">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="material-icons-outlined">approval</span>
+        Pending Approvals
+      </h3>
+      <span class="count-badge">{{ pendingReminders.length }}</span>
+    </div>
+    <div *ngIf="pendingReminders.length > 0" class="section-list">
+      <div class="section-list-item" *ngFor="let r of pendingReminders.slice(0, 5)">
+        <span class="material-icons-outlined list-icon text-warning">pending_actions</span>
+        <div class="list-item-content">
+          <span class="list-item-title">{{ r.subject }}</span>
+          <span class="list-item-meta">{{ r.channel }} · {{ r.status }}</span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="pendingReminders.length === 0" class="section-empty">
+      <span class="material-icons-outlined">done_all</span>
+      <p>No pending approvals</p>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card section-card">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="material-icons-outlined">bolt</span>
+        Quick Actions
+      </h3>
+    </div>
+    <div class="quick-actions-list">
+      <button class="quick-action-btn" (click)="triggerExpiryScan()" [disabled]="scanningExpiry">
+        <span class="material-icons-outlined" *ngIf="!scanningExpiry">search</span>
+        <span class="material-icons-outlined spin" *ngIf="scanningExpiry">sync</span>
+        <span>Scan for Expiry Alerts</span>
+      </button>
+      <a class="quick-action-btn" [routerLink]="['/consultant', consultantId, 'templates']">
+        <span class="material-icons-outlined">description</span>
+        <span>Manage Templates</span>
+      </a>
+      <a class="quick-action-btn" [routerLink]="['/consultant', consultantId, 'cases']">
+        <span class="material-icons-outlined">list_alt</span>
+        <span>View All Cases</span>
+      </a>
+    </div>
+    <div class="scan-msg" *ngIf="expiryScanMsg">{{ expiryScanMsg }}</div>
+  </div>
+
+  <!-- AI Insights (Placeholder) -->
+  <div class="card section-card">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="material-icons-outlined">auto_awesome</span>
+        AI Insights
+      </h3>
+      <span class="badge badge-coming-soon">Coming soon</span>
+    </div>
+    <div class="ai-insight-list">
+      <div class="ai-insight-item">
+        <span class="material-icons-outlined ai-icon">summarize</span>
+        <div>
+          <span class="ai-insight-label">Intake summaries pending review</span>
+          <span class="ai-insight-value">0</span>
+        </div>
+      </div>
+      <div class="ai-insight-item">
+        <span class="material-icons-outlined ai-icon">category</span>
+        <div>
+          <span class="ai-insight-label">Documents awaiting classification</span>
+          <span class="ai-insight-value">0</span>
+        </div>
+      </div>
+      <div class="ai-insight-item">
+        <span class="material-icons-outlined ai-icon">compare_arrows</span>
+        <div>
+          <span class="ai-insight-label">Consistency issues detected</span>
+          <span class="ai-insight-value">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Missing Documents + Expiry Alerts row -->
+<div class="grid-2 mb-md" *ngIf="!loading">
+  <!-- Missing Documents Overview -->
+  <div class="card section-card">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="material-icons-outlined">folder_off</span>
+        Missing Documents
+      </h3>
+    </div>
+    <div *ngIf="missingDocsCases.length > 0" class="section-list">
+      <div class="section-list-item" *ngFor="let c of missingDocsCases"
+           [routerLink]="['/consultant', consultantId, 'cases', c.id]" style="cursor:pointer">
+        <div class="list-item-content">
+          <span class="list-item-title">{{ c.clientName }}</span>
+          <span class="list-item-meta">{{ c.caseNumber }} · {{ formatServiceType(c.serviceType) }}</span>
+        </div>
+        <span class="badge badge-warning">{{ c.missingItems }} missing</span>
+      </div>
+    </div>
+    <div *ngIf="missingDocsCases.length === 0" class="section-empty">
+      <span class="material-icons-outlined">check_circle</span>
+      <p>No missing documents</p>
+    </div>
+  </div>
+
+  <!-- Expiry Alerts -->
+  <div class="card section-card">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="material-icons-outlined">warning_amber</span>
+        Expiry Alerts
+      </h3>
+      <span class="count-badge count-danger" *ngIf="activeExpiryAlerts.length > 0">{{ activeExpiryAlerts.length }}</span>
+    </div>
+    <div *ngIf="activeExpiryAlerts.length > 0" class="section-list">
+      <div class="section-list-item" *ngFor="let a of activeExpiryAlerts">
+        <div class="list-item-content">
+          <span class="list-item-title">{{ a.documentDescription }}</span>
+          <span class="list-item-meta">{{ a.clientName }} · {{ a.caseNumber }}</span>
+        </div>
+        <div class="alert-right">
+          <span class="badge" [ngClass]="getSeverityClass(a.severity)">{{ a.severity }}</span>
+          <span class="expiry-days" [class.expiry-critical]="a.daysUntilExpiry <= 7">
+            {{ a.daysUntilExpiry }}d
+          </span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="activeExpiryAlerts.length === 0" class="section-empty">
+      <span class="material-icons-outlined">verified</span>
+      <p>No active expiry alerts</p>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Cases -->
+<div class="card mt-lg">
+  <div class="flex justify-between items-center mb-md">
+    <h2 style="font-size:1.1rem;font-weight:700">Recent Cases</h2>
+    <a [routerLink]="['/consultant', consultantId, 'cases']" class="text-sm" style="color:var(--color-primary)">View all &#8594;</a>
+  </div>
+
+  <table class="data-table" *ngIf="cases.length > 0">
+    <thead>
+      <tr>
+        <th>Case #</th>
+        <th>Client</th>
+        <th>Service Type</th>
+        <th>Status</th>
+        <th>Documents</th>
+        <th>Deadline</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of cases.slice(0, 10)" style="cursor:pointer" [routerLink]="['/consultant', consultantId, 'cases', c.id]">
+        <td class="text-mono text-sm">{{ c.caseNumber }}</td>
+        <td>{{ c.clientName }}</td>
+        <td><span class="badge badge-primary">{{ formatServiceType(c.serviceType) }}</span></td>
+        <td><span [class]="'badge ' + getStatusBadgeClass(c.caseStatus)">{{ formatStatus(c.caseStatus) }}</span></td>
+        <td>
+          <div class="progress-bar-mini">
+            <div class="progress-fill" [style.width.%]="getDocProgress(c)"></div>
+          </div>
+          <span class="text-sm text-muted">{{ c.completedItems }}/{{ c.totalChecklistItems }}</span>
+        </td>
+        <td class="text-sm">{{ c.deadline || '—' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="cases.length === 0 && !loading" class="empty-state">
+    <span class="material-icons-outlined" style="font-size:48px;color:var(--color-border)">folder_off</span>
+    <p class="text-muted mt-sm">No cases yet. Create your first case to get started.</p>
+  </div>
+
+  <div *ngIf="loading" class="empty-state">
+    <p class="text-muted">Loading dashboard...</p>
+  </div>
+</div>
+
+
+
+
+

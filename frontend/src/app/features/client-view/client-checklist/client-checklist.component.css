@@ -1,0 +1,127 @@
+.client-page { max-width: 800px; margin: 0 auto; padding: var(--space-lg); }
+
+/* Disclaimer */
+.disclaimer-banner { display: flex; gap: var(--space-md); align-items: flex-start;
+  background: var(--color-warning-light); border: 1px solid #e8d5a0; border-radius: var(--radius-md);
+  padding: var(--space-lg); margin-bottom: var(--space-xl); }
+.disclaimer-icon { font-size: 22px; color: var(--color-warning); flex-shrink: 0; margin-top: 2px; }
+.disclaimer-banner p { font-size: 0.85rem; line-height: 1.6; color: var(--color-text-secondary); }
+
+/* Progress */
+.progress-card { background: var(--color-surface); border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md); padding: var(--space-xl); margin-bottom: var(--space-xl); text-align: center; }
+.progress-card h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: var(--space-lg); }
+.progress-summary { display: flex; justify-content: center; gap: var(--space-2xl); margin-bottom: var(--space-lg); }
+.progress-stat { display: flex; flex-direction: column; align-items: center; }
+.progress-number { font-size: 2rem; font-weight: 700; color: var(--color-success); }
+.progress-missing { color: var(--color-warning); }
+.progress-total { color: var(--color-text); }
+.progress-label { font-size: 0.78rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.progress-bar { height: 10px; background: var(--color-border-light); border-radius: 5px; overflow: hidden;
+  margin-bottom: var(--space-sm); }
+.progress-fill { height: 100%; background: var(--color-success); border-radius: 5px; transition: width 0.5s ease; }
+.progress-pct { font-size: 0.82rem; color: var(--color-text-muted); }
+
+/* Upload zone */
+.upload-zone-card { background: var(--color-surface); border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md); padding: var(--space-xl); margin-bottom: var(--space-xl); }
+.upload-zone-title { display: flex; align-items: center; gap: var(--space-sm); font-size: 1rem;
+  font-weight: 700; margin-bottom: var(--space-lg); }
+.upload-zone-title .material-icons-outlined { font-size: 22px; color: var(--color-primary); }
+
+.drop-zone { border: 2px dashed var(--color-border); border-radius: var(--radius-md);
+  padding: var(--space-2xl) var(--space-lg); text-align: center; transition: all 0.2s ease;
+  background: var(--color-bg); }
+.drop-zone-active { border-color: var(--color-primary); background: var(--color-primary-light); }
+.drop-icon { font-size: 40px; color: var(--color-text-muted); margin-bottom: var(--space-sm); }
+.drop-text { font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: var(--space-md); }
+.drop-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--space-md); }
+
+.upload-btn-label { cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-sm);
+  padding: 8px 18px; background: var(--color-primary); color: #fff; border-radius: var(--radius-sm);
+  font-size: 0.85rem; font-weight: 600; font-family: var(--font-body); transition: background 0.15s ease; }
+.upload-btn-label:hover { background: var(--color-primary-hover); }
+.upload-btn-label .material-icons-outlined { font-size: 16px; }
+
+.file-input-hidden { position: absolute; width: 0; height: 0; overflow: hidden; opacity: 0; }
+
+/* Groups */
+.checklist-section { margin-bottom: var(--space-xl); }
+.group-title { display: flex; align-items: center; gap: var(--space-sm); font-size: 0.9rem; font-weight: 700;
+  margin-bottom: var(--space-md); color: var(--color-text); }
+.group-title .material-icons-outlined { font-size: 20px; color: var(--color-primary); }
+.group-count { font-size: 0.72rem; background: var(--color-border-light); padding: 2px 8px; border-radius: 8px;
+  color: var(--color-text-muted); font-weight: 600; }
+
+.checklist-card { background: var(--color-surface); border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md); overflow: hidden; }
+
+.checklist-row { display: flex; align-items: flex-start; gap: var(--space-md); padding: 14px var(--space-lg);
+  border-bottom: 1px solid var(--color-border-light); transition: background 0.15s ease; }
+.checklist-row:last-child { border-bottom: none; }
+.checklist-row.row-done { opacity: 0.6; }
+.checklist-row.row-uploading { background: var(--color-primary-light); }
+
+.row-icon { flex-shrink: 0; margin-top: 2px; }
+.row-icon .material-icons-outlined { font-size: 20px; }
+.status-pending .material-icons-outlined,
+.status-pending { color: var(--color-text-muted); }
+.status-info .material-icons-outlined,
+.status-info { color: var(--color-info); }
+.status-warning .material-icons-outlined,
+.status-warning { color: var(--color-warning); }
+.status-success .material-icons-outlined,
+.status-success { color: var(--color-success); }
+.status-danger .material-icons-outlined,
+.status-danger { color: var(--color-danger); }
+
+.row-content { flex: 1; }
+.doc-name { display: block; font-size: 0.9rem; font-weight: 600; }
+.doc-desc { display: block; font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 2px; }
+.doc-condition { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--color-info);
+  margin-top: 4px; }
+.doc-condition .material-icons-outlined { font-size: 14px; }
+
+.row-status { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.status-badge { font-size: 0.72rem; font-weight: 600; padding: 2px 10px; border-radius: 10px; white-space: nowrap; }
+.status-badge.status-pending { background: #f1f1ef; }
+.status-badge.status-info { background: var(--color-info-light); }
+.status-badge.status-warning { background: var(--color-warning-light); }
+.status-badge.status-success { background: var(--color-success-light); }
+.status-badge.status-danger { background: var(--color-danger-light); }
+.required-tag { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--color-danger); }
+
+/* Per-item upload button */
+.row-upload { flex-shrink: 0; }
+.btn-upload { cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px; background: var(--color-primary); color: #fff; border: none;
+  border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600;
+  font-family: var(--font-body); transition: background 0.15s ease; }
+.btn-upload:hover { background: var(--color-primary-hover); }
+.btn-upload .material-icons-outlined { font-size: 15px; }
+
+/* Uploading spinner */
+.uploading-state { padding: var(--space-lg); }
+.uploading-state p { font-size: 0.88rem; color: var(--color-text-secondary); margin-top: var(--space-sm); }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin 1s linear infinite; }
+
+/* States */
+.empty-state, .loading-state, .error-state { text-align: center; padding: var(--space-2xl); }
+.empty-icon { font-size: 48px; color: var(--color-text-muted); margin-bottom: var(--space-md); }
+.empty-state p, .loading-state p { color: var(--color-text-secondary); }
+.error-state { color: var(--color-danger); }
+.error-state .material-icons-outlined { font-size: 48px; margin-bottom: var(--space-md); }
+
+@media (max-width: 600px) {
+  .checklist-row { flex-wrap: wrap; gap: var(--space-sm); }
+  .row-status { align-items: flex-start; flex-direction: row; gap: var(--space-sm); }
+  .row-upload { width: 100%; }
+  .btn-upload { width: 100%; justify-content: center; }
+  .progress-summary { gap: var(--space-lg); }
+}

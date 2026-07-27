@@ -1,0 +1,108 @@
+<div class="portal-container">
+  <!-- Loading -->
+  <div class="empty-state" *ngIf="loading">
+    <span class="material-icons-outlined">hourglass_empty</span>
+    <p>Loading your portal...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error && !loading">
+    <span class="material-icons-outlined">error_outline</span>
+    <h3>Access Error</h3>
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!loading && !error && party">
+    <!-- Party profile header -->
+    <div class="portal-header card">
+      <div class="profile-row">
+        <div class="profile-icon">
+          <span class="material-icons-outlined">{{ partyTypeIcon(party.partyType) }}</span>
+        </div>
+        <div class="profile-info">
+          <h2 class="portal-title">{{ party.fullName }}</h2>
+          <div class="profile-meta">
+            <span class="badge badge-primary">{{ partyTypeLabel(party.partyType) }}</span>
+            <span *ngIf="party.organization" class="meta-item">
+              <span class="material-icons-outlined">business</span> {{ party.organization }}
+            </span>
+            <span *ngIf="party.email" class="meta-item">
+              <span class="material-icons-outlined">email</span> {{ party.email }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-label">Document Progress</span>
+          <span class="progress-value">{{ completedItems }} / {{ totalItems }} completed</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressPct"></div>
+        </div>
+        <span class="progress-pct">{{ progressPct }}%</span>
+      </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      <span class="material-icons-outlined">info</span>
+      <p>Documents uploaded through this portal are subject to review by the immigration consultant.</p>
+    </div>
+
+    <!-- Task groups -->
+    <div class="task-groups" *ngIf="taskGroups.length > 0">
+      <div class="task-group card" *ngFor="let group of taskGroups">
+        <div class="group-header">
+          <h3>{{ group.category }}</h3>
+          <span class="group-progress">{{ group.completedCount }}/{{ group.items.length }}</span>
+        </div>
+        <div class="task-list">
+          <div class="task-item" *ngFor="let item of group.items">
+            <div class="task-status">
+              <span class="material-icons-outlined" [ngClass]="statusClass(item.status)">
+                {{ statusIcon(item.status) }}
+              </span>
+            </div>
+            <div class="task-details">
+              <span class="task-name">{{ item.documentName }}</span>
+              <span class="task-desc" *ngIf="item.description">{{ item.description }}</span>
+              <span class="task-status-label" [ngClass]="statusClass(item.status)">
+                {{ statusLabel(item.status) }}
+              </span>
+              <span class="task-condition" *ngIf="item.conditional && item.conditionDescription">
+                <span class="material-icons-outlined">info_outline</span>
+                {{ item.conditionDescription }}
+              </span>
+              <span class="task-note" *ngIf="item.consultantReviewNote">
+                <span class="material-icons-outlined">comment</span>
+                {{ item.consultantReviewNote }}
+              </span>
+            </div>
+            <div class="task-actions">
+              <label
+                class="upload-btn btn btn-sm"
+                [class.btn-primary]="item.status === 'NOT_UPLOADED' || item.status === 'REJECTED'"
+                [class.btn-secondary]="item.status !== 'NOT_UPLOADED' && item.status !== 'REJECTED'"
+              >
+                <span class="material-icons-outlined">upload_file</span>
+                {{ item.status === 'NOT_UPLOADED' ? 'Upload' : 'Re-upload' }}
+                <input type="file" (change)="onFileSelected($event, item)" hidden />
+              </label>
+              <span class="required-tag" *ngIf="item.required">Required</span>
+              <span class="conditional-tag" *ngIf="item.conditional && !item.required">Conditional</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="taskGroups.length === 0">
+      <span class="material-icons-outlined">assignment_turned_in</span>
+      <p>No tasks assigned to you at this time.</p>
+    </div>
+  </div>
+</div>

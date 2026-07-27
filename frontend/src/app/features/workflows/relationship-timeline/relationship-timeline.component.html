@@ -1,0 +1,79 @@
+<div class="workflow-section">
+  <div class="section-header">
+    <h3><span class="material-icons-outlined">favorite</span> Relationship Timeline</h3>
+    <button class="btn btn-primary btn-sm" (click)="openForm()">
+      <span class="material-icons-outlined">add</span> Add Milestone
+    </button>
+  </div>
+
+  <!-- Add/Edit Form -->
+  <div class="entry-form card" *ngIf="showForm">
+    <h4>{{ editingEntry ? 'Edit Milestone' : 'Add Milestone' }}</h4>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Milestone Type *</label>
+        <select [(ngModel)]="form.milestoneType">
+          <option *ngFor="let m of milestoneTypes" [value]="m">{{ formatMilestone(m) }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" [(ngModel)]="form.milestoneDate" />
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" [(ngModel)]="form.location" placeholder="City, Country" />
+      </div>
+      <div class="form-group">
+        <label>Evidence Category</label>
+        <select [(ngModel)]="form.evidenceCategory">
+          <option value="">-- None --</option>
+          <option *ngFor="let c of evidenceCategories" [value]="c">{{ c.replace('_', ' ') }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Evidence Count</label>
+        <input type="number" [(ngModel)]="form.evidenceCount" min="0" />
+      </div>
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea [(ngModel)]="form.description" rows="2" placeholder="Describe this milestone..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="cancelForm()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveEntry()">{{ editingEntry ? 'Update' : 'Add' }}</button>
+    </div>
+  </div>
+
+  <!-- Timeline View -->
+  <div class="timeline" *ngIf="entries.length > 0">
+    <div class="timeline-entry" *ngFor="let e of entries; let last = last">
+      <div class="timeline-dot">
+        <span class="material-icons-outlined">{{ milestoneIcons[e.milestoneType] || 'event' }}</span>
+      </div>
+      <div class="timeline-connector" *ngIf="!last"></div>
+      <div class="timeline-content card">
+        <div class="timeline-header">
+          <span class="milestone-type">{{ formatMilestone(e.milestoneType) }}</span>
+          <div class="timeline-actions">
+            <button class="btn-icon" (click)="openForm(e)"><span class="material-icons-outlined">edit</span></button>
+            <button class="btn-icon danger" (click)="deleteEntry(e.id!)"><span class="material-icons-outlined">delete</span></button>
+          </div>
+        </div>
+        <span class="milestone-date">{{ e.milestoneDate | date:'mediumDate' }}</span>
+        <span class="milestone-location" *ngIf="e.location">{{ e.location }}</span>
+        <p class="milestone-desc" *ngIf="e.description">{{ e.description }}</p>
+        <div class="evidence-tag" *ngIf="e.evidenceCategory">
+          <span class="material-icons-outlined">photo_library</span>
+          {{ e.evidenceCategory.replace('_', ' ') }} ({{ e.evidenceCount }} items)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="entries.length === 0 && !showForm">
+    <span class="material-icons-outlined">timeline</span>
+    <p>No relationship milestones recorded yet</p>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+﻿<div class="app-shell" [class.no-sidebar]="isAdminPage">
+  <aside class="sidebar" *ngIf="!isAdminPage">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true"><span></span></span>
+        <div>
+          <span class="logo-text">ImmiAuto</span>
+          <span class="logo-sub">Practice workspace</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a [routerLink]="'/consultant/' + navConsultantId + '/dashboard'" routerLinkActive="active" class="nav-item">
+        <span class="material-icons-outlined">dashboard</span>
+        Dashboard
+      </a>
+      <a [routerLink]="'/consultant/' + navConsultantId + '/cases'" routerLinkActive="active" class="nav-item">
+        <span class="material-icons-outlined">folder_open</span>
+        Cases
+      </a>
+      <a [routerLink]="'/consultant/' + navConsultantId + '/clients'" routerLinkActive="active" class="nav-item">
+        <span class="material-icons-outlined">people</span>
+        Clients
+      </a>
+
+      <ng-container *ngIf="isAdminConsultant">
+        <div class="nav-section-label" style="padding:1rem 1rem .4rem;font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;opacity:.6">My Organization</div>
+        <a [routerLink]="'/consultant/' + navConsultantId + '/org-dashboard'" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">corporate_fare</span>
+          Organization
+        </a>
+        <a routerLink="/admin" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">manage_accounts</span>
+          Manage Consultants
+        </a>
+        <a [routerLink]="'/consultant/' + navConsultantId + '/templates'" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">description</span>
+          Templates
+        </a>
+      </ng-container>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="workspace-status">
+        <span class="status-dot"></span>
+        <div><strong>Secure workspace</strong><small>Protected client data</small></div>
+      </div>
+      <a *ngIf="auth.isAuthenticated()" (click)="logout()" class="nav-item" style="cursor:pointer">
+        <span class="material-icons-outlined">logout</span>
+        Sign out
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content" [class.full-width]="isAdminPage">
+    <router-outlet />
+  </main>
+</div>
+
+
+

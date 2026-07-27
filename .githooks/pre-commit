@@ -1,0 +1,33 @@
+#!/bin/sh
+# ============================================================
+# pre-commit: block commits whose staged changes contain likely
+# secrets, using gitleaks.
+#
+# Safety net only - it does NOT replace the placeholder rule in
+# CLAUDE.md (Section 8), and gitleaks matches secret PATTERNS, not
+# PII: it will not catch a real name or email for you. Bypass a
+# genuine false positive with `git commit --no-verify`.
+#
+# Enable in a fresh clone (per-clone config):
+#   git config core.hooksPath .githooks
+# ============================================================
+set -eu
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "[pre-commit] gitleaks not found - skipping secret scan (install it to enable)."
+    echo "[pre-commit]   Windows: winget install gitleaks   (or: scoop install gitleaks / choco install gitleaks)"
+    echo "[pre-commit]   macOS:   brew install gitleaks"
+    echo "[pre-commit]   See https://github.com/gitleaks/gitleaks#installing"
+    exit 0
+fi
+
+echo "[pre-commit] Scanning staged changes for secrets (gitleaks)..."
+if ! gitleaks git --staged --redact --no-banner; then
+    echo "[pre-commit] Potential secret detected in staged changes - commit blocked."
+    echo "[pre-commit] Replace real secrets with placeholders (see CLAUDE.md Section 8),"
+    echo "[pre-commit] or bypass a genuine false positive with: git commit --no-verify"
+    exit 1
+fi
+
+echo "[pre-commit] No secrets detected."
+exit 0

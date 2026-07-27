@@ -1,0 +1,118 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Organization Dashboard</h1>
+    <p class="page-subtitle">Overview across all consultants</p>
+  </div>
+  <a [routerLink]="['/consultant', consultantId, 'dashboard']" class="btn btn-secondary">
+    <span class="material-icons-outlined">person</span>
+    My Dashboard
+  </a>
+</div>
+
+<!-- Org Stats -->
+<div class="grid-5 mb-md">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--color-info-light);color:var(--color-info)">
+      <span class="material-icons-outlined">groups</span>
+    </div>
+    <div class="stat-value">{{ data?.totalConsultants || 0 }}</div>
+    <div class="stat-label">Consultants</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--color-primary-light);color:var(--color-primary)">
+      <span class="material-icons-outlined">folder_open</span>
+    </div>
+    <div class="stat-value">{{ data?.totalActiveCases || 0 }}</div>
+    <div class="stat-label">Active Cases</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--color-warning-light);color:var(--color-warning)">
+      <span class="material-icons-outlined">upload_file</span>
+    </div>
+    <div class="stat-value">{{ data?.casesAwaitingDocuments || 0 }}</div>
+    <div class="stat-label">Awaiting Docs</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--color-success-light);color:var(--color-success)">
+      <span class="material-icons-outlined">check_circle</span>
+    </div>
+    <div class="stat-value">{{ data?.casesFileReady || 0 }}</div>
+    <div class="stat-label">File Ready</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--color-danger-light);color:var(--color-danger)">
+      <span class="material-icons-outlined">schedule</span>
+    </div>
+    <div class="stat-value">{{ data?.casesWithUpcomingDeadlines || 0 }}</div>
+    <div class="stat-label">Deadlines</div>
+  </div>
+</div>
+
+<!-- Consultant Breakdown -->
+<div class="card mt-lg">
+  <div class="card-header">
+    <h2>Consultant Breakdown</h2>
+  </div>
+
+  <table class="data-table" *ngIf="summaries.length > 0">
+    <thead>
+      <tr>
+        <th>Consultant</th>
+        <th class="text-center">Active Cases</th>
+        <th class="text-center">Awaiting Docs</th>
+        <th class="text-center">Deadlines</th>
+        <th class="text-center">Pending Reminders</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of summaries">
+        <td>
+          <div class="consultant-cell">
+            <div class="avatar-sm">{{ getInitials(s.consultant.fullName) }}</div>
+            <div>
+              <div class="fw-600">
+                {{ s.consultant.fullName }}
+                <span class="admin-tag" *ngIf="s.consultant.admin">Admin</span>
+              </div>
+              <div class="text-sm text-muted">{{ s.consultant.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td class="text-center">
+          <span class="stat-pill">{{ s.activeCases }}</span>
+        </td>
+        <td class="text-center">
+          <span class="stat-pill" [class.warning]="s.casesAwaitingDocuments > 0">{{ s.casesAwaitingDocuments }}</span>
+        </td>
+        <td class="text-center">
+          <span class="stat-pill" [class.danger]="s.upcomingDeadlines > 0">{{ s.upcomingDeadlines }}</span>
+        </td>
+        <td class="text-center">
+          <span class="stat-pill">{{ s.pendingReminders }}</span>
+        </td>
+        <td>
+          <a [routerLink]="['/consultant', consultantId, 'view-dashboard', s.consultant.id]"
+             class="btn btn-sm btn-outline"
+             *ngIf="s.consultant.id !== consultantId">
+            View
+          </a>
+          <a [routerLink]="['/consultant', consultantId, 'dashboard']"
+             class="btn btn-sm btn-outline"
+             *ngIf="s.consultant.id === consultantId">
+            My Dashboard
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="summaries.length === 0 && !loading" class="empty-state">
+    <span class="material-icons-outlined" style="font-size:48px;color:var(--color-border)">groups</span>
+    <p class="text-muted mt-sm">No consultants found.</p>
+  </div>
+
+  <div *ngIf="loading" class="empty-state">
+    <p class="text-muted">Loading organization data...</p>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+  // Used by keycloak-js to check the SSO session in a hidden iframe.
+  parent.postMessage(location.href, location.origin);
+</script>
+</body>
+</html>

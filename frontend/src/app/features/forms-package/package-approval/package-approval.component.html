@@ -1,0 +1,99 @@
+<div class="package">
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+  <!-- Build / refresh -->
+  <div class="build-row">
+    <button type="button" class="btn-primary" [disabled]="!packageProfileId || busy" (click)="buildPackage()" *ngIf="!pkg">
+      {{ busy ? 'Building…' : 'Build submission package' }}
+    </button>
+    <ng-container *ngIf="pkg">
+      <span [class]="statusClass(pkg.status)">{{ pkg.status }}</span>
+      <button type="button" class="btn-link" [disabled]="busy" (click)="refresh()">Refresh</button>
+      <button type="button" class="btn-link" *ngIf="pkg.hasZip || pkg.status === 'APPROVED'" (click)="download()">Download ZIP</button>
+    </ng-container>
+  </div>
+
+  <ng-container *ngIf="pkg">
+    <!-- Package index -->
+    <div *ngIf="index" class="index">
+      <h4>Package index</h4>
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>Form</th><th>Required</th><th>Origin</th><th>Provided</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of index.forms" [class.row-missing]="f.required && !f.provided">
+            <td>{{ f.sortOrder }}</td>
+            <td><span class="mono">{{ f.formCode }}</span> — {{ f.displayName }}</td>
+            <td>{{ f.required ? 'Yes' : 'No' }}</td>
+            <td>{{ f.origin || '—' }}</td>
+            <td>
+              <span *ngIf="f.provided" class="badge badge-ok">{{ f.status }}</span>
+              <span *ngIf="!f.provided" class="badge badge-error">Missing</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="data-table" *ngIf="index.documents.length > 0">
+        <thead>
+          <tr><th>#</th><th>Document</th><th>Required</th><th>Present</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of index.documents" [class.row-missing]="d.required && !d.present">
+            <td>{{ d.sortOrder }}</td>
+            <td>{{ d.documentType || d.documentCategory }}</td>
+            <td>{{ d.required ? 'Yes' : 'No' }}</td>
+            <td>
+              <span *ngIf="d.present" class="badge badge-ok">{{ d.matchedCount }}</span>
+              <span *ngIf="!d.present" class="badge badge-error">Missing</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Blocking errors -->
+    <div *ngIf="readiness && errorIssues().length > 0" class="issues">
+      <h4>Blocking errors ({{ readiness.errorCount }})</h4>
+      <ul class="issue-list">
+        <li *ngFor="let i of errorIssues()">
+          <span class="badge badge-error">ERROR</span> {{ i.message }}
+          <span class="mono code">{{ i.code }}</span>
+        </li>
+      </ul>
+      <p class="muted">Fix the underlying data (or generate/upload the missing form) and Refresh.</p>
+    </div>
+
+    <!-- Resolvable items -->
+    <div *ngIf="resolvableIssues().length > 0" class="issues">
+      <h4>Items to acknowledge / resolve ({{ resolvableIssues().length }})</h4>
+      <ul class="issue-list">
+        <li *ngFor="let i of resolvableIssues()">
+          <span class="badge badge-warn">{{ i.severity }}</span> {{ i.message }}
+          <button type="button" class="btn-link" (click)="resolve(i)">Mark resolved</button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Approval -->
+    <div class="approval" *ngIf="pkg.status !== 'APPROVED'">
+      <h4>Approve package</h4>
+      <label class="ack">
+        <input type="checkbox" [(ngModel)]="acknowledged">
+        I acknowledge that official IRCC instructions and any manually-prepared/uploaded forms remain my responsibility, and I have reviewed all mapped values.
+      </label>
+      <textarea [(ngModel)]="approvalNotes" placeholder="Approval notes (optional)" rows="2"></textarea>
+      <button type="button" class="btn-primary" [disabled]="!canApprove()" (click)="approve()">
+        Approve package
+      </button>
+      <p *ngIf="pkg.approvalBlocked" class="muted">Approval is blocked while errors remain.</p>
+    </div>
+
+    <div class="approval approved" *ngIf="pkg.status === 'APPROVED'">
+      <span class="badge badge-ok">Approved</span>
+      by {{ pkg.approvedBy }} at {{ pkg.approvedAt }}.
+      <div *ngIf="pkg.packageSha256" class="mono muted">sha256: {{ pkg.packageSha256 }}</div>
+    </div>
+  </ng-container>
+</div>

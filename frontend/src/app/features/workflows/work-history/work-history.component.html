@@ -1,0 +1,101 @@
+<div class="workflow-section">
+  <div class="section-header">
+    <h3><span class="material-icons-outlined">work</span> Work History</h3>
+    <button class="btn btn-primary btn-sm" (click)="openForm()">
+      <span class="material-icons-outlined">add</span> Add Position
+    </button>
+  </div>
+
+  <!-- Add/Edit Form -->
+  <div class="entry-form card" *ngIf="showForm">
+    <h4>{{ editingEntry ? 'Edit Position' : 'Add Position' }}</h4>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Employer Name *</label>
+        <input type="text" [(ngModel)]="form.employerName" placeholder="Company name" />
+      </div>
+      <div class="form-group">
+        <label>Job Title</label>
+        <input type="text" [(ngModel)]="form.jobTitle" placeholder="Position title" />
+      </div>
+      <div class="form-group">
+        <label>NOC/TEER Code</label>
+        <input type="text" [(ngModel)]="form.nocTeerCode" placeholder="e.g. 21232" />
+      </div>
+      <div class="form-group">
+        <label>Employment Type</label>
+        <select [(ngModel)]="form.employmentType">
+          <option *ngFor="let t of employmentTypes" [value]="t">{{ t.replace('_', ' ') }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Start Date *</label>
+        <input type="date" [(ngModel)]="form.startDate" />
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="date" [(ngModel)]="form.endDate" [disabled]="!!form.currentJob" />
+      </div>
+      <div class="form-group">
+        <label>Hours/Week</label>
+        <input type="number" [(ngModel)]="form.hoursPerWeek" min="0" max="80" />
+      </div>
+      <div class="form-group">
+        <label>Country</label>
+        <input type="text" [(ngModel)]="form.country" />
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" [(ngModel)]="form.city" />
+      </div>
+      <div class="form-group checkbox-group">
+        <label><input type="checkbox" [(ngModel)]="form.currentJob" /> Current position</label>
+      </div>
+      <div class="form-group full-width">
+        <label>Duties</label>
+        <textarea [(ngModel)]="form.duties" rows="3" placeholder="List main duties and responsibilities..."></textarea>
+      </div>
+      <div class="form-group reference-checks">
+        <label>Reference Letter Tracking</label>
+        <label class="check"><input type="checkbox" [(ngModel)]="form.referenceLetterReceived" /> Letter received</label>
+        <label class="check"><input type="checkbox" [(ngModel)]="form.referenceDatesMatch" /> Dates match</label>
+        <label class="check"><input type="checkbox" [(ngModel)]="form.referenceDutiesDescribed" /> Duties described</label>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="cancelForm()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveEntry()">{{ editingEntry ? 'Update' : 'Add' }}</button>
+    </div>
+  </div>
+
+  <!-- Entries -->
+  <div class="work-cards" *ngIf="entries.length > 0">
+    <div class="work-card card" *ngFor="let e of entries">
+      <div class="work-card-header">
+        <div>
+          <span class="employer-name">{{ e.employerName }}</span>
+          <span class="job-title">{{ e.jobTitle }}</span>
+        </div>
+        <div class="work-card-actions">
+          <span class="ref-badge" [class]="'ref-' + getReferenceStatus(e)">
+            {{ getReferenceStatus(e) === 'complete' ? 'Ref ✓' : getReferenceStatus(e) === 'incomplete' ? 'Ref !' : 'No Ref' }}
+          </span>
+          <button class="btn-icon" (click)="openForm(e)"><span class="material-icons-outlined">edit</span></button>
+          <button class="btn-icon danger" (click)="deleteEntry(e.id!)"><span class="material-icons-outlined">delete</span></button>
+        </div>
+      </div>
+      <div class="work-card-meta">
+        <span>{{ e.startDate | date:'MMM yyyy' }} — {{ e.currentJob ? 'Present' : (e.endDate | date:'MMM yyyy') }}</span>
+        <span *ngIf="e.nocTeerCode">NOC: {{ e.nocTeerCode }}</span>
+        <span>{{ e.hoursPerWeek }}h/week · {{ e.employmentType?.replace('_', ' ') }}</span>
+        <span *ngIf="e.country">{{ e.city ? e.city + ', ' : '' }}{{ e.country }}</span>
+      </div>
+      <p class="work-duties" *ngIf="e.duties">{{ e.duties }}</p>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="entries.length === 0 && !showForm">
+    <span class="material-icons-outlined">work_outline</span>
+    <p>No work history recorded yet</p>
+  </div>
+</div>

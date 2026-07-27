@@ -1,0 +1,124 @@
+<div class="workflow-section">
+  <div class="section-header">
+    <h3><span class="material-icons-outlined">flight</span> Travel History</h3>
+    <button class="btn btn-primary btn-sm" (click)="openForm()">
+      <span class="material-icons-outlined">add</span> Add Trip
+    </button>
+  </div>
+
+  <!-- Physical Presence Summary -->
+  <div class="presence-card" *ngIf="showPresenceCalc && presence">
+    <h4>Physical Presence Calculation (Preliminary Estimate)</h4>
+    <div class="presence-stats">
+      <div class="stat">
+        <span class="stat-number" [class.met]="presence.meetsPhysicalPresence" [class.not-met]="!presence.meetsPhysicalPresence">
+          {{ presence.effectiveDaysInCanada }}
+        </span>
+        <span class="stat-label">Effective Days in Canada</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ presence.requiredDays }}</span>
+        <span class="stat-label">Required Days</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ presence.daysInCanadaAsPR }}</span>
+        <span class="stat-label">Days as PR</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ presence.prePrCreditDays }}</span>
+        <span class="stat-label">Pre-PR Credit (½ day)</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ presence.totalDaysAbsent }}</span>
+        <span class="stat-label">Days Absent</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ presence.totalTrips }}</span>
+        <span class="stat-label">Total Trips</span>
+      </div>
+    </div>
+    <div class="presence-bar">
+      <div class="presence-fill" [style.width.%]="(presence.effectiveDaysInCanada / presence.requiredDays) * 100"
+           [class.met]="presence.meetsPhysicalPresence" [class.not-met]="!presence.meetsPhysicalPresence"></div>
+    </div>
+    <p class="presence-status" [class.met]="presence.meetsPhysicalPresence" [class.not-met]="!presence.meetsPhysicalPresence">
+      {{ presence.meetsPhysicalPresence ? 'Physical presence appears sufficient' : 'Short by ' + presence.daysShort + ' days' }}
+    </p>
+    <p *ngIf="!presence.meetsPrMinimum" class="presence-status not-met">
+      Minimum 730 days as permanent resident not met
+    </p>
+    <p class="disclaimer-text">{{ presence.disclaimer }}</p>
+  </div>
+
+  <!-- Add/Edit Form -->
+  <div class="entry-form card" *ngIf="showForm">
+    <h4>{{ editingEntry ? 'Edit Trip' : 'Add Trip' }}</h4>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Country <span class="required">*</span></label>
+        <input type="text" [(ngModel)]="form.country" placeholder="e.g. United States" required />
+      </div>
+      <div class="form-group">
+        <label>Purpose</label>
+        <select [(ngModel)]="form.purpose">
+          <option *ngFor="let p of purposeOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Entry Date <span class="required">*</span></label>
+        <input type="date" [(ngModel)]="form.entryDate" [max]="today" required />
+      </div>
+      <div class="form-group">
+        <label>Exit Date</label>
+        <input type="date" [(ngModel)]="form.exitDate" [min]="form.entryDate" [max]="today" />
+      </div>
+      <div class="form-group full-width">
+        <label>Notes</label>
+        <textarea [(ngModel)]="form.notes" rows="2" placeholder="Additional details..."></textarea>
+      </div>
+    </div>
+    <div *ngIf="formError" class="form-error">{{ formError }}</div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="cancelForm()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveEntry()" [disabled]="!isFormValid()">{{ editingEntry ? 'Update' : 'Add' }}</button>
+    </div>
+  </div>
+
+  <!-- Entries Table -->
+  <div class="data-table" *ngIf="entries.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Country</th>
+          <th>Entry Date</th>
+          <th>Exit Date</th>
+          <th>Days</th>
+          <th>Purpose</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of entries">
+          <td>{{ e.country }}</td>
+          <td>{{ e.entryDate | date:'mediumDate' }}</td>
+          <td>{{ e.exitDate ? (e.exitDate | date:'mediumDate') : 'Ongoing' }}</td>
+          <td>{{ e.daysAbsent }}</td>
+          <td><span class="purpose-badge">{{ e.purpose }}</span></td>
+          <td class="actions-cell">
+            <button class="btn-icon" (click)="openForm(e)" title="Edit">
+              <span class="material-icons-outlined">edit</span>
+            </button>
+            <button class="btn-icon danger" (click)="deleteEntry(e.id!)" title="Delete">
+              <span class="material-icons-outlined">delete</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" *ngIf="entries.length === 0 && !showForm">
+    <span class="material-icons-outlined">flight_takeoff</span>
+    <p>No travel history recorded yet</p>
+  </div>
+</div>

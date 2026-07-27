@@ -1,0 +1,32 @@
+.catalogue { padding: 1.25rem 1.5rem 3rem; max-width: 1100px; margin: 0 auto; }
+h2 { margin: 0 0 0.25rem; font-size: 1.4rem; }
+.muted { color: #6b7280; font-size: 0.85rem; }
+.small { font-size: 0.72rem; }
+.mono { font-family: ui-monospace, monospace; font-size: 0.8rem; }
+.sub { font-size: 0.75rem; color: #9ca3af; }
+
+.alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 0.5rem 0.75rem; margin: 0.75rem 0; }
+
+.panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; }
+.panel h3 { margin: 0 0 0.75rem; font-size: 1.05rem; }
+.section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.data-table th, .data-table td { text-align: left; padding: 0.45rem 0.55rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.data-table th { color: #6b7280; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.data-table.inner { background: #fafafa; margin: 0.4rem 0; }
+.inspect-row td { background: #f8fafc; font-size: 0.82rem; }
+.fields-row td { background: #fbfbfb; }
+
+.badge { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+.badge-ok { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.badge-warn { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.badge-error { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+.actions { white-space: nowrap; }
+.btn-link { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.82rem; text-decoration: underline; padding: 0 0.35rem; }
+.btn-link:disabled { color: #9ca3af; cursor: not-allowed; }
+.btn-primary { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+
+.new-profile { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.new-profile input { padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.82rem; }

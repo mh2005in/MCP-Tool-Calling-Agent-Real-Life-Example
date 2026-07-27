@@ -1,0 +1,125 @@
+<div class="page-header">
+  <div>
+    <a routerLink="../../cases" class="back-link">
+      <span class="material-icons-outlined">arrow_back</span> Back to Cases
+    </a>
+    <h1>Create New Case</h1>
+  </div>
+</div>
+
+<div class="form-layout">
+  <div class="card form-card">
+    <h2 class="section-title">Case Details</h2>
+
+    <div class="form-group">
+      <label class="form-label">Service Type *</label>
+      <select [(ngModel)]="request.serviceType" (ngModelChange)="onServiceTypeChange()" class="form-control">
+        <option value="" disabled>Select service type...</option>
+        <option value="STUDY_PERMIT">Study Permit</option>
+        <option value="VISITOR_VISA">Visitor Visa</option>
+        <option value="SPOUSAL_SPONSORSHIP">Spousal Sponsorship</option>
+        <option value="EXPRESS_ENTRY">Express Entry (post-ITA)</option>
+        <option value="WORK_PERMIT">Work Permit</option>
+        <option value="LMIA">LMIA</option>
+        <option value="CITIZENSHIP">Citizenship</option>
+        <option value="PGWP">Post-Graduation Work Permit</option>
+        <option value="SUPER_VISA">Super Visa</option>
+        <option value="PR_CARD_PRTD">PR Card / PRTD</option>
+        <option value="PNP">Provincial Nominee Program</option>
+        <option value="OTHER">Other</option>
+      </select>
+    </div>
+
+    <div class="form-row" *ngIf="subtypeOptions.length > 0 || request.serviceType">
+      <div class="form-group" *ngIf="subtypeOptions.length > 0">
+        <label class="form-label">Application Subtype</label>
+        <select [(ngModel)]="request.subtype" class="form-control">
+          <option [ngValue]="undefined">Select subtype...</option>
+          <option *ngFor="let opt of subtypeOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Applicant Role</label>
+        <select [(ngModel)]="request.applicantRole" class="form-control">
+          <option [ngValue]="undefined">Select role...</option>
+          <option *ngFor="let r of roleOptions" [value]="r.value">{{ r.label }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Client *</label>
+      <div class="client-search-wrapper">
+        <input type="text" class="form-control" placeholder="Search clients by name or email..."
+               [(ngModel)]="clientSearch" (input)="searchClients()" (focus)="showDropdown = true">
+        <div class="client-dropdown" *ngIf="showDropdown && clientResults.length > 0">
+          <div class="client-option" *ngFor="let cl of clientResults" (click)="selectClient(cl)">
+            <span class="client-name">{{ cl.fullName }}</span>
+            <span class="client-email">{{ cl.email }}</span>
+          </div>
+        </div>
+        <div class="selected-client" *ngIf="selectedClient">
+          <span class="material-icons-outlined">person</span>
+          <span>{{ selectedClient.fullName }} — {{ selectedClient.email }}</span>
+          <button class="btn-icon" (click)="clearClient()">
+            <span class="material-icons-outlined">close</span>
+          </button>
+        </div>
+      </div>
+      <a [routerLink]="['/consultant', consultantId, 'clients', 'new']" class="helper-link">+ Add new client</a>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Deadline</label>
+        <input type="date" class="form-control" [(ngModel)]="request.deadline">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Urgency Reason</label>
+        <input type="text" class="form-control" placeholder="e.g. Permit expiring soon"
+               [(ngModel)]="request.urgencyReason">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Consultant Notes</label>
+      <textarea class="form-control" rows="3" placeholder="Internal notes about this case..."
+                [(ngModel)]="request.consultantNotes"></textarea>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="request.applyDefaultChecklist">
+        <span>Apply default document checklist for selected service type</span>
+      </label>
+      <p class="helper-text">Automatically adds the standard checklist items. You can customize them later.</p>
+    </div>
+  </div>
+
+  <div class="card info-card">
+    <h3 class="info-title">About Case Creation</h3>
+    <p class="info-text">Creating a case will generate a unique case number and set up the document collection workflow.</p>
+    <div class="info-item">
+      <span class="material-icons-outlined">checklist</span>
+      <span>Default checklists include standard IRCC document requirements</span>
+    </div>
+    <div class="info-item">
+      <span class="material-icons-outlined">schedule</span>
+      <span>Set a deadline to receive upcoming-deadline alerts</span>
+    </div>
+    <div class="info-item">
+      <span class="material-icons-outlined">security</span>
+      <span>All AI-generated content requires consultant approval before sending</span>
+    </div>
+  </div>
+</div>
+
+<div class="form-actions">
+  <a routerLink="../../cases" class="btn btn-secondary">Cancel</a>
+  <button class="btn btn-primary" (click)="submit()" [disabled]="!canSubmit() || submitting">
+    <span class="material-icons-outlined" *ngIf="!submitting">add</span>
+    {{ submitting ? 'Creating...' : 'Create Case' }}
+  </button>
+</div>
+
+<div class="toast toast-error" *ngIf="errorMsg">{{ errorMsg }}</div>

@@ -1,0 +1,227 @@
+<!-- Access Denied -->
+<div class="access-denied-card" *ngIf="accessDenied">
+  <span class="material-icons-outlined access-denied-icon">lock</span>
+  <h2>Admin Access Required</h2>
+  <p>Only admin consultants can manage checklist templates. Contact your administrator for access.</p>
+  <a [routerLink]="'/consultant/' + consultantId + '/dashboard'" class="btn btn-primary">
+    <span class="material-icons-outlined">arrow_back</span> Back to Dashboard
+  </a>
+</div>
+
+<div *ngIf="!accessDenied">
+<div class="page-header">
+  <div>
+    <h1>Checklist Templates</h1>
+    <p class="text-secondary">Manage document checklist templates across all service types</p>
+  </div>
+  <button class="btn btn-primary" (click)="openCreate()">
+    <span class="material-icons-outlined">add</span> New Template
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <span class="stat-number">{{ templates.length }}</span>
+    <span class="stat-label">Total Templates</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-number stat-success">{{ approvedCount() }}</span>
+    <span class="stat-label">Approved</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-number stat-warning">{{ pendingCount() }}</span>
+    <span class="stat-label">Pending Approval</span>
+  </div>
+</div>
+
+<!-- Templates by Service Type -->
+<div class="service-type-stats" *ngIf="templatesByServiceType().length > 0">
+  <span class="service-type-chip" *ngFor="let st of templatesByServiceType()">
+    {{ st.label }} <span class="chip-count">{{ st.count }}</span>
+  </span>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <select class="form-control filter-select" [(ngModel)]="filterType" (ngModelChange)="applyFilters()">
+    <option value="">All Service Types</option>
+    <option *ngFor="let st of serviceTypes" [value]="st.value">{{ st.label }}</option>
+  </select>
+  <select class="form-control filter-select" [(ngModel)]="filterApproval" (ngModelChange)="applyFilters()">
+    <option value="">All Statuses</option>
+    <option value="approved">Approved</option>
+    <option value="pending">Pending Approval</option>
+  </select>
+  <input type="text" class="form-control filter-search" placeholder="Search templates..."
+         [(ngModel)]="searchQuery" (input)="applyFilters()">
+</div>
+
+<!-- Create/Edit Form -->
+<div class="card form-card" *ngIf="showCreateForm">
+  <h3 class="form-title">{{ editingTemplate ? 'Edit Template' : 'Create Template' }}</h3>
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label">Service Type *</label>
+      <select class="form-control" [(ngModel)]="newTemplate.serviceType">
+        <option value="" disabled>Select...</option>
+        <option *ngFor="let st of serviceTypes" [value]="st.value">{{ st.label }}</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category *</label>
+      <input class="form-control" [(ngModel)]="newTemplate.category" placeholder="e.g. Identity, Financial">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Document Name *</label>
+      <input class="form-control" [(ngModel)]="newTemplate.documentName" placeholder="e.g. Passport biographical page">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sort Order</label>
+      <input type="number" class="form-control" [(ngModel)]="newTemplate.sortOrder">
+    </div>
+    <div class="form-group full-width">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" rows="2" [(ngModel)]="newTemplate.description"
+                placeholder="Instructions for the client"></textarea>
+    </div>
+    <div class="form-group full-width">
+      <label class="form-label">Source URL</label>
+      <input class="form-control" [(ngModel)]="newTemplate.sourceUrl" placeholder="https://www.canada.ca/...">
+    </div>
+    <div class="form-group">
+      <label class="checkbox-label"><input type="checkbox" [(ngModel)]="newTemplate.required"> Required</label>
+    </div>
+    <div class="form-group">
+      <label class="checkbox-label"><input type="checkbox" [(ngModel)]="newTemplate.conditional"> Conditional</label>
+    </div>
+    <div class="form-group full-width" *ngIf="newTemplate.conditional">
+      <label class="form-label">Condition Description</label>
+      <input class="form-control" [(ngModel)]="newTemplate.conditionDescription"
+             placeholder="e.g. Required if applicant is from Quebec">
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-secondary btn-sm" (click)="cancelForm()">Cancel</button>
+    <button class="btn btn-primary btn-sm" (click)="saveTemplate()">
+      {{ editingTemplate ? 'Update' : 'Create' }}
+    </button>
+  </div>
+</div>
+
+<!-- Template List -->
+<div class="card" *ngIf="filteredTemplates.length > 0">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Document Name</th>
+        <th>Category</th>
+        <th>Service Type</th>
+        <th>Status</th>
+        <th>Version</th>
+        <th>Reviewed / Approved</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let t of filteredTemplates">
+        <td>
+          <span class="fw-600">{{ t.documentName }}</span>
+          <span class="item-desc" *ngIf="t.description">{{ t.description }}</span>
+          <a *ngIf="t.sourceUrl" [href]="t.sourceUrl" target="_blank" rel="noopener noreferrer"
+             class="source-link">
+            <span class="material-icons-outlined">open_in_new</span> Source
+          </a>
+        </td>
+        <td>{{ t.category }}</td>
+        <td><span class="badge badge-sm badge-type">{{ formatServiceType(t.serviceType) }}</span></td>
+        <td>
+          <span class="badge badge-sm" [ngClass]="t.approvedForUse ? 'badge-approved' : 'badge-pending'">
+            {{ t.approvedForUse ? 'Approved' : 'Pending' }}
+          </span>
+          <span class="badge badge-sm badge-required" *ngIf="t.required">Required</span>
+          <span class="badge badge-sm badge-conditional" *ngIf="t.conditional">Conditional</span>
+        </td>
+        <td>
+          <span class="version-badge">v{{ t.ruleVersion }}</span>
+        </td>
+        <td class="reviewer-cell">
+          <div class="reviewer-info" *ngIf="t.reviewedByConsultantName">
+            <span class="reviewer-label">Reviewed:</span>
+            <span class="reviewer-name">{{ t.reviewedByConsultantName }}</span>
+            <span class="reviewer-date" *ngIf="t.lastReviewedDate">{{ t.lastReviewedDate | date:'MMM d, yyyy' }}</span>
+          </div>
+          <div class="reviewer-info" *ngIf="t.approvedByConsultantName">
+            <span class="reviewer-label">Approved:</span>
+            <span class="reviewer-name">{{ t.approvedByConsultantName }}</span>
+            <span class="reviewer-date" *ngIf="t.approvedDate">{{ t.approvedDate | date:'MMM d, yyyy' }}</span>
+          </div>
+          <span class="no-reviewer" *ngIf="!t.reviewedByConsultantName && !t.approvedByConsultantName">--</span>
+        </td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-icon-sm" (click)="openEdit(t)" title="Edit">
+              <span class="material-icons-outlined">edit</span>
+            </button>
+            <button class="btn-icon-sm" (click)="reviewTemplate(t)" title="Mark Reviewed">
+              <span class="material-icons-outlined">visibility</span>
+            </button>
+            <button *ngIf="!t.approvedForUse" class="btn-icon-sm" (click)="approveTemplate(t)" title="Approve">
+              <span class="material-icons-outlined text-success">check_circle</span>
+            </button>
+            <button *ngIf="t.approvedForUse" class="btn-icon-sm" (click)="revokeTemplate(t)" title="Revoke Approval">
+              <span class="material-icons-outlined text-warning">unpublished</span>
+            </button>
+            <button class="btn-icon-sm" (click)="showAudit(t)" title="Audit History">
+              <span class="material-icons-outlined">history</span>
+            </button>
+            <button class="btn-icon-sm" (click)="deleteTemplate(t)" title="Delete">
+              <span class="material-icons-outlined text-danger">delete_outline</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card empty-state" *ngIf="filteredTemplates.length === 0 && !showCreateForm">
+  <span class="material-icons-outlined empty-icon">description</span>
+  <p>No templates found matching your filters.</p>
+</div>
+
+<!-- Audit Panel -->
+<div class="audit-overlay" *ngIf="showAuditPanel" (click)="closeAudit()">
+  <div class="audit-panel" (click)="$event.stopPropagation()">
+    <div class="audit-header">
+      <h3>Audit History</h3>
+      <span class="audit-subtitle">{{ auditTemplateName }}</span>
+      <button class="btn-icon-sm audit-close" (click)="closeAudit()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="audit-list" *ngIf="auditLog.length > 0">
+      <div class="audit-entry" *ngFor="let entry of auditLog">
+        <div class="audit-action">
+          <span class="material-icons-outlined audit-icon">{{ entry.action.includes('APPROVE') ? 'check_circle' : entry.action.includes('REVOKE') ? 'unpublished' : entry.action.includes('DELETE') ? 'delete' : 'edit' }}</span>
+          <span class="audit-action-text">{{ formatEnum(entry.action) }}</span>
+        </div>
+        <p class="audit-details">{{ entry.details }}</p>
+        <div class="audit-meta">
+          <span>{{ entry.performedBy || 'System' }}</span>
+          <span>{{ entry.performedAt | date:'MMM d, yyyy h:mm a' }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="audit-empty" *ngIf="auditLog.length === 0">
+      <p>No audit history found.</p>
+    </div>
+  </div>
+</div>
+
+<!-- end !accessDenied wrapper -->
+</div>
+
+<!-- Toasts -->
+<div class="toast toast-success" *ngIf="successMsg">{{ successMsg }}</div>
+<div class="toast toast-error" *ngIf="errorMsg">{{ errorMsg }}</div>

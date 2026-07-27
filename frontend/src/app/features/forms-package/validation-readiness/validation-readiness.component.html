@@ -1,0 +1,58 @@
+<div class="readiness">
+  <div *ngIf="loading" class="muted">Evaluating readiness…</div>
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+  <ng-container *ngIf="report && !loading">
+    <!-- Approval banner -->
+    <div class="banner" [class.banner-blocked]="report.approvalBlocked" [class.banner-ok]="!report.approvalBlocked">
+      <span *ngIf="report.approvalBlocked">
+        <strong>Approval blocked</strong> — {{ report.errorCount }} error(s) must be resolved before this package can be approved.
+      </span>
+      <span *ngIf="!report.approvalBlocked">
+        <strong>No blocking errors.</strong> Review warnings, decisions, and confirmations before approval.
+      </span>
+    </div>
+
+    <!-- Severity summary chips (click to filter) -->
+    <div class="chips">
+      <button type="button" class="chip" [class.active]="severityFilter === 'ALL'" (click)="severityFilter = 'ALL'">
+        All ({{ report.issues.length }})
+      </button>
+      <button *ngFor="let s of severities" type="button"
+              class="chip" [class]="'chip ' + severityClass(s.severity)"
+              [class.active]="severityFilter === s.severity"
+              (click)="setSeverityFilter(s.severity)">
+        {{ s.label }} ({{ countFor(s.severity) }})
+      </button>
+    </div>
+
+    <!-- Form filter -->
+    <div class="filter-row" *ngIf="formCodes().length > 0">
+      <label>Filter by form:</label>
+      <select [(ngModel)]="formFilter">
+        <option value="ALL">All forms</option>
+        <option *ngFor="let f of formCodes()" [value]="f">{{ f }}</option>
+      </select>
+    </div>
+
+    <!-- Issues -->
+    <div *ngIf="report.issues.length === 0" class="muted empty">No validation issues found. 🎉</div>
+
+    <ul class="issue-list">
+      <li *ngFor="let i of filteredIssues()" class="issue">
+        <span [class]="severityClass(i.severity)">{{ severityLabel(i.severity) }}</span>
+        <div class="issue-body">
+          <div class="issue-message">{{ i.message }}</div>
+          <div class="issue-meta">
+            <span class="code">{{ i.code }}</span>
+            <span *ngIf="i.formCode" class="tag">{{ i.formCode }}</span>
+            <span *ngIf="i.pdfFieldName" class="tag mono">{{ i.pdfFieldName }}</span>
+            <span *ngIf="i.fieldKey" class="tag mono">{{ i.fieldKey }}</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <p class="muted generated-at">Readiness evaluated {{ report.generatedAt }}</p>
+  </ng-container>
+</div>

@@ -1,0 +1,112 @@
+<div class="client-page" *ngIf="!loading && !error">
+  <!-- Disclaimer banner -->
+  <div class="disclaimer-banner" *ngIf="checklist">
+    <span class="material-icons-outlined disclaimer-icon">info</span>
+    <p>{{ checklist.disclaimer }}</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-card" *ngIf="checklist">
+    <h2>Your Document Checklist</h2>
+    <div class="progress-summary">
+      <div class="progress-stat">
+        <span class="progress-number">{{ checklist.completedItems }}</span>
+        <span class="progress-label">Completed</span>
+      </div>
+      <div class="progress-stat">
+        <span class="progress-number progress-missing">{{ checklist.missingItems }}</span>
+        <span class="progress-label">Remaining</span>
+      </div>
+      <div class="progress-stat">
+        <span class="progress-number progress-total">{{ checklist.totalItems }}</span>
+        <span class="progress-label">Total</span>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progressPct()"></div>
+    </div>
+    <span class="progress-pct">{{ progressPct() }}% complete</span>
+  </div>
+
+  <!-- Upload Documents zone -->
+  <div class="upload-zone-card" *ngIf="checklist">
+    <h3 class="upload-zone-title">
+      <span class="material-icons-outlined">cloud_upload</span>
+      Upload Documents
+    </h3>
+    <div class="drop-zone"
+         [class.drop-zone-active]="dragOver"
+         (dragover)="onDragOver($event)"
+         (dragleave)="onDragLeave($event)"
+         (drop)="onDrop($event)">
+      <div *ngIf="!generalUploading">
+        <span class="material-icons-outlined drop-icon">upload_file</span>
+        <p class="drop-text">Drag and drop a file here, or</p>
+        <label class="btn btn-primary btn-sm upload-btn-label">
+          <span class="material-icons-outlined">attach_file</span>
+          Browse Files
+          <input type="file" class="file-input-hidden" (change)="onGeneralFileSelected($event)">
+        </label>
+        <p class="drop-hint">PDF, JPG, PNG up to 10 MB</p>
+      </div>
+      <div *ngIf="generalUploading" class="uploading-state">
+        <span class="material-icons-outlined spin">sync</span>
+        <p>Uploading your document...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist groups -->
+  <div class="checklist-section" *ngFor="let group of groups">
+    <h3 class="group-title">
+      <span class="material-icons-outlined">folder_open</span>
+      {{ group.category }}
+      <span class="group-count">{{ group.items.length }}</span>
+    </h3>
+    <div class="checklist-card">
+      <div class="checklist-row" *ngFor="let item of group.items"
+           [class.row-done]="item.status === 'ACCEPTED'"
+           [class.row-uploading]="uploadingItemId === item.id">
+        <div class="row-icon" [ngClass]="statusClass(item.status)">
+          <span class="material-icons-outlined" *ngIf="uploadingItemId !== item.id">{{ statusIcon(item.status) }}</span>
+          <span class="material-icons-outlined spin" *ngIf="uploadingItemId === item.id">sync</span>
+        </div>
+        <div class="row-content">
+          <span class="doc-name">{{ item.documentName }}</span>
+          <span class="doc-desc" *ngIf="item.description">{{ item.description }}</span>
+          <span class="doc-condition" *ngIf="item.conditionDescription">
+            <span class="material-icons-outlined">info_outline</span> {{ item.conditionDescription }}
+          </span>
+        </div>
+        <div class="row-status">
+          <span class="status-badge" [ngClass]="statusClass(item.status)">{{ statusLabel(item.status) }}</span>
+          <span class="required-tag" *ngIf="item.required">Required</span>
+        </div>
+        <div class="row-upload" *ngIf="canUpload(item) && uploadingItemId !== item.id">
+          <label class="btn btn-sm btn-upload">
+            <span class="material-icons-outlined">upload_file</span>
+            Upload
+            <input type="file" class="file-input-hidden" (change)="onFileSelected($event, item)">
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="groups.length === 0">
+    <span class="material-icons-outlined empty-icon">checklist</span>
+    <p>Your checklist has not been set up yet. Please check back later.</p>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-state" *ngIf="loading">
+  <p>Loading your checklist...</p>
+</div>
+
+<!-- Error -->
+<div class="error-state" *ngIf="error">
+  <span class="material-icons-outlined">error_outline</span>
+  <p>{{ error }}</p>
+</div>

@@ -1,0 +1,92 @@
+<div class="catalogue">
+  <h2>Form Catalogue (Admin)</h2>
+  <p class="muted">Inspect a form's governed source PDF to sync its fields and set fill capability. XFA/certified forms are marked <strong>Blocked</strong> and routed to manual upload.</p>
+
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+  <section class="panel">
+    <h3>Forms</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Code</th><th>Edition</th><th>Status</th><th>Fill</th><th>Fields</th><th>Source SHA-256</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let form of forms">
+          <tr>
+            <td><span class="mono">{{ form.formCode }}</span><div class="sub">{{ form.displayName }}</div></td>
+            <td>{{ form.editionLabel || '—' }}</td>
+            <td><span class="badge">{{ form.status }}</span></td>
+            <td><span [class]="fillClass(form)">{{ fillLabel(form) }}</span></td>
+            <td>{{ form.fieldCount }}</td>
+            <td class="mono small">{{ form.sourceSha256 ? (form.sourceSha256 | slice:0:12) + '…' : '—' }}</td>
+            <td class="actions">
+              <button type="button" class="btn-link" [disabled]="busyFormId === form.id" (click)="inspect(form)">
+                {{ busyFormId === form.id ? 'Inspecting…' : 'Inspect' }}
+              </button>
+              <button type="button" class="btn-link" (click)="toggleFields(form)">
+                {{ expandedFormId === form.id ? 'Hide fields' : 'Fields' }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="inspection[form.id]" class="inspect-row">
+            <td colspan="7">
+              <span class="badge" [class.badge-error]="inspection[form.id].hasXfa" [class.badge-ok]="!inspection[form.id].hasXfa">
+                {{ inspection[form.id].classification }}
+              </span>
+              {{ inspection[form.id].message }}
+              ({{ inspection[form.id].pageCount }} pages, {{ inspection[form.id].fieldCount }} fields)
+            </td>
+          </tr>
+          <tr *ngIf="expandedFormId === form.id" class="fields-row">
+            <td colspan="7">
+              <table class="data-table inner" *ngIf="fieldsByForm[form.id]?.length">
+                <thead><tr><th>PDF field</th><th>Type</th><th>Required</th><th>Page</th><th>Max</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let fld of fieldsByForm[form.id]">
+                    <td class="mono">{{ fld.pdfFieldName }}</td>
+                    <td>{{ fld.fieldType }}</td>
+                    <td>{{ fld.required ? 'Yes' : 'No' }}</td>
+                    <td>{{ fld.pageNumber || '—' }}</td>
+                    <td>{{ fld.maxLength || '—' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p *ngIf="!fieldsByForm[form.id]?.length" class="muted">No fields yet — inspect the source PDF first.</p>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <div class="section-head">
+      <h3>Package profiles</h3>
+      <button type="button" class="btn-primary" (click)="showNewProfile = !showNewProfile">
+        {{ showNewProfile ? 'Cancel' : 'New profile' }}
+      </button>
+    </div>
+
+    <div *ngIf="showNewProfile" class="new-profile">
+      <input placeholder="Profile code" [(ngModel)]="newProfile.profileCode">
+      <input placeholder="Display name" [(ngModel)]="newProfile.displayName">
+      <input placeholder="Service type (optional)" [(ngModel)]="newProfile.serviceType">
+      <input placeholder="Jurisdiction (optional)" [(ngModel)]="newProfile.jurisdiction">
+      <button type="button" class="btn-primary" (click)="createProfile()">Create</button>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Code</th><th>Name</th><th>Service</th><th>Status</th><th>Forms</th><th>Docs</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let p of profiles">
+          <td class="mono">{{ p.profileCode }}</td>
+          <td>{{ p.displayName }}</td>
+          <td>{{ p.serviceType || '—' }}</td>
+          <td><span class="badge">{{ p.status }}</span></td>
+          <td>{{ p.formCount }}</td>
+          <td>{{ p.documentRequirementCount }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

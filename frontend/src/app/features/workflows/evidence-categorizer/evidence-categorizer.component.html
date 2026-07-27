@@ -1,0 +1,90 @@
+<div class="workflow-section">
+  <div class="section-header">
+    <h3><span class="material-icons-outlined">category</span> Evidence Categorization</h3>
+    <span class="doc-count">{{ totalCount }} document(s)</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="empty-state" *ngIf="loading">
+    <span class="material-icons-outlined">hourglass_empty</span>
+    <p>Loading documents...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="empty-state" *ngIf="error && !loading">
+    <span class="material-icons-outlined">error_outline</span>
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!loading && !error">
+    <!-- Category summary cards -->
+    <div class="category-grid">
+      <div
+        class="category-card"
+        *ngFor="let cat of categories"
+        (click)="selectFilter(cat.name)"
+        [class.active]="filterCategory === cat.name"
+      >
+        <span class="material-icons-outlined cat-icon">{{ cat.icon }}</span>
+        <span class="cat-count">{{ cat.count }}</span>
+        <span class="cat-label">{{ cat.name }}</span>
+      </div>
+    </div>
+
+    <!-- Active filter indicator -->
+    <div class="filter-bar" *ngIf="filterCategory">
+      <span class="filter-label">Filtered by: <strong>{{ filterCategory }}</strong></span>
+      <button class="btn btn-sm btn-secondary" (click)="filterCategory = ''">
+        <span class="material-icons-outlined">close</span> Clear
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="filteredDocs.length === 0">
+      <span class="material-icons-outlined">folder_open</span>
+      <p *ngIf="!filterCategory">No documents uploaded for this case yet.</p>
+      <p *ngIf="filterCategory">No documents in this category.</p>
+    </div>
+
+    <!-- Document cards grid -->
+    <div class="evidence-grid" *ngIf="filteredDocs.length > 0">
+      <div class="evidence-card card" *ngFor="let doc of filteredDocs">
+        <div class="evidence-card-header">
+          <span class="material-icons-outlined file-icon">{{ fileIcon(doc.mimeType) }}</span>
+          <div class="file-info">
+            <span class="file-name">{{ doc.originalFileName }}</span>
+            <span class="file-meta">
+              {{ formatFileSize(doc.fileSizeBytes) }}
+              <span *ngIf="doc.createdAt"> &middot; {{ doc.createdAt | date:'mediumDate' }}</span>
+            </span>
+          </div>
+        </div>
+        <div class="evidence-card-body">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select
+              class="form-select"
+              [ngModel]="resolveCategory(doc)"
+              (ngModelChange)="onCategoryChange(doc, $event)"
+            >
+              <option *ngFor="let name of categoryNames" [value]="name">{{ name }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="evidence-card-footer">
+          <span class="badge" [ngClass]="{
+            'badge-success': doc.status === 'ACCEPTED',
+            'badge-warning': doc.status === 'NEEDS_REVIEW' || doc.status === 'UPLOADED',
+            'badge-danger': doc.status === 'REJECTED' || doc.status === 'EXPIRED',
+            'badge-info': doc.status === 'CONSULTANT_ACTION_NEEDED',
+            'badge-neutral': doc.status === 'NOT_UPLOADED'
+          }">{{ doc.status?.replace('_', ' ') }}</span>
+          <span class="category-tag">
+            <span class="material-icons-outlined">{{ categoryIcons[resolveCategory(doc)] }}</span>
+            {{ resolveCategory(doc) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

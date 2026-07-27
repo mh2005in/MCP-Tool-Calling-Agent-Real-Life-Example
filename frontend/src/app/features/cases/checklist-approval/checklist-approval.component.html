@@ -1,0 +1,203 @@
+<div class="approval-container">
+  <!-- Loading -->
+  <div class="empty-state" *ngIf="loading">
+    <span class="material-icons-outlined">hourglass_empty</span>
+    <p>Loading checklist for review...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-banner" *ngIf="error">
+    <span class="material-icons-outlined">error_outline</span>
+    <span>{{ error }}</span>
+    <button class="btn-icon" (click)="error = ''"><span class="material-icons-outlined">close</span></button>
+  </div>
+
+  <div class="approval-layout" *ngIf="!loading">
+    <!-- Left column: checklist items -->
+    <div class="checklist-panel">
+      <div class="panel-header">
+        <h3><span class="material-icons-outlined">fact_check</span> Checklist Review</h3>
+        <button class="btn btn-primary btn-sm" (click)="showAddForm = !showAddForm">
+          <span class="material-icons-outlined">add</span> Add Item
+        </button>
+      </div>
+
+      <!-- Add item form -->
+      <div class="add-form card" *ngIf="showAddForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="newItem.category"
+              placeholder="e.g. Identity Documents"
+              list="categoryList"
+            />
+            <datalist id="categoryList">
+              <option *ngFor="let cat of existingCategories" [value]="cat"></option>
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Document Name</label>
+            <input type="text" class="form-input" [(ngModel)]="newItem.documentName" placeholder="e.g. Passport copy" />
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" [(ngModel)]="newItem.description" rows="2" placeholder="Instructions for the client..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="newItem.required" /> Required
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="newItem.conditional" /> Conditional
+            </label>
+          </div>
+          <div class="form-group full-width" *ngIf="newItem.conditional">
+            <label class="form-label">Condition Description</label>
+            <input type="text" class="form-input" [(ngModel)]="newItem.conditionDescription" placeholder="When is this required?" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" (click)="showAddForm = false">Cancel</button>
+          <button class="btn btn-primary" (click)="addItem()" [disabled]="!newItem.documentName">Add Item</button>
+        </div>
+      </div>
+
+      <!-- Grouped items -->
+      <div class="checklist-groups" *ngIf="groups.length > 0">
+        <div class="checklist-group card" *ngFor="let group of groups">
+          <div class="group-header" (click)="toggleGroup(group)">
+            <div class="group-title">
+              <span class="material-icons-outlined expand-icon">
+                {{ group.expanded ? 'expand_more' : 'chevron_right' }}
+              </span>
+              <h4>{{ group.category }}</h4>
+              <span class="group-count">{{ group.items.length }}</span>
+            </div>
+            <button class="btn btn-sm btn-secondary" (click)="$event.stopPropagation(); reviewAll(group)">
+              {{ isGroupAllReviewed(group) ? 'Unmark All' : 'Review All' }}
+            </button>
+          </div>
+          <div class="group-items" *ngIf="group.expanded">
+            <div class="review-item" *ngFor="let item of group.items" [class.reviewed]="item.reviewed">
+              <div class="review-checkbox">
+                <label class="checkbox-wrapper">
+                  <input type="checkbox" [checked]="item.reviewed" (change)="toggleReviewed(item)" />
+                  <span class="checkmark"></span>
+                </label>
+              </div>
+              <div class="item-content">
+                <div class="item-header">
+                  <span class="item-name">{{ item.documentName }}</span>
+                  <div class="item-tags">
+                    <span class="tag tag-required" *ngIf="item.required">Required</span>
+                    <span class="tag tag-conditional" *ngIf="item.conditional">Conditional</span>
+                  </div>
+                </div>
+                <span class="item-desc" *ngIf="item.description">{{ item.description }}</span>
+                <span class="item-condition" *ngIf="item.conditional && item.conditionDescription">
+                  <span class="material-icons-outlined">info_outline</span> {{ item.conditionDescription }}
+                </span>
+
+                <!-- Consultant note -->
+                <div class="note-section" *ngIf="!item.editing && item.consultantReviewNote">
+                  <span class="note-text">
+                    <span class="material-icons-outlined">comment</span> {{ item.consultantReviewNote }}
+                  </span>
+                </div>
+                <div class="note-edit" *ngIf="item.editing">
+                  <textarea class="form-textarea" [(ngModel)]="item.noteDraft" rows="2" placeholder="Add a review note..."></textarea>
+                  <div class="note-actions">
+                    <button class="btn btn-sm btn-secondary" (click)="item.editing = false">Cancel</button>
+                    <button class="btn btn-sm btn-primary" (click)="saveNote(item)">Save</button>
+                  </div>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="btn-icon" (click)="toggleEdit(item)" title="Add note">
+                  <span class="material-icons-outlined">edit_note</span>
+                </button>
+                <button class="btn-icon danger" (click)="removeItem(item, group)" title="Remove item">
+                  <span class="material-icons-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" *ngIf="groups.length === 0">
+        <span class="material-icons-outlined">playlist_add</span>
+        <p>No checklist items generated yet. Add items manually to get started.</p>
+      </div>
+    </div>
+
+    <!-- Right column: summary panel -->
+    <div class="summary-panel">
+      <div class="summary-card card">
+        <h3 class="summary-title">Approval Summary</h3>
+
+        <div class="summary-stats">
+          <div class="stat-row">
+            <span class="stat-label">Total Items</span>
+            <span class="stat-value">{{ totalItems }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Required</span>
+            <span class="stat-value">{{ requiredItems }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Conditional</span>
+            <span class="stat-value">{{ conditionalItems }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-row highlight">
+            <span class="stat-label">Reviewed</span>
+            <span class="stat-value">{{ reviewedItems }} / {{ totalItems }}</span>
+          </div>
+        </div>
+
+        <!-- Review progress -->
+        <div class="review-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="reviewProgress" [class.complete]="allReviewed"></div>
+          </div>
+          <span class="progress-text">{{ reviewProgress }}% reviewed</span>
+        </div>
+
+        <!-- Category breakdown -->
+        <div class="category-breakdown">
+          <h4>By Category</h4>
+          <div class="breakdown-row" *ngFor="let group of groups">
+            <span class="breakdown-label">{{ group.category }}</span>
+            <span class="breakdown-value">
+              {{ groupReviewedCount(group) }}/{{ group.items.length }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Approve button -->
+        <button
+          class="btn btn-approve"
+          [disabled]="!allReviewed || approving"
+          (click)="approveChecklist()"
+        >
+          <span class="material-icons-outlined">{{ approving ? 'hourglass_empty' : 'send' }}</span>
+          {{ approving ? 'Approving...' : 'Approve & Send to Client' }}
+        </button>
+
+        <p class="approve-hint" *ngIf="!allReviewed">
+          Review all {{ totalItems - reviewedItems }} remaining item(s) to enable approval.
+        </p>
+        <p class="approve-hint success" *ngIf="allReviewed && !approving">
+          All items reviewed. Ready to send to client.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
