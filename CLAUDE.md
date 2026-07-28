@@ -146,3 +146,19 @@ Before implementing any method:
   - Enable the hooks in a fresh clone: `git config core.hooksPath .githooks` (per-clone config, so each checkout must run this once).
   - It calls `git worktree remove` and `git branch -d` without `--force`, so git refuses anything dirty or unmerged and the hook reports it instead of deleting it. Directories git doesn't track as worktrees are reported, never deleted.
   - It detects merged branches by ancestry. If the repo ever switches to squash merges, branch commits never become ancestors of `main`, so ancestry-based cleanup stops working.
+
+---
+
+## 14. Documentation (README)
+
+> **[README.md](README.md) is the entry point for someone who has never seen this project. Keep it accurate — update it in the same change that alters how the project is set up, run, or understood.**
+
+- **Whenever a change affects any of the following, update `README.md` as part of that change** (not as a follow-up):
+  - **Deployment / run steps** — commands, prerequisites, ports, environment variables, `docker compose` usage, DB rebuild/reset steps, first-run setup.
+  - **Technology / stack** — a new service, dependency, framework, language/runtime version, or external tool (e.g. a new compose service, a new model, an auth provider change).
+  - **Architecture** — new components, how services talk to each other, data flow, auth flow, or the responsibilities of a module.
+  - **Anything a third person needs to run or understand it** — new gotchas, required config, credentials/demo logins, troubleshooting for setup failures.
+- **Write for a newcomer:** assume no prior context. Someone should be able to clone the repo and get the stack running from `README.md` alone.
+- **Keep it in sync with reality** — if a step no longer works (e.g. a renamed service, a changed port, a new required env var), fix the README in the same commit. Don't let it drift.
+- **Prefer the README for "how to run it" and CLAUDE.md for "how we work on it."** Operational/onboarding instructions belong in `README.md`; contributor conventions belong here.
+- When you finish a change, ask yourself: *would a first-time reader following `README.md` still succeed?* If not, update it before considering the work done.

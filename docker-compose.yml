@@ -89,6 +89,8 @@ services:
       OIDC_AUDIENCE: ${OIDC_BACKEND_AUDIENCE:-immiauto-backend}
       OIDC_AUDIENCE_VALIDATION: ${OIDC_AUDIENCE_VALIDATION:-true}
       AUTO_PROVISION_CONSULTANT: ${AUTO_PROVISION_CONSULTANT:-true}
+      # Browser calls the API from the nginx-served frontend origin (published host port), not :4200
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:${FRONTEND_HOST_PORT:-8081}}
       # --- Mail (optional) ---
       SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
       SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}

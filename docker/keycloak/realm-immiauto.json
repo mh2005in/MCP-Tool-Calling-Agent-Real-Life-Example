@@ -99,6 +99,7 @@
   ],
   "users": [
     {
+      "id": "b1d0e5f0-1a2b-4c3d-8e4f-0000000d3e30",
       "username": "demo",
       "enabled": true,
       "emailVerified": true,
