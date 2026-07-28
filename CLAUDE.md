@@ -162,3 +162,17 @@ Before implementing any method:
 - **Keep it in sync with reality** — if a step no longer works (e.g. a renamed service, a changed port, a new required env var), fix the README in the same commit. Don't let it drift.
 - **Prefer the README for "how to run it" and CLAUDE.md for "how we work on it."** Operational/onboarding instructions belong in `README.md`; contributor conventions belong here.
 - When you finish a change, ask yourself: *would a first-time reader following `README.md` still succeed?* If not, update it before considering the work done.
+
+---
+
+## 15. Configuration & environment variables
+
+> **Every host, port, domain, and URL is configured through environment variables — `.env` is the single source of truth. Never hardcode a host/port/URL in a property or config file.**
+
+- **`.env` holds only base values** (host ports, public URLs, internal URLs, realm name, client id, API base path). Copy from [.env.example](.env.example); keep the two in sync. Real secrets live in `.env` (gitignored) — never commit them.
+- **Derive composite values in [docker-compose.yml](docker-compose.yml), never hand-copy them.** The OIDC issuer, JWKS URI, token endpoint, CORS origin, and MCP audit URL are all built from the base vars (e.g. `OIDC_ISSUER: ${KEYCLOAK_PUBLIC_URL}/realms/${KC_REALM}`). Change a domain/port in `.env` once and everything follows.
+- **Public vs internal URLs are distinct.** Browser-facing endpoints use `*_PUBLIC_URL` (e.g. `KEYCLOAK_PUBLIC_URL`, `FRONTEND_PUBLIC_URL`); service-to-service calls over the Docker network use `*_INTERNAL_URL` (compose service names, e.g. `http://keycloak:8080`). The token **issuer** is the public URL; **JWKS/token** fetching uses the internal URL.
+- **Spring services** read env with a dev fallback: `${ENV_VAR:sensible-default}` in `application.properties`. The default is for local `mvn`/`ng serve`; Docker overrides it via compose. Add new config this way — never a bare literal.
+- **The Angular SPA uses runtime config, not build-time constants.** Values come from `window.__env` (served by `assets/env.js`), which nginx renders from env via `envsubst` at container start ([frontend/env.template.js](frontend/env.template.js), [frontend/docker-entrypoint.d/40-env-config.sh](frontend/docker-entrypoint.d/40-env-config.sh)). `environment.ts` reads `window.__env` with fallbacks. So changing the SPA's Keycloak/API host needs **no rebuild** — just env + restart. Never hardcode a URL in `environment*.ts`.
+- **The Keycloak realm is a template.** [docker/keycloak/realm-immiauto.json.template](docker/keycloak/realm-immiauto.json.template) uses `${FRONTEND_PUBLIC_URL}` for redirect URIs / web origins; the `realm-init` service runs `envsubst` on it (the Keycloak image has no `envsubst`) into a shared volume before Keycloak imports it. Edit the `.template`, never a rendered copy.
+- **When you add a new endpoint/URL/port to any service, wire it through this chain** (base var in `.env`/`.env.example` → derived in compose → consumed via `${ENV:default}` or `window.__env`), and update `README.md` per §14.

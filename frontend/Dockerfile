@@ -19,4 +19,11 @@ FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/immigration-automation/browser /usr/share/nginx/html
 
+# Runtime config: nginx (which bundles envsubst) renders assets/env.js from
+# environment variables on container start, so the SPA's Keycloak/API endpoints
+# are set at deploy time — no rebuild to change a host or port.
+COPY env.template.js /etc/nginx/env.template.js
+COPY docker-entrypoint.d/40-env-config.sh /docker-entrypoint.d/40-env-config.sh
+RUN chmod +x /docker-entrypoint.d/40-env-config.sh
+
 EXPOSE 80

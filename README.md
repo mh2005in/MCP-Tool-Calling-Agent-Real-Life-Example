@@ -64,7 +64,7 @@ Immigration consultants spend a large share of their time on repetitive, error-p
         └──────────────────────┘  └──────────────────┘  └────────────────────┘
 ```
 
-All services run as containers on a shared Docker network and address each other by service name (`postgres:5432`, `backend:8080`, `keycloak:8080`). Only the host port mappings above are published. The browser and each token's issuer use the public Keycloak URL (`http://localhost:8085`), while the backend/MCP fetch signing keys over the internal network — avoiding the localhost-vs-service-name issuer mismatch.
+All services run as containers on a shared Docker network and address each other by service name (`postgres:5432`, `backend:8080`, `keycloak:8080`). Only the host port mappings above are published. The browser and each token's issuer use the public Keycloak URL (`KEYCLOAK_PUBLIC_URL`, default `http://localhost:8085`), while the backend/MCP fetch signing keys over the internal network (`KEYCLOAK_INTERNAL_URL`) — avoiding the localhost-vs-service-name issuer mismatch. Every host/port/URL comes from `.env` (see [Configuration](#configuration)), so nothing is hardcoded.
 
 ---
 
@@ -110,26 +110,36 @@ docker compose down -v       # stop and wipe the database volume (re-runs DB ini
 On a **fresh** Postgres volume, the scripts in [`docker/postgres/init/`](docker/postgres/init/) run automatically: [`00-init.sh`](docker/postgres/init/00-init.sh) creates the `immiauto_db` schema and applies the versioned `V1…Vn` scripts from `backend/src/main/resources/db/migration/postgresql/` (schema + seed data) in order, and [`01-keycloak-db.sh`](docker/postgres/init/01-keycloak-db.sh) creates a separate `keycloak` database for Keycloak's own storage. This only runs on an empty volume — to rebuild from scratch (app **and** Keycloak realm data), run `docker compose down -v` and bring the stack up again.
 
 ### Authentication (Keycloak)
-On first start the `keycloak` service imports [`docker/keycloak/realm-immiauto.json`](docker/keycloak/realm-immiauto.json), which defines the `immiauto` realm, three clients (`immiauto-frontend` public SPA, `immiauto-backend` API audience, `immiauto-mcp` service account), audience/role token mappers, and the demo user. The SPA logs in via Keycloak (Authorization Code + PKCE); the backend and MCP server validate the resulting tokens as OAuth2 resource servers. The MCP server authenticates its audit writes to the backend with a Keycloak **service-account** (client-credentials) token.
+On first start a small `realm-init` service renders [`docker/keycloak/realm-immiauto.json.template`](docker/keycloak/realm-immiauto.json.template) with `envsubst` (substituting `FRONTEND_PUBLIC_URL` into the redirect URIs / web origins) into a shared volume, and the `keycloak` service imports it. The realm defines the `immiauto` realm, three clients (`immiauto-frontend` public SPA, `immiauto-backend` API audience, `immiauto-mcp` service account), audience/role token mappers, and the demo user. The SPA logs in via Keycloak (Authorization Code + PKCE); the backend and MCP server validate the resulting tokens as OAuth2 resource servers. The MCP server authenticates its audit writes to the backend with a Keycloak **service-account** (client-credentials) token.
 
 ---
 
 ## Configuration
 
-Runtime configuration is supplied through environment variables (see [`.env.example`](.env.example) for the full list). Highlights:
+**All hosts, ports, domains, and URLs are configured through environment variables — `.env` is the single source of truth.** You change a domain or port in `.env` **once**; `docker-compose.yml` derives the OIDC issuer, JWKS URI, token endpoint, CORS origin, audit URL, and the SPA's runtime config from it. Nothing is hardcoded in property or config files. Copy [`.env.example`](.env.example) to `.env` and edit as needed.
+
+**Base variables (edit these):**
 
 | Variable | Purpose |
 |----------|---------|
 | `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Database name and credentials (shared by the app and Keycloak) |
-| `POSTGRES_HOST_PORT` (default `5435`) | Host port for Postgres |
-| `BACKEND_HOST_PORT` / `MCP_HOST_PORT` / `FRONTEND_HOST_PORT` / `KEYCLOAK_HOST_PORT` | Host ports for the services |
+| `POSTGRES_HOST_PORT` / `BACKEND_HOST_PORT` / `MCP_HOST_PORT` / `FRONTEND_HOST_PORT` / `KEYCLOAK_HOST_PORT` | Published host ports |
+| `FRONTEND_PUBLIC_URL` / `KEYCLOAK_PUBLIC_URL` | **Public** URLs the browser uses (must match the host ports). Drive the token issuer, CORS origin, Keycloak redirect/web-origins, and the SPA's Keycloak URL |
+| `KEYCLOAK_INTERNAL_URL` / `BACKEND_INTERNAL_URL` | **Internal** Docker-network URLs for service-to-service calls (JWKS/token fetch, MCP audit) |
+| `KC_REALM` / `FRONTEND_CLIENT_ID` / `API_BASE_URL` | Realm name, SPA client id, and the SPA's API base path |
 | `KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD` | Keycloak initial admin credentials |
-| `OIDC_ISSUER` / `OIDC_JWK_SET_URI` | Public realm URL (validates token `iss`) and internal JWKS URL (signing keys) |
-| `OIDC_BACKEND_AUDIENCE` / `OIDC_MCP_AUDIENCE` | Expected token audiences for the backend and MCP resource servers |
+| `OIDC_BACKEND_AUDIENCE` / `OIDC_MCP_AUDIENCE` / `*_VALIDATION` | Expected token audiences and whether to enforce them |
 | `MCP_CLIENT_ID` / `MCP_CLIENT_SECRET` | MCP service-account client for authenticated audit writes |
 | `MAIL_USERNAME` / `MAIL_PASSWORD` | Optional SMTP credentials for reminder emails |
 
-The backend reads `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` (wired in `docker-compose.yml`), so no application code changes are needed to point it at the containerized database.
+**Derived automatically** (do not set by hand): `OIDC_ISSUER`, `OIDC_JWK_SET_URI`, `OIDC_TOKEN_ENDPOINT`, `CORS_ALLOWED_ORIGINS`, `MCP_AUDIT_URL`, `KC_HOSTNAME` — composed in `docker-compose.yml` from the base variables above.
+
+How each layer stays env-driven (no rebuilds to change a host/port):
+- **Spring (backend, MCP):** read `${ENV:default}` in `application.properties`; compose overrides for Docker.
+- **Angular SPA:** runtime config via `window.__env` — nginx renders `assets/env.js` from env with `envsubst` on container start ([`frontend/env.template.js`](frontend/env.template.js)), so `environment.ts` never hardcodes a URL.
+- **Keycloak realm:** [`realm-immiauto.json.template`](docker/keycloak/realm-immiauto.json.template) uses `${FRONTEND_PUBLIC_URL}`; the `realm-init` service runs `envsubst` on it before Keycloak imports it.
+
+To run behind a different host/domain (e.g. a server or a different port), set `FRONTEND_PUBLIC_URL`, `KEYCLOAK_PUBLIC_URL`, and the `*_HOST_PORT` values in `.env`, then `docker compose down && up -d` — no code changes or rebuilds required.
 
 ---
 
@@ -143,7 +153,7 @@ Immigration-Consultation/
 ├── MCPServer/          # Spring Boot MCP server (AI tools)
 ├── docker/
 │   ├── postgres/init/  # DB bootstrap scripts (app schema + migrations, keycloak db)
-│   └── keycloak/       # Realm import (clients, mappers, demo user)
+│   └── keycloak/       # Realm import TEMPLATE (env-substituted at startup by realm-init)
 ├── docs/               # Project documentation
 ├── docker-compose.yml  # Full local stack
 └── .env.example        # Environment template
