@@ -25,11 +25,11 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "fullScopeAllowed": true,
-      "redirectUris": ["http://localhost:8081/*"],
-      "webOrigins": ["http://localhost:8081"],
+      "redirectUris": ["${FRONTEND_PUBLIC_URL}/*"],
+      "webOrigins": ["${FRONTEND_PUBLIC_URL}"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:8081/*"
+        "post.logout.redirect.uris": "${FRONTEND_PUBLIC_URL}/*"
       },
       "protocolMappers": [
         {

@@ -5,13 +5,16 @@ name: immigration-consultation
 # MCP server (Spring Boot) + frontend (Angular served by nginx).
 # Bring it all up with:  docker compose up -d --build
 #
+# Hosts/ports/URLs are driven entirely by .env (single source of truth). The
+# issuer, JWKS, token endpoint, CORS origin, audit URL and the SPA runtime
+# config are DERIVED here from a few base vars. See .env.example / CLAUDE.md.
+#
 # Service URLs on the host:
-#   Frontend  ->  http://localhost:${FRONTEND_HOST_PORT:-8081}
-#   Backend   ->  http://localhost:${BACKEND_HOST_PORT:-8080}/api
-#   Swagger   ->  http://localhost:${BACKEND_HOST_PORT:-8080}/api/swagger-ui.html
-#   MCP       ->  http://localhost:${MCP_HOST_PORT:-8084}
-#   Keycloak  ->  http://localhost:${KEYCLOAK_HOST_PORT:-8085}  (admin console)
-#   Postgres  ->  localhost:${POSTGRES_HOST_PORT:-5435}
+#   Frontend  ->  ${FRONTEND_PUBLIC_URL}
+#   Backend   ->  http://localhost:${BACKEND_HOST_PORT}/api
+#   MCP       ->  http://localhost:${MCP_HOST_PORT}
+#   Keycloak  ->  ${KEYCLOAK_PUBLIC_URL}  (admin console)
+#   Postgres  ->  localhost:${POSTGRES_HOST_PORT}
 #
 # Demo login (from the imported realm): demo / Passw0rd!  (email demo@immiauto.ca)
 # ============================================================
@@ -41,6 +44,24 @@ services:
     networks:
       - immiauto
 
+  # Renders the Keycloak realm import from the template, substituting
+  # FRONTEND_PUBLIC_URL (redirect URIs / web origins). Uses the nginx image
+  # because it bundles envsubst, which the Keycloak image lacks. Runs to
+  # completion before Keycloak starts.
+  realm-init:
+    image: nginx:1.27-alpine
+    container_name: immiauto-realm-init
+    environment:
+      FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-http://localhost:8081}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "envsubst < /template/realm-immiauto.json.template > /import/realm-immiauto.json && echo '[realm-init] rendered realm import'"
+    volumes:
+      - ./docker/keycloak/realm-immiauto.json.template:/template/realm-immiauto.json.template:ro
+      - keycloak-import:/import
+    networks:
+      - immiauto
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
     container_name: immiauto-keycloak
@@ -55,19 +76,21 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-      # Fix the public base URL so every token's `iss` is stable regardless of how KC is reached
-      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME_URL:-http://localhost:8085}
+      # Public base URL -> stable token issuer regardless of how KC is reached
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8085}
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
     volumes:
-      # Realm (clients, mappers, roles, demo user) imported on first start
-      - ./docker/keycloak/realm-immiauto.json:/opt/keycloak/data/import/realm-immiauto.json:ro
+      # Realm imported from the shared volume rendered by realm-init (env-substituted)
+      - keycloak-import:/opt/keycloak/data/import:ro
     ports:
       - "${KEYCLOAK_HOST_PORT:-8085}:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      realm-init:
+        condition: service_completed_successfully
     networks:
       - immiauto
 
@@ -81,16 +104,16 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?currentSchema=immiauto_db
       DB_USERNAME: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
-      # --- Keycloak (OIDC resource server) ---
-      # Issuer is the PUBLIC realm URL (matches the token's iss); keys are fetched over the
+      # --- Keycloak (OIDC resource server), derived from the base vars in .env ---
+      # Issuer = PUBLIC url (matches the token's iss); keys are fetched over the
       # internal Docker network so there's no localhost-vs-service-name mismatch.
-      OIDC_ISSUER: ${OIDC_ISSUER:-http://localhost:8085/realms/immiauto}
-      OIDC_JWK_SET_URI: ${OIDC_JWK_SET_URI:-http://keycloak:8080/realms/immiauto/protocol/openid-connect/certs}
+      OIDC_ISSUER: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8085}/realms/${KC_REALM:-immiauto}
+      OIDC_JWK_SET_URI: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}/realms/${KC_REALM:-immiauto}/protocol/openid-connect/certs
       OIDC_AUDIENCE: ${OIDC_BACKEND_AUDIENCE:-immiauto-backend}
       OIDC_AUDIENCE_VALIDATION: ${OIDC_AUDIENCE_VALIDATION:-true}
       AUTO_PROVISION_CONSULTANT: ${AUTO_PROVISION_CONSULTANT:-true}
-      # Browser calls the API from the nginx-served frontend origin (published host port), not :4200
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:${FRONTEND_HOST_PORT:-8081}}
+      # Browser origin allowed to call the API (the nginx-served frontend origin)
+      CORS_ALLOWED_ORIGINS: ${FRONTEND_PUBLIC_URL:-http://localhost:8081}
       # --- Mail (optional) ---
       SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
       SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
@@ -113,19 +136,18 @@ services:
     container_name: immiauto-mcpserver
     restart: unless-stopped
     environment:
-      # --- Keycloak (OIDC resource server) ---
-      OIDC_ISSUER: ${OIDC_ISSUER:-http://localhost:8085/realms/immiauto}
-      OIDC_JWK_SET_URI: ${OIDC_JWK_SET_URI:-http://keycloak:8080/realms/immiauto/protocol/openid-connect/certs}
+      # --- Keycloak (OIDC resource server), derived from the base vars in .env ---
+      OIDC_ISSUER: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8085}/realms/${KC_REALM:-immiauto}
+      OIDC_JWK_SET_URI: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}/realms/${KC_REALM:-immiauto}/protocol/openid-connect/certs
       OIDC_MCP_AUDIENCE: ${OIDC_MCP_AUDIENCE:-immiauto-mcp}
       OIDC_MCP_AUDIENCE_VALIDATION: ${OIDC_MCP_AUDIENCE_VALIDATION:-false}
-      # --- Service-account (client-credentials) token for authenticated audit POSTs ---
-      # Token endpoint is internal (server-to-server); Keycloak still stamps the public issuer.
-      OIDC_TOKEN_ENDPOINT: ${OIDC_TOKEN_ENDPOINT:-http://keycloak:8080/realms/immiauto/protocol/openid-connect/token}
+      # Service-account (client-credentials) token endpoint for authenticated audit POSTs
+      OIDC_TOKEN_ENDPOINT: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}/realms/${KC_REALM:-immiauto}/protocol/openid-connect/token
       MCP_CLIENT_ID: ${MCP_CLIENT_ID:-immiauto-mcp}
       MCP_CLIENT_SECRET: ${MCP_CLIENT_SECRET:-mcp-local-dev-secret-change-me}
-      MCP_RESOURCE: ${MCP_RESOURCE:-http://localhost:8084/mcp}
+      MCP_RESOURCE: ${MCP_RESOURCE:-http://localhost:${MCP_HOST_PORT:-8084}/mcp}
       # Reach the backend over the internal network, not the published host port
-      MCP_AUDIT_URL: http://backend:8080/api/v1/mcp/audit
+      MCP_AUDIT_URL: ${BACKEND_INTERNAL_URL:-http://backend:8080}/api/v1/mcp/audit
     ports:
       - "${MCP_HOST_PORT:-8084}:8084"
     depends_on:
@@ -140,6 +162,12 @@ services:
     image: immiauto-frontend:latest
     container_name: immiauto-frontend
     restart: unless-stopped
+    environment:
+      # Rendered into /assets/env.js by nginx at startup -> runtime SPA config
+      KEYCLOAK_PUBLIC_URL: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8085}
+      KC_REALM: ${KC_REALM:-immiauto}
+      FRONTEND_CLIENT_ID: ${FRONTEND_CLIENT_ID:-immiauto-frontend}
+      API_BASE_URL: ${API_BASE_URL:-/api/v1}
     ports:
       - "${FRONTEND_HOST_PORT:-8081}:80"
     depends_on:
@@ -151,6 +179,7 @@ services:
 volumes:
   pgdata:
   backend-uploads:
+  keycloak-import:
 
 networks:
   immiauto:
