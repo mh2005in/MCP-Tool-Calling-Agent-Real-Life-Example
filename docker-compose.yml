@@ -109,6 +109,8 @@ services:
       KC_REALM: ${KC_REALM:-immiauto}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      # Audience stamped onto the mcp.* scopes so forwarded user tokens are accepted by the backend.
+      MCP_BACKEND_AUDIENCE: ${OIDC_BACKEND_AUDIENCE:-immiauto-backend}
     volumes:
       - ./docker/keycloak/configure-dcr.sh:/config/configure-dcr.sh:ro
     depends_on:
@@ -168,7 +170,13 @@ services:
       OIDC_TOKEN_ENDPOINT: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}/realms/${KC_REALM:-immiauto}/protocol/openid-connect/token
       MCP_CLIENT_ID: ${MCP_CLIENT_ID:-immiauto-mcp}
       MCP_CLIENT_SECRET: ${MCP_CLIENT_SECRET:-mcp-local-dev-secret-change-me}
-      MCP_RESOURCE: ${MCP_RESOURCE:-http://localhost:${MCP_HOST_PORT:-8084}/mcp}
+      # RFC 9728 resource identifier. MUST equal the URL clients use to reach /mcp. LibreChat
+      # (and any in-cluster client) connects over the Docker network at http://mcpserver:8084/mcp,
+      # so the metadata `resource` must match that or the OAuth flow is refused (RFC 9728 §3.3).
+      MCP_RESOURCE: ${MCP_RESOURCE:-${MCP_INTERNAL_URL:-http://mcpserver:8084}/mcp}
+      # Base URL the tools.json endpoints resolve to (substituted into ${MCP_BACKEND_API_URL:...}).
+      # Must reach the backend over the internal Docker network, not localhost.
+      MCP_BACKEND_API_URL: ${BACKEND_INTERNAL_URL:-http://backend:8080}
       # Reach the backend over the internal network, not the published host port
       MCP_AUDIT_URL: ${BACKEND_INTERNAL_URL:-http://backend:8080}/api/v1/mcp/audit
     ports:
@@ -199,10 +207,111 @@ services:
     networks:
       - immiauto
 
+  # -------------------------------------------------------------------------
+  # Local LLM (Ollama) + chat UI (LibreChat) that can call the MCP tools.
+  # -------------------------------------------------------------------------
+
+  # Ollama LLM server (OpenAI-compatible API on :11434). Uses the NVIDIA GPU.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: immiauto-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_HOST_PORT:-11434}:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks:
+      - immiauto
+
+  # One-shot: pulls the chat model into the shared ollama volume, then exits.
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: immiauto-ollama-init
+    restart: "no"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "ollama pull ${OLLAMA_MODEL:-qwen2.5:3b} && echo '[ollama-init] pulled ${OLLAMA_MODEL:-qwen2.5:3b}'"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - immiauto
+
+  # LibreChat's datastore (required).
+  mongodb:
+    image: mongo:7
+    container_name: immiauto-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - immiauto
+
+  # LibreChat UI/API. Chats with Ollama and calls the immiauto MCP server (OAuth).
+  librechat:
+    image: librechat/librechat:latest
+    container_name: immiauto-librechat
+    restart: unless-stopped
+    ports:
+      - "${LIBRECHAT_HOST_PORT:-3080}:3080"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3080
+      MONGO_URI: mongodb://mongodb:27017/LibreChat
+      # Browser-facing base URL of LibreChat itself (used for its own auth + MCP OAuth callback).
+      DOMAIN_CLIENT: ${LIBRECHAT_PUBLIC_URL:-http://localhost:3080}
+      DOMAIN_SERVER: ${LIBRECHAT_PUBLIC_URL:-http://localhost:3080}
+      CONFIG_PATH: /app/librechat.yaml
+      # Encryption + JWT secrets (real values in .env; see .env.example).
+      CREDS_KEY: ${LIBRECHAT_CREDS_KEY}
+      CREDS_IV: ${LIBRECHAT_CREDS_IV}
+      JWT_SECRET: ${LIBRECHAT_JWT_SECRET}
+      JWT_REFRESH_SECRET: ${LIBRECHAT_JWT_REFRESH_SECRET}
+      # We don't run Meilisearch/RAG in this stack.
+      SEARCH: "false"
+      ALLOW_REGISTRATION: "true"
+    volumes:
+      - ./docker/librechat/librechat.yaml:/app/librechat.yaml:ro
+      - librechat-images:/app/client/public/images
+      - librechat-logs:/app/api/logs
+    extra_hosts:
+      # The MCP OAuth flow uses ${KEYCLOAK_PUBLIC_URL} as the issuer for BOTH the
+      # browser and this backend container. `*.localtest.me` is public DNS -> 127.0.0.1
+      # (so the host browser reaches the published Keycloak port), and here we point the
+      # same name at the host gateway so the container reaches that same published port.
+      - "keycloak.localtest.me:host-gateway"
+    depends_on:
+      mongodb:
+        condition: service_started
+      ollama:
+        condition: service_healthy
+      mcpserver:
+        condition: service_started
+    networks:
+      - immiauto
+
 volumes:
   pgdata:
   backend-uploads:
   keycloak-import:
+  ollama-models:
+  mongodb-data:
+  librechat-images:
+  librechat-logs:
 
 networks:
   immiauto:

@@ -25,6 +25,7 @@ KC_URL="${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}"
 REALM="${KC_REALM:-immiauto}"
 ADMIN="${KEYCLOAK_ADMIN:-admin}"
 ADMIN_PW="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
+BACKEND_AUDIENCE="${MCP_BACKEND_AUDIENCE:-immiauto-backend}"
 POLICY_TYPE=org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy
 
 fail() { echo "[dcr-config] ERROR: $1" >&2; exit 1; }
@@ -60,6 +61,61 @@ in_list() {
   done
 }
 
+# Adds a realm-roles protocol mapper (claim: realm_access.roles) to client scope id $1, idempotently.
+#
+# Why: DCR clients (e.g. LibreChat) register requesting only the mcp.* scopes, so Keycloak does NOT
+# assign them the built-in `roles` scope — their tokens then carry no realm_access.roles and the MCP
+# server's role gate 403s every real user. Emitting the realm roles from the mcp.* scopes themselves
+# means any client that requests an mcp scope (which every MCP client must, to use the tools) carries
+# the user's roles. No client has both `roles` and mcp.* scopes, so there's no duplicate claim.
+ensure_roles_mapper() {
+  sid="$1"
+  existing="$("$KCADM" get "client-scopes/$sid/protocol-mappers/models" -r "$REALM" --fields name --format csv --noquotes 2>/dev/null)"
+  if in_list "realm-roles" "$existing"; then
+    echo "[dcr-config]   -> realm-roles mapper already present"
+    return 0
+  fi
+  if "$KCADM" create "client-scopes/$sid/protocol-mappers/models" -r "$REALM" \
+      -s name=realm-roles \
+      -s protocol=openid-connect \
+      -s protocolMapper=oidc-usermodel-realm-role-mapper \
+      -s 'config."claim.name"=realm_access.roles' \
+      -s 'config.multivalued=true' \
+      -s 'config."jsonType.label"=String' \
+      -s 'config."access.token.claim"=true' \
+      -s 'config."id.token.claim"=false' \
+      -s 'config."usermodel.realmRoleMapping.rolePrefix"=' >/dev/null 2>&1; then
+    echo "[dcr-config]   -> added realm-roles mapper"
+  else
+    fail "could not add realm-roles mapper to scope id $sid"
+  fi
+}
+
+# Adds a backend-audience mapper (aud += $BACKEND_AUDIENCE) to client scope id $1, idempotently.
+#
+# Why: MCP tool calls are forwarded to the backend with the USER's token (on-behalf-of). The backend
+# validates the audience, so the user's token must carry aud=$BACKEND_AUDIENCE. DCR clients don't get
+# the backend-audience mapper, so — as with roles — we emit it from the mcp.* scopes the client requests.
+ensure_audience_mapper() {
+  sid="$1"
+  existing="$("$KCADM" get "client-scopes/$sid/protocol-mappers/models" -r "$REALM" --fields name --format csv --noquotes 2>/dev/null)"
+  if in_list "backend-audience" "$existing"; then
+    echo "[dcr-config]   -> backend-audience mapper already present"
+    return 0
+  fi
+  if "$KCADM" create "client-scopes/$sid/protocol-mappers/models" -r "$REALM" \
+      -s name=backend-audience \
+      -s protocol=openid-connect \
+      -s protocolMapper=oidc-audience-mapper \
+      -s "config.\"included.client.audience\"=$BACKEND_AUDIENCE" \
+      -s 'config."access.token.claim"=true' \
+      -s 'config."id.token.claim"=false' >/dev/null 2>&1; then
+    echo "[dcr-config]   -> added backend-audience mapper ($BACKEND_AUDIENCE)"
+  else
+    fail "could not add backend-audience mapper to scope id $sid"
+  fi
+}
+
 # Creates the client scope $1 (consent text $2) if absent, then registers it as a
 # realm optional default so new clients (incl. DCR ones) may request it.
 ensure_scope() {
@@ -80,6 +136,8 @@ ensure_scope() {
     echo "[dcr-config] created scope '$name' (id=$id)"
   fi
   [ -n "$id" ] || fail "no id resolved for scope '$name'"
+  ensure_roles_mapper "$id"
+  ensure_audience_mapper "$id"
   if in_list "$name" "$optional_csv"; then
     echo "[dcr-config]   -> '$name' already a realm optional default"
     return 0

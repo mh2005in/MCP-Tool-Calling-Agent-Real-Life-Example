@@ -1,0 +1,46 @@
+# ============================================================
+# LibreChat configuration for the immigration stack.
+#
+# - Chat backend: a local Ollama server (OpenAI-compatible API) running Qwen.
+# - Tools: the immiauto MCP server, reached over OAuth 2.0. LibreChat discovers
+#   the auth server from the MCP server's protected-resource metadata and
+#   self-registers with Keycloak via Dynamic Client Registration (RFC 7591) —
+#   no client id is pre-provisioned. The user signs in (demo / Passw0rd!) and,
+#   because the MCP server gates on the user's realm role, only a real app user
+#   (CONSULTANT_OWNER / ADMIN) can call the tools.
+#
+# Hosts come from the compose network: `ollama`, `mcpserver`. Keycloak is
+# reached at ${KEYCLOAK_PUBLIC_URL} (host.docker.internal) so the same issuer
+# URL resolves from both the browser and the LibreChat backend container.
+# ============================================================
+version: 1.2.1
+cache: true
+
+# LibreChat's SSRF guard blocks private/loopback hosts unless allowlisted. Our MCP server
+# (mcpserver) and the Keycloak OAuth host (keycloak.localtest.me -> loopback/host-gateway)
+# both resolve to such addresses, so allow them for the MCP transport + OAuth calls.
+mcpSettings:
+  allowedDomains:
+    - "mcpserver"
+    - "keycloak.localtest.me"
+
+# Local model via Ollama's OpenAI-compatible endpoint.
+endpoints:
+  custom:
+    - name: "Ollama"
+      apiKey: "ollama"                      # Ollama ignores the key; any non-empty value works.
+      baseURL: "http://ollama:11434/v1"
+      models:
+        default: ["qwen2.5:3b"]
+        fetch: true                         # also list any other models pulled into Ollama
+      titleConvo: true
+      titleModel: "qwen2.5:3b"
+      modelDisplayLabel: "Qwen2.5 3B (Ollama)"
+
+# MCP tool server. `streamable-http` matches the MCP server's HTTP transport at /mcp.
+# LibreChat initiates the OAuth flow on the first 401 and stores per-user tokens.
+mcpServers:
+  immiauto:
+    type: streamable-http
+    url: "http://mcpserver:8084/mcp"
+    timeout: 60000

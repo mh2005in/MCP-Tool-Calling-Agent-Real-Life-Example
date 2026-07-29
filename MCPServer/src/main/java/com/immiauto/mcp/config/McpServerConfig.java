@@ -1,7 +1,6 @@
 package com.immiauto.mcp.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.immiauto.mcp.BackendServiceTokenService;
 import com.immiauto.mcp.McpAuditService;
 import com.immiauto.mcp.McpToolFactory;
 import com.immiauto.mcp.http.ApiToolExecutor;
@@ -15,6 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -44,10 +46,22 @@ public class McpServerConfig {
     }
 
     @Bean
-    public ApiToolExecutor apiToolExecutor(ObjectMapper toolObjectMapper,
-                                           BackendServiceTokenService backendServiceTokenService) {
-        // Attach a Keycloak service-account backend token to every tool's downstream call.
-        return new ApiToolExecutor(toolObjectMapper, backendServiceTokenService::backendToken);
+    public ApiToolExecutor apiToolExecutor(ObjectMapper toolObjectMapper) {
+        // Forward the CALLING USER's token (on-behalf-of) to the backend: the MCP data endpoints
+        // resolve the consultant from the authenticated user, so tools must act as that user — not
+        // as the MCP service account (which has no linked consultant, and would 500). Audit writes
+        // still use the service account (see McpAuditService). The user's JWT is on the request
+        // thread's SecurityContext, where the tool handler runs.
+        return new ApiToolExecutor(toolObjectMapper, McpServerConfig::currentUserToken);
+    }
+
+    /** The raw bearer token of the currently authenticated MCP user, or {@code null} if none. */
+    private static String currentUserToken() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
+            return jwtAuthentication.getToken().getTokenValue();
+        }
+        return null;
     }
 
     @Bean

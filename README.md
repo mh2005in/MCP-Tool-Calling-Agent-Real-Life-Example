@@ -37,6 +37,7 @@ Immigration consultants spend a large share of their time on repetitive, error-p
 | **MCP server**| Java 21, Spring Boot 3.3 (Model Context Protocol tools, OAuth2 resource server + Keycloak service-account token for audit writes) |
 | **Database**  | PostgreSQL 16 (schema `immiauto_db`; primary keys via sequences) |
 | **Auth**      | Keycloak (OpenID Connect) — self-hosted, realm imported on first start |
+| **LLM + Chat**| Ollama (local, GPU) serving `qwen2.5:3b`; LibreChat chat UI (MongoDB-backed) wired to Ollama and the MCP tools over OAuth |
 | **Runtime**   | Docker & Docker Compose; nginx (serves the SPA and reverse-proxies the API) |
 
 ---
@@ -93,7 +94,9 @@ docker compose up -d --build
 | Backend API | http://localhost:8080/api |
 | Swagger UI | http://localhost:8080/api/swagger-ui.html |
 | MCP server | http://localhost:8084 |
-| Keycloak  | http://localhost:8085 (admin console) |
+| LibreChat  | http://localhost:3080 (chat UI over Ollama + MCP tools) |
+| Ollama    | http://localhost:11434 (local LLM API) |
+| Keycloak  | http://keycloak.localtest.me:8085 (admin console) |
 | Postgres  | `localhost:5435` (dbs `immiauto` + `keycloak`, app schema `immiauto_db`) |
 
 **Demo login:** `demo` / `Passw0rd!` (email `demo@immiauto.ca`, linked to the seed consultant). The Keycloak admin console signs in with `admin` / your `KEYCLOAK_ADMIN_PASSWORD` (`admin` locally).
@@ -120,6 +123,18 @@ Because a self-registered client is untrusted, **access is gated on the user, no
 Keycloak isn't DCR-ready out of the box, so a one-shot [`keycloak-config`](docker-compose.yml) service runs after Keycloak (using its bundled `kcadm.sh`, see [`docker/keycloak/configure-dcr.sh`](docker/keycloak/configure-dcr.sh)) and idempotently: creates the `mcp.*` client scopes as realm **optional** defaults (so registered clients can request them) and removes the anonymous **Trusted Hosts**, **Consent Required**, and **Full Scope Disabled** registration policies so registration is open and tokens carry the user's realm roles. These scopes/policies are provisioned here rather than in the realm import on purpose — supplying a `clientScopes` array in a realm import makes Keycloak skip creating its built-in scopes (including `roles`, which the role gate depends on).
 
 > **Dev posture.** Anonymous, consent-free DCR with full user scope is convenient for local development. For a hardened deployment, re-enable the removed policies (or pin trusted clients) and require explicit consent — see the notes in [`configure-dcr.sh`](docker/keycloak/configure-dcr.sh).
+
+### Local LLM + chat UI (Ollama + LibreChat)
+The stack ships a local chat assistant that can call the immigration MCP tools, entirely on your machine:
+
+- **`ollama`** runs the LLM (`qwen2.5:3b` by default, `OLLAMA_MODEL`) on the **NVIDIA GPU** and exposes an OpenAI-compatible API on `:11434`. A one-shot **`ollama-init`** service pulls the model into a shared volume on first start.
+- **`librechat`** ([config](docker/librechat/librechat.yaml)) is the chat UI at http://localhost:3080, backed by **`mongodb`**. It talks to Ollama for chat and connects to the MCP server (`http://mcpserver:8084/mcp`) for tools.
+
+**Using the tools:** sign up in LibreChat (local account), pick the **Qwen2.5 3B (Ollama)** model, and enable the **immiauto** MCP server. LibreChat runs the MCP **OAuth** flow — it self-registers with Keycloak (DCR), sends you to sign in (`demo` / `Passw0rd!`), and because the MCP server gates on your role, only a real app user (`CONSULTANT_OWNER`/`ADMIN`) can invoke the tools.
+
+> **Why `keycloak.localtest.me`?** The MCP OAuth flow needs one issuer URL that resolves to Keycloak from **both** the browser and the LibreChat container. `*.localtest.me` is public DNS → `127.0.0.1` for the browser, and compose points the same name at the host gateway inside the container (`extra_hosts`). No LAN IP, no hosts-file edit (offline fallback: add `127.0.0.1 keycloak.localtest.me` to your hosts file). Set `KEYCLOAK_PUBLIC_URL` back to `http://localhost:8085` if you don't need LibreChat → MCP tool calling.
+
+> **GPU required as configured.** The `ollama` service reserves an NVIDIA GPU (needs Docker with the NVIDIA Container Toolkit / WSL2 GPU). To run CPU-only, remove the `deploy.resources.reservations.devices` block from the `ollama` service in [`docker-compose.yml`](docker-compose.yml).
 
 ---
 
@@ -162,7 +177,8 @@ Immigration-Consultation/
 ├── MCPServer/          # Spring Boot MCP server (AI tools)
 ├── docker/
 │   ├── postgres/init/  # DB bootstrap scripts (app schema + migrations, keycloak db)
-│   └── keycloak/       # Realm import TEMPLATE + configure-dcr.sh (MCP DCR bootstrap)
+│   ├── keycloak/       # Realm import TEMPLATE + configure-dcr.sh (MCP DCR bootstrap)
+│   └── librechat/      # librechat.yaml (Ollama endpoint + MCP server wiring)
 ├── docs/               # Project documentation
 ├── docker-compose.yml  # Full local stack
 └── .env.example        # Environment template

@@ -11,7 +11,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/clients",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/clients",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -34,7 +34,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/clients/{{clientId}}",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/clients/{{clientId}}",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -57,7 +57,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/intake-summary",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/cases/{{caseId}}/intake-summary",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -92,7 +92,7 @@
       },
       "request": {
         "method": "POST",
-        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/classify-document",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/cases/{{caseId}}/classify-document",
         "headers": {},
         "query": {},
         "body": {
@@ -120,7 +120,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/checklist-status",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/cases/{{caseId}}/checklist-status",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -143,7 +143,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/consistency-report",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/cases/{{caseId}}/consistency-report",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -166,7 +166,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/reminders/pending",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/cases/{{caseId}}/reminders/pending",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -189,7 +189,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/timeline",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/cases/{{caseId}}/timeline",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -212,7 +212,7 @@
       },
       "request": {
         "method": "POST",
-        "url": "http://localhost:8080/api/v1/mcp/validate-output",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/validate-output",
         "headers": {},
         "query": {},
         "body": {
@@ -238,7 +238,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/cases/{{caseId}}/overview",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/cases/{{caseId}}/overview",
         "headers": {},
         "query": {},
         "timeoutSeconds": 30
@@ -261,7 +261,7 @@
       },
       "request": {
         "method": "POST",
-        "url": "http://localhost:8080/api/v1/mcp/validate-output",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/validate-output",
         "headers": {},
         "query": {},
         "body": {
@@ -287,7 +287,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/search/case-number",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/search/case-number",
         "headers": {},
         "query": {
           "caseNumber": "{{caseNumber}}"
@@ -312,7 +312,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/search/client-number",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/search/client-number",
         "headers": {},
         "query": {
           "clientNumber": "{{clientNumber}}"
@@ -337,7 +337,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "http://localhost:8080/api/v1/mcp/search/consultant-number",
+        "url": "${MCP_BACKEND_API_URL:http://localhost:8080}/api/v1/mcp/search/consultant-number",
         "headers": {},
         "query": {
           "consultantNumber": "{{consultantNumber}}"
