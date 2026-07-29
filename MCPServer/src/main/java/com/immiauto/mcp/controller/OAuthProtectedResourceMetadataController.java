@@ -9,8 +9,10 @@ import java.util.Map;
 
 /**
  * OAuth 2.0 Protected Resource Metadata (RFC 9728), required by the MCP Authorization spec
- * (2025-06-18). MCP clients fetch this to discover the authorization server (Entra) and the
- * scopes this resource supports. Kept public (permitted in {@code McpSecurityConfig}).
+ * (2025-06-18). MCP clients fetch this to discover the authorization server (Keycloak) and the
+ * scopes this resource supports; from there they self-register via Dynamic Client Registration
+ * (RFC 7591) against Keycloak's advertised {@code registration_endpoint}. Kept public (permitted
+ * in {@code McpSecurityConfig}).
  */
 @RestController
 public class OAuthProtectedResourceMetadataController {

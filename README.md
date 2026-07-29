@@ -112,6 +112,15 @@ On a **fresh** Postgres volume, the scripts in [`docker/postgres/init/`](docker/
 ### Authentication (Keycloak)
 On first start a small `realm-init` service renders [`docker/keycloak/realm-immiauto.json.template`](docker/keycloak/realm-immiauto.json.template) with `envsubst` (substituting `FRONTEND_PUBLIC_URL` into the redirect URIs / web origins) into a shared volume, and the `keycloak` service imports it. The realm defines the `immiauto` realm, three clients (`immiauto-frontend` public SPA, `immiauto-backend` API audience, `immiauto-mcp` service account), audience/role token mappers, and the demo user. The SPA logs in via Keycloak (Authorization Code + PKCE); the backend and MCP server validate the resulting tokens as OAuth2 resource servers. The MCP server authenticates its audit writes to the backend with a Keycloak **service-account** (client-credentials) token.
 
+### MCP Dynamic Client Registration (DCR)
+The MCP server lets AI-assistant clients (Claude Desktop, MCP Inspector, …) **self-register** with Keycloak via [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) — no pre-provisioned client id. It serves OAuth 2.0 Protected Resource Metadata at `/.well-known/oauth-protected-resource`, pointing clients at Keycloak, whose discovery document advertises the `registration_endpoint`. A client registers, then runs Authorization Code + PKCE to obtain a user token.
+
+Because a self-registered client is untrusted, **access is gated on the user, not the client**: the MCP server maps the token's `realm_access.roles` and requires an app role (`CONSULTANT_OWNER` or `ADMIN`) on `/mcp/**`. A token minted through a dynamically-registered client whose subject is not a real app user is rejected with **403** (missing token → **401**). Per-tool `mcp.*` scopes are still enforced on top of that.
+
+Keycloak isn't DCR-ready out of the box, so a one-shot [`keycloak-config`](docker-compose.yml) service runs after Keycloak (using its bundled `kcadm.sh`, see [`docker/keycloak/configure-dcr.sh`](docker/keycloak/configure-dcr.sh)) and idempotently: creates the `mcp.*` client scopes as realm **optional** defaults (so registered clients can request them) and removes the anonymous **Trusted Hosts**, **Consent Required**, and **Full Scope Disabled** registration policies so registration is open and tokens carry the user's realm roles. These scopes/policies are provisioned here rather than in the realm import on purpose — supplying a `clientScopes` array in a realm import makes Keycloak skip creating its built-in scopes (including `roles`, which the role gate depends on).
+
+> **Dev posture.** Anonymous, consent-free DCR with full user scope is convenient for local development. For a hardened deployment, re-enable the removed policies (or pin trusted clients) and require explicit consent — see the notes in [`configure-dcr.sh`](docker/keycloak/configure-dcr.sh).
+
 ---
 
 ## Configuration
@@ -153,7 +162,7 @@ Immigration-Consultation/
 ├── MCPServer/          # Spring Boot MCP server (AI tools)
 ├── docker/
 │   ├── postgres/init/  # DB bootstrap scripts (app schema + migrations, keycloak db)
-│   └── keycloak/       # Realm import TEMPLATE (env-substituted at startup by realm-init)
+│   └── keycloak/       # Realm import TEMPLATE + configure-dcr.sh (MCP DCR bootstrap)
 ├── docs/               # Project documentation
 ├── docker-compose.yml  # Full local stack
 └── .env.example        # Environment template
@@ -177,4 +186,4 @@ See [CLAUDE.md](CLAUDE.md) for the full working guidelines.
 
 - **MCP per-user identity** — MCP tool/audit calls to the backend currently use a Keycloak **service-account** token (they act as the MCP service account, not the calling user). Restore true per-user context via Keycloak **token exchange** when the MCP server is exercised with real user tokens.
 - **Service-account provisioning** — the backend auto-provisions any authenticated subject as a consultant; a non-human service account should be recognized and skipped (it currently errors on `/me`). Harden `UserProvisioningService` to ignore service accounts.
-- **MCP tool scopes** — define the `mcp.*` scopes as Keycloak client scopes so per-tool scope enforcement works for onboarded AI-assistant clients (audience validation for MCP is off until then).
+- **MCP audience validation** — the `mcp.*` scopes are now real Keycloak client scopes and MCP clients self-register via [DCR](#mcp-dynamic-client-registration-dcr), but MCP audience validation (`OIDC_MCP_AUDIENCE_VALIDATION`) stays off until registered clients are provisioned to carry `aud=immiauto-mcp`. Turn it on once DCR clients receive the MCP audience mapper.

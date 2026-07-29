@@ -94,6 +94,29 @@ services:
     networks:
       - immiauto
 
+  # One-shot job that provisions MCP Dynamic Client Registration (RFC 7591) once
+  # Keycloak is up: creates the mcp.* client scopes (realm optional defaults) and
+  # removes the anonymous "Trusted Hosts" policy so MCP clients can self-register.
+  # Uses the Keycloak image for its bundled kcadm.sh. Idempotent; runs to completion.
+  # See docker/keycloak/configure-dcr.sh and CLAUDE.md §12.
+  keycloak-config:
+    image: quay.io/keycloak/keycloak:26.2
+    container_name: immiauto-keycloak-config
+    restart: "no"
+    entrypoint: ["/bin/sh", "/config/configure-dcr.sh"]
+    environment:
+      KEYCLOAK_INTERNAL_URL: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}
+      KC_REALM: ${KC_REALM:-immiauto}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./docker/keycloak/configure-dcr.sh:/config/configure-dcr.sh:ro
+    depends_on:
+      keycloak:
+        condition: service_started
+    networks:
+      - immiauto
+
   backend:
     build:
       context: ./backend
