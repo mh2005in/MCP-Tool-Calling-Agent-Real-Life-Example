@@ -120,7 +120,7 @@ Before implementing any method:
 
 > **The whole project runs as a Docker Compose stack. After every change, build and deploy it via Docker Compose and confirm it comes up.**
 
-- The stack is defined in [docker-compose.yml](docker-compose.yml): `postgres` + `keycloak` (+ `realm-init`, `keycloak-config`) + `backend` + `mcpserver` + `frontend` (Angular served by nginx). Bring it up with:
+- The stack is defined in [docker-compose.yml](docker-compose.yml): `postgres` + `keycloak` (+ `realm-init`, `keycloak-config`) + `backend` + `mcpserver` + `frontend` (Angular served by nginx) + the local-LLM/chat tier `ollama` (+ `ollama-init`) + `mongodb` + `librechat`. Bring it up with:
 
   ```bash
   docker compose up -d --build
@@ -134,6 +134,7 @@ Before implementing any method:
 - **New dependency (a service, model, etc.) → add it as a compose service** and wire the dependent service's `depends_on`/env to reach it.
 - **Auth:** self-hosted **Keycloak** (OIDC) runs as the `keycloak` service, backed by its own `keycloak` database in the shared Postgres. The realm (`immiauto`), clients, mappers, and a demo user are imported from [docker/keycloak/realm-immiauto.json](docker/keycloak/realm-immiauto.json) on first start. Backend and MCP validate tokens by issuer (public URL) + audience, fetching JWKS over the internal network (`http://keycloak:8080`). The Angular SPA uses `keycloak-angular`/`keycloak-js`. Demo login: `demo` / `Passw0rd!`. Keycloak admin console: `http://localhost:8085` (`admin`/`admin` locally).
 - **MCP Dynamic Client Registration (RFC 7591):** AI-assistant clients self-register with Keycloak; the MCP server gates `/mcp/**` on the **user's** realm role (`CONSULTANT_OWNER`/`ADMIN`) via `realm_access.roles`, not the (untrusted) client. The `mcp.*` client scopes and the open-registration policy are provisioned by the one-shot **`keycloak-config`** service ([docker/keycloak/configure-dcr.sh](docker/keycloak/configure-dcr.sh)) that runs `kcadm.sh` after Keycloak — **not** in the realm import, because a `clientScopes` array in a realm import suppresses Keycloak's built-in scopes (incl. `roles`). The script is idempotent; edit it (not a rendered copy) to change DCR provisioning. Anonymous/consent-free DCR is a **dev** posture — re-enable the removed policies for production.
+- **Local LLM + chat UI:** `ollama` serves `qwen2.5:3b` (`OLLAMA_MODEL`) on the **NVIDIA GPU** (`deploy.resources.reservations.devices`; drop that block for CPU-only); `ollama-init` pulls the model once. `librechat` (config [docker/librechat/librechat.yaml](docker/librechat/librechat.yaml), MongoDB-backed) chats with Ollama and calls the MCP server via **OAuth** (DCR). This is why `KEYCLOAK_PUBLIC_URL` uses **`keycloak.localtest.me:8085`** not `localhost`: the MCP OAuth issuer must resolve to Keycloak from the browser **and** the LibreChat container. `*.localtest.me` is public DNS→`127.0.0.1`; compose maps the same name to the host gateway inside the container via `extra_hosts`. LibreChat secrets (`LIBRECHAT_CREDS_KEY/IV`, `JWT_*`) live in `.env`.
 
 ---
 

@@ -17,6 +17,28 @@ class ToolMappingLoaderTest {
     private final ToolMappingLoader loader = new ToolMappingLoader(new ObjectMapper());
 
     @Test
+    void resolveEnvUsesDefaultWhenVariableUnset() {
+        // No such env var -> the default after ':' is used (this is how tools.json points at the
+        // backend: ${MCP_BACKEND_API_URL:http://localhost:8080}).
+        String resolved = ToolMappingLoader.resolveEnv("\"url\": \"${DEFINITELY_UNSET_VAR_XYZ:http://backend:8080}/api\"");
+        assertEquals("\"url\": \"http://backend:8080/api\"", resolved);
+    }
+
+    @Test
+    void resolveEnvSubstitutesFromEnvironment() {
+        // PATH is set in every environment; assert the placeholder is replaced by its value.
+        String resolved = ToolMappingLoader.resolveEnv("x=${PATH:fallback}");
+        assertNotEquals("x=${PATH:fallback}", resolved);
+        assertNotEquals("x=fallback", resolved);
+    }
+
+    @Test
+    void resolveEnvKeepsLiteralWhenNoValueOrDefault() {
+        String resolved = ToolMappingLoader.resolveEnv("${DEFINITELY_UNSET_VAR_XYZ}");
+        assertEquals("${DEFINITELY_UNSET_VAR_XYZ}", resolved);
+    }
+
+    @Test
     void loadsAValidMapping() throws Exception {
         Path config = tempDirectory.resolve("tools.json");
         Files.writeString(config, """
