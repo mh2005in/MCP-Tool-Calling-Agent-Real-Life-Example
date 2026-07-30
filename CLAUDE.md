@@ -24,10 +24,11 @@ Use the following installation directories before running any build or tooling c
 
 ```
 project-root/
-├── backend/      # Spring Boot (Java) implementation
-├── frontend/     # UI implementation (Angular / React)
-├── MCPserver/    # MCP server (only if required)
-└── docs/         # Project-related documentation
+├── backend/      # Spring Boot (Java) API
+├── frontend/     # Angular 18 SPA (served by nginx in Docker)
+├── MCPServer/    # Spring Boot MCP server (AI tools)
+├── docker/       # Per-service configs + DB/Keycloak/LibreChat bootstrap
+└── docs/         # Project documentation
 ```
 
 ---
@@ -83,9 +84,7 @@ Before implementing any method:
 - **Before every commit, scan the staged diff** for real credentials or personal data and confirm each has been replaced with a placeholder.
 - Never paste real credentials or personal data into code, tests, logs, commit messages, or PR descriptions.
 - If a real secret is ever committed, treat it as **compromised**: rotate it — don't just amend the commit. If real PII is committed, raise it immediately; scrubbing history may be required.
-- **A pre-commit secret scanner (gitleaks) runs automatically** ([.githooks/pre-commit](.githooks/pre-commit) runs `gitleaks git --staged`). It blocks commits whose staged changes contain likely secrets.
-  - Requires gitleaks installed. Windows: `winget install gitleaks` (or `scoop`/`choco`); macOS: `brew install gitleaks`. See https://github.com/gitleaks/gitleaks#installing.
-  - Enable the hooks in a fresh clone: `git config core.hooksPath .githooks` (per-clone, so each checkout runs this once).
+- **A pre-commit secret scanner (gitleaks) runs automatically** ([.githooks/pre-commit](.githooks/pre-commit) runs `gitleaks git --staged`) and blocks commits whose staged changes contain likely secrets. Hook setup — installing gitleaks and enabling `core.hooksPath` — is in §16.
   - It's a safety net, not a substitute for the placeholder rule above — **gitleaks matches secret patterns, not PII**, so it won't catch a real name or email. Bypass a genuine false positive with `git commit --no-verify`.
 
 ---
@@ -138,8 +137,7 @@ Before implementing any method:
 - **On a successful PR merge to `main`, delete that PR's worktree directory.** Once the merge is confirmed (e.g. `gh pr view <n> --json state,mergedAt` shows it merged), run `git worktree remove .claude/worktrees/<name>` from the main checkout to remove it cleanly (add `--force` only if the tree has intended leftover files). Then prune the merged branch with `git branch -d <branch>`.
 - Only remove a worktree after the merge is verified — never delete one with unmerged or uncommitted work. Don't delete the `main` checkout or the shared root `CLAUDE.md`.
 - **A post-merge cleanup hook automates the above** ([.githooks/post-merge](.githooks/post-merge)). After a `git merge`/`git pull` on `main` it removes each worktree under `.claude/worktrees/` whose branch has landed, and prunes that branch.
-  - It runs when you **pull merged work into `main`**, not when the PR merges — hooks are local, so nothing fires on GitHub's side. It does **not** run on `git pull --rebase` (no merge happens).
-  - Enable the hooks in a fresh clone: `git config core.hooksPath .githooks` (per-clone config, so each checkout must run this once).
+  - It runs when you **pull merged work into `main`**, not when the PR merges — hooks are local, so nothing fires on GitHub's side. It does **not** run on `git pull --rebase` (no merge happens). (Hook setup is in §16.)
   - It calls `git worktree remove` and `git branch -d` without `--force`, so git refuses anything dirty or unmerged and the hook reports it instead of deleting it. Directories git doesn't track as worktrees are reported, never deleted.
   - It detects merged branches by ancestry. If the repo ever switches to squash merges, branch commits never become ancestors of `main`, so ancestry-based cleanup stops working.
 
@@ -168,3 +166,22 @@ Before implementing any method:
 - **`.env` holds base values; composite values are derived in [docker-compose.yml](docker-compose.yml), never hand-copied** (OIDC issuer, JWKS URI, token endpoint, CORS origin, MCP audit URL are all built from base vars). Public browser-facing URLs use `*_PUBLIC_URL`; internal service-to-service calls use `*_INTERNAL_URL`. **The full variable list and derivation chain are in [README.md](README.md) "Configuration" — that is the source of truth.**
 - **Consume config the established way, never a bare literal:** Spring reads `${ENV:default}` in `application.properties` (Docker overrides via compose); the Angular SPA reads `window.__env` (nginx renders it via `envsubst`, so host/API changes need **no rebuild** — never hardcode a URL in `environment*.ts`); the Keycloak realm uses `${FRONTEND_PUBLIC_URL}` in [realm-immiauto.json.template](docker/keycloak/realm-immiauto.json.template) (edit the `.template`, never a rendered copy).
 - **When you add or change an endpoint/URL/port, wire it through the chain** — base var in `.env`/`.env.example` → derived in compose → consumed via `${ENV:default}` or `window.__env` — and update `README.md` per §14 **and the `deploy-verify` agent per §12** (it hardcodes service names, ports, and health endpoints).
+
+---
+
+## 16. Automation — agents, skills & hooks
+
+Some guidelines here are backed by tooling, not just prose. Keep the tooling and the rules it encodes in sync — a stale agent/skill/hook is a bug.
+
+- **Current artifacts:**
+  - `deploy-verify` **agent** ([.claude/agents/deploy-verify.md](.claude/agents/deploy-verify.md)) — §12 rebuild-and-verify.
+  - `worktree` **skill** ([.claude/skills/worktree/SKILL.md](.claude/skills/worktree/SKILL.md)) — §13 worktree create/cleanup.
+  - **hooks** ([.githooks/](.githooks/)) — `pre-commit` (§8 secrets + §11 author guard), `commit-msg` (§11 attribution), `post-merge` (§13 worktree cleanup).
+- **Hook setup (fresh clone, one-time):** enable the hooks with `git config core.hooksPath .githooks` (per-clone config). The `pre-commit` secret scan additionally needs **gitleaks** — Windows `winget install gitleaks` (or `scoop`/`choco`), macOS `brew install gitleaks` (see https://github.com/gitleaks/gitleaks#installing); without it that scan is skipped (the author guard still runs).
+- **Keep them updated.** When a change alters what an artifact encodes — parameters (service names/ports/endpoints), a workflow, or a rule — update that artifact in the **same change** so it can't drift (see the deploy-verify sync rule in §12/§15). When you add a new artifact, list it here.
+- **When the user proposes a CLAUDE.md change, first classify it** — decide whether the rule is better delivered (or additionally enforced) as an agent, skill, or hook, say so, then follow the user's instruction (§3):
+  - **Hook** — a deterministic "**every time** X / **before/after** Y" rule that can be machine-checked (commit gates, post-merge steps). Fires on events, so it can't be forgotten.
+  - **Skill** — an occasional, task-specific **procedure** loaded on demand. Keeps always-on context small.
+  - **Agent** — a self-contained task worth its **own context** (build/verify, broad search), especially if independent or parallelizable.
+  - **Stay in CLAUDE.md** — an always-on principle that shapes most actions and can't be conditionally loaded.
+  Recommend the best home, note whether it also needs a CLAUDE.md pointer, and implement per §3 (ask first).
