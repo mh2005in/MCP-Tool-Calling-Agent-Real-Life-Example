@@ -1,0 +1,41 @@
+#!/bin/sh
+# ============================================================
+# commit-msg: block agent/co-author attribution in the commit
+# message (CLAUDE.md Section 11) - "Never add Claude as an author
+# or co-author. No Co-Authored-By trailer, no agent attribution."
+#
+# Attribution-only by design: it blocks Co-Authored-By trailers and
+# the "Generated with Claude" footer, NOT neutral mentions of the
+# CLAUDE.md file - so a commit like "Update CLAUDE.md Section 11" is
+# fine. PR bodies live on GitHub and are not covered here; keep the
+# no-attribution rule for PRs by hand.
+#
+# Bypass a deliberate exception (e.g. a genuine human co-author)
+# with `git commit --no-verify`.
+#
+# Enable in a fresh clone (per-clone config):
+#   git config core.hooksPath .githooks
+# ============================================================
+set -eu
+
+msg_file="$1"
+
+# Scan only the real message: drop the verbose-diff scissors section
+# (everything from the "# ... >8 ..." line onward) and comment lines,
+# so we never match the diff or git's template comments.
+content=$(sed '/^#.*>8/,$d' "$msg_file" | grep -v '^#' || true)
+
+# High-signal attribution patterns agents inject (case-insensitive):
+#   - any Co-Authored-By trailer
+#   - the "Generated with Claude ..." footer (covers the robot-emoji
+#     "🤖 Generated with Claude Code" line too)
+if printf '%s\n' "$content" | grep -qiE 'co-authored-by:|generated with claude'; then
+    echo "[commit-msg] Attribution detected in the commit message - commit blocked (CLAUDE.md Section 11)."
+    echo "[commit-msg] Remove the Co-Authored-By trailer / 'Generated with Claude' line."
+    printf '%s\n' "$content" | grep -niE 'co-authored-by:|generated with claude' \
+        | sed 's/^/[commit-msg]   offending: /'
+    echo "[commit-msg] Bypass a deliberate exception with: git commit --no-verify"
+    exit 1
+fi
+
+exit 0

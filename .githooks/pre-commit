@@ -1,7 +1,10 @@
 #!/bin/sh
 # ============================================================
-# pre-commit: block commits whose staged changes contain likely
-# secrets, using gitleaks.
+# pre-commit: two guards before a commit lands -
+#   1. Author identity (CLAUDE.md Section 11): the commit must be
+#      authored as `mh2005in`; anything else is blocked.
+#   2. Secret scan (CLAUDE.md Section 8): block staged changes that
+#      contain likely secrets, using gitleaks.
 #
 # Safety net only - it does NOT replace the placeholder rule in
 # CLAUDE.md (Section 8), and gitleaks matches secret PATTERNS, not
@@ -13,6 +16,29 @@
 # ============================================================
 set -eu
 
+# ------------------------------------------------------------
+# 1. Author identity guard (CLAUDE.md Section 11).
+# Commits must be authored as `mh2005in`. GIT_AUTHOR_IDENT is the
+# effective author git will use (honours config, --author, and the
+# GIT_AUTHOR_* env), formatted "Name <email> <time> <tz>"; we take
+# the name (everything before " <"). This also catches an unset
+# identity (empty -> mismatch). Bypass a deliberate exception with
+# `git commit --no-verify`.
+# ------------------------------------------------------------
+expected_author="mh2005in"
+author_ident=$(git var GIT_AUTHOR_IDENT 2>/dev/null || echo "")
+author_name=${author_ident%% <*}
+if [ "$author_name" != "$expected_author" ]; then
+    echo "[pre-commit] Commit author is '${author_name:-<unset>}', expected '$expected_author' (CLAUDE.md Section 11) - commit blocked."
+    echo "[pre-commit] Set it and retry:"
+    echo "[pre-commit]   git config user.name '$expected_author'"
+    echo "[pre-commit] Never author under another identity."
+    exit 1
+fi
+
+# ------------------------------------------------------------
+# 2. Secret scan (CLAUDE.md Section 8).
+# ------------------------------------------------------------
 if ! command -v gitleaks >/dev/null 2>&1; then
     echo "[pre-commit] gitleaks not found - skipping secret scan (install it to enable)."
     echo "[pre-commit]   Windows: winget install gitleaks   (or: scoop install gitleaks / choco install gitleaks)"
