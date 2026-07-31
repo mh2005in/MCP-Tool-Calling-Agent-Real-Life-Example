@@ -8,11 +8,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PartyProfile extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_profiles_gen")
-    @SequenceGenerator(name = "party_profiles_gen", sequenceName = "party_profiles_seq", allocationSize = 1)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)
     private ImmigrationCase immigrationCase;

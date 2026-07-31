@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.mcp.*;
 import com.immiauto.entity.AppUser;
@@ -32,37 +34,37 @@ public class McpApiController {
 
     @GetMapping(ApiPaths.MCP_INTAKE_SUMMARY)
     public ResponseEntity<Map<String, List<MaskedIntakeResponseDto>>> getIntakeSummary(
-            @PathVariable Long caseId, HttpServletRequest request) {
+            @PathVariable UUID caseId, HttpServletRequest request) {
         return ResponseEntity.ok(mcpDataService.getIntakeSummary(caseId, getMcpConsultant(request)));
     }
 
     @GetMapping(ApiPaths.MCP_DOCUMENTS)
     public ResponseEntity<List<SanitizedDocumentDto>> getDocuments(
-            @PathVariable Long caseId, HttpServletRequest request) {
+            @PathVariable UUID caseId, HttpServletRequest request) {
         return ResponseEntity.ok(mcpDataService.getDocuments(caseId, getMcpConsultant(request)));
     }
 
     @GetMapping(ApiPaths.MCP_CHECKLIST_STATUS)
     public ResponseEntity<List<McpChecklistItemDto>> getChecklistStatus(
-            @PathVariable Long caseId, HttpServletRequest request) {
+            @PathVariable UUID caseId, HttpServletRequest request) {
         return ResponseEntity.ok(mcpDataService.getChecklistStatus(caseId, getMcpConsultant(request)));
     }
 
     @GetMapping(ApiPaths.MCP_CONSISTENCY_REPORT)
     public ResponseEntity<List<Map<String, String>>> getConsistencyReport(
-            @PathVariable Long caseId, HttpServletRequest request) {
+            @PathVariable UUID caseId, HttpServletRequest request) {
         return ResponseEntity.ok(mcpDataService.getConsistencyReport(caseId, getMcpConsultant(request)));
     }
 
     @GetMapping(ApiPaths.MCP_TIMELINE)
     public ResponseEntity<List<McpTimelineEntryDto>> getTimeline(
-            @PathVariable Long caseId, HttpServletRequest request) {
+            @PathVariable UUID caseId, HttpServletRequest request) {
         return ResponseEntity.ok(mcpDataService.getTimeline(caseId, getMcpConsultant(request)));
     }
 
     @PostMapping(ApiPaths.MCP_CLASSIFY_DOCUMENT)
     public ResponseEntity<Map<String, String>> classifyDocument(
-            @PathVariable Long caseId,
+            @PathVariable UUID caseId,
             @Valid @RequestBody McpDocumentClassificationRequest request) {
         return ResponseEntity.ok(mcpDataService.classifyDocument(
                 request.getFilename(), request.getMimeType(), request.getSize()));
@@ -70,7 +72,7 @@ public class McpApiController {
 
     @GetMapping(ApiPaths.MCP_REMINDERS_PENDING)
     public ResponseEntity<List<McpReminderDto>> getPendingReminders(
-            @PathVariable Long caseId, HttpServletRequest request) {
+            @PathVariable UUID caseId, HttpServletRequest request) {
         return ResponseEntity.ok(mcpDataService.getPendingReminders(caseId, getMcpConsultant(request)));
     }
 
@@ -82,7 +84,7 @@ public class McpApiController {
 
     @GetMapping(ApiPaths.MCP_CASE_OVERVIEW)
     public ResponseEntity<CaseSummaryProjection> getCaseOverview(
-            @PathVariable Long caseId, HttpServletRequest request) {
+            @PathVariable UUID caseId, HttpServletRequest request) {
         return ResponseEntity.ok(mcpDataService.getCaseSummary(caseId, getMcpConsultant(request)));
     }
 
@@ -94,7 +96,7 @@ public class McpApiController {
 
     @GetMapping(ApiPaths.MCP_CLIENT_GET)
     public ResponseEntity<MaskedClientDto> getClient(
-            @PathVariable Long clientId, HttpServletRequest request) {
+            @PathVariable UUID clientId, HttpServletRequest request) {
         Consultant caller = getMcpConsultant(request);
         return ResponseEntity.ok(mcpDataService.getMaskedClient(clientId, caller));
     }

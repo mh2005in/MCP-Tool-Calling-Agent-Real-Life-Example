@@ -4,16 +4,12 @@ import com.immiauto.enums.ServiceType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
 
 @Entity
 @Table(name = "conditional_rules")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ConditionalRule extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "conditional_rules_gen")
-    @SequenceGenerator(name = "conditional_rules_gen", sequenceName = "conditional_rules_seq", allocationSize = 1)
-    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -32,7 +28,7 @@ public class ConditionalRule extends BaseEntity {
     private String actionType;
 
     @Column
-    private Long targetChecklistTemplateId;
+    private UUID targetChecklistTemplateId;
 
     @Column
     private String targetQuestionKey;

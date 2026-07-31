@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.service.ConsistencyCheckService;
 import com.immiauto.service.DocumentClassificationService;
 import com.immiauto.service.LmiaCalculatorService;
@@ -26,17 +28,17 @@ public class AutomationController {
     }
 
     @GetMapping("/cases/{caseId}/consistency-check")
-    public List<Map<String, String>> checkConsistency(@PathVariable Long caseId) {
+    public List<Map<String, String>> checkConsistency(@PathVariable UUID caseId) {
         return consistencyCheckService.checkConsistency(caseId);
     }
 
     @GetMapping("/cases/{caseId}/police-certificates")
-    public List<Map<String, Object>> getRequiredPoliceCertificates(@PathVariable Long caseId) {
+    public List<Map<String, Object>> getRequiredPoliceCertificates(@PathVariable UUID caseId) {
         return policeCertificateService.determineRequiredCertificates(caseId);
     }
 
     @GetMapping("/cases/{caseId}/lmia-compliance")
-    public Map<String, Object> getLmiaCompliance(@PathVariable Long caseId) {
+    public Map<String, Object> getLmiaCompliance(@PathVariable UUID caseId) {
         return lmiaCalculatorService.calculateRecruitmentCompliance(caseId);
     }
 }

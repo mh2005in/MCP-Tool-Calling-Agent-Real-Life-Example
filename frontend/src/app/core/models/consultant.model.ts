@@ -1,5 +1,5 @@
 export interface Consultant {
-  id: number;
+  id: string;
   consultantNumber?: string;
   fullName: string;
   email: string;

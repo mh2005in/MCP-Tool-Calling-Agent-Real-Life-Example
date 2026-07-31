@@ -12,11 +12,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PackageProfileForm extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "package_profile_forms_gen")
-    @SequenceGenerator(name = "package_profile_forms_gen", sequenceName = "package_profile_forms_seq", allocationSize = 1)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "package_profile_id", nullable = false)
     private PackageProfile packageProfile;

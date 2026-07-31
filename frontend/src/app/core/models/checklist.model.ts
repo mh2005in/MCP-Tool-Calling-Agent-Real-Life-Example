@@ -7,8 +7,8 @@ export type ServiceType = 'STUDY_PERMIT' | 'VISITOR_VISA' | 'SPOUSAL_SPONSORSHIP
   'SUPER_VISA' | 'PR_CARD_PRTD' | 'PNP' | 'OTHER';
 
 export interface ChecklistItem {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   category: string;
   documentName: string;
   description?: string;
@@ -18,11 +18,11 @@ export interface ChecklistItem {
   conditionDescription?: string;
   sortOrder: number;
   consultantReviewNote?: string;
-  linkedDocumentId?: number;
+  linkedDocumentId?: string;
 }
 
 export interface ChecklistTemplate {
-  id?: number;
+  id?: string;
   serviceType: ServiceType;
   category: string;
   documentName: string;
@@ -33,11 +33,11 @@ export interface ChecklistTemplate {
   sortOrder: number;
   sourceUrl?: string;
   lastReviewedDate?: string;
-  reviewedByConsultantId?: number;
+  reviewedByConsultantId?: string;
   reviewedByConsultantName?: string;
   ruleVersion: number;
   approvedForUse: boolean;
-  approvedByConsultantId?: number;
+  approvedByConsultantId?: string;
   approvedByConsultantName?: string;
   approvedDate?: string;
 }
@@ -51,9 +51,9 @@ export interface ClientChecklistResponse {
 }
 
 export interface AuditLogEntry {
-  id: number;
+  id: string;
   entityType: string;
-  entityId: number;
+  entityId: string;
   action: string;
   details: string;
   performedBy: string;

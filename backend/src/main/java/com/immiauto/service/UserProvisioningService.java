@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.entity.AppUser;
 import com.immiauto.entity.Consultant;
 import com.immiauto.enums.AppRole;
@@ -65,7 +67,7 @@ public class UserProvisioningService {
     private AppUser provision(Jwt jwt, String externalSubject) {
         String email = extractEmail(jwt);
         String name = jwt.getClaimAsString("name");
-        Long consultantId = resolveOrCreateConsultantId(email, name);
+        UUID consultantId = resolveOrCreateConsultantId(email, name);
 
         return appUserRepository.save(AppUser.builder()
                 .externalSubject(externalSubject)
@@ -82,7 +84,7 @@ public class UserProvisioningService {
     private AppUser heal(Jwt jwt, AppUser existing) {
         String email = extractEmail(jwt);
         String name = jwt.getClaimAsString("name");
-        Long consultantId = resolveOrCreateConsultantId(email, name);
+        UUID consultantId = resolveOrCreateConsultantId(email, name);
         if (consultantId == null) {
             return existing; // still nothing to link to -> remains PENDING
         }
@@ -99,7 +101,7 @@ public class UserProvisioningService {
     }
 
     /** Finds a consultant by email, or creates one when auto-provisioning is enabled. Null if no email. */
-    private Long resolveOrCreateConsultantId(String email, String name) {
+    private UUID resolveOrCreateConsultantId(String email, String name) {
         if (email == null) {
             return null;
         }

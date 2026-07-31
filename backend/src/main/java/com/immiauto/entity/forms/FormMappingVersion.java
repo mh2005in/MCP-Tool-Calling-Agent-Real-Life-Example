@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * A versioned mapping set for one form definition. Mappings must be APPROVED
@@ -15,11 +16,6 @@ import java.time.LocalDateTime;
 @Table(name = "form_mapping_versions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class FormMappingVersion extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "form_mapping_versions_gen")
-    @SequenceGenerator(name = "form_mapping_versions_gen", sequenceName = "form_mapping_versions_seq", allocationSize = 1)
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "form_definition_id", nullable = false)
@@ -33,7 +29,7 @@ public class FormMappingVersion extends BaseEntity {
     private MappingStatus status;
 
     @Column
-    private Long approvedByConsultantId;
+    private UUID approvedByConsultantId;
 
     @Column
     private String approvedByConsultantName;

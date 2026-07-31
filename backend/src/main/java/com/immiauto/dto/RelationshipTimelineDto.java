@@ -4,11 +4,12 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class RelationshipTimelineDto {
-    private Long id;
-    private Long caseId;
+    private UUID id;
+    private UUID caseId;
 
     @NotBlank
     private String milestoneType;

@@ -12,7 +12,7 @@ import { RelationshipTimelineEntry } from '../../../core/models/workflow.model';
   styleUrls: ['./relationship-timeline.component.css']
 })
 export class RelationshipTimelineComponent implements OnInit {
-  @Input() caseId!: number;
+  @Input() caseId!: string;
 
   entries: RelationshipTimelineEntry[] = [];
   showForm = false;
@@ -63,7 +63,7 @@ export class RelationshipTimelineComponent implements OnInit {
     }
   }
 
-  deleteEntry(id: number) {
+  deleteEntry(id: string) {
     this.api.deleteTimelineEntry(this.caseId, id).subscribe(() => this.loadEntries());
   }
 

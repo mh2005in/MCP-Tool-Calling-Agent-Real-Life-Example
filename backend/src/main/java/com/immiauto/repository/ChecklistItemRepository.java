@@ -6,11 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface ChecklistItemRepository extends JpaRepository<ChecklistItem, Long> {
-    List<ChecklistItem> findByImmigrationCaseIdOrderBySortOrder(Long caseId);
-    List<ChecklistItem> findByImmigrationCaseIdAndStatus(Long caseId, DocumentStatus status);
-    long countByImmigrationCaseIdAndStatus(Long caseId, DocumentStatus status);
-    long countByImmigrationCaseId(Long caseId);
+public interface ChecklistItemRepository extends JpaRepository<ChecklistItem, UUID> {
+    List<ChecklistItem> findByImmigrationCaseIdOrderBySortOrder(UUID caseId);
+    List<ChecklistItem> findByImmigrationCaseIdAndStatus(UUID caseId, DocumentStatus status);
+    long countByImmigrationCaseIdAndStatus(UUID caseId, DocumentStatus status);
+    long countByImmigrationCaseId(UUID caseId);
 }

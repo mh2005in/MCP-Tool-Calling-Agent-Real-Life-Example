@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.ReminderDto;
 import com.immiauto.service.ReminderService;
@@ -22,19 +24,19 @@ public class ReminderController {
 
     @PostMapping(ApiPaths.REMINDERS_CREATE)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<ReminderDto> createReminder(@PathVariable Long caseId,
+    public ResponseEntity<ReminderDto> createReminder(@PathVariable UUID caseId,
                                                        @Valid @RequestBody ReminderDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(reminderService.createReminder(caseId, dto));
     }
 
     @GetMapping(ApiPaths.REMINDERS_GET)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<List<ReminderDto>> getReminders(@PathVariable Long caseId) {
+    public ResponseEntity<List<ReminderDto>> getReminders(@PathVariable UUID caseId) {
         return ResponseEntity.ok(reminderService.getRemindersForCase(caseId));
     }
 
     @PatchMapping(ApiPaths.REMINDERS_APPROVE)
-    public ResponseEntity<ReminderDto> approveReminder(@PathVariable Long reminderId,
+    public ResponseEntity<ReminderDto> approveReminder(@PathVariable UUID reminderId,
                                                         @RequestParam String approvedBy) {
         return ResponseEntity.ok(reminderService.approveReminder(reminderId, approvedBy));
     }
@@ -46,7 +48,7 @@ public class ReminderController {
 
     @GetMapping(ApiPaths.REMINDERS_PENDING_BY_CONSULTANT)
     @PreAuthorize("@consultantAccess.canAccess(#consultantId)")
-    public ResponseEntity<List<ReminderDto>> getPendingRemindersByConsultant(@PathVariable Long consultantId) {
+    public ResponseEntity<List<ReminderDto>> getPendingRemindersByConsultant(@PathVariable UUID consultantId) {
         return ResponseEntity.ok(reminderService.getPendingRemindersByConsultant(consultantId));
     }
 }

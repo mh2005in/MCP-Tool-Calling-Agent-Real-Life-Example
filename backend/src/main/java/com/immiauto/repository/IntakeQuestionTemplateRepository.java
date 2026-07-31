@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface IntakeQuestionTemplateRepository extends JpaRepository<IntakeQuestionTemplate, Long> {
+public interface IntakeQuestionTemplateRepository extends JpaRepository<IntakeQuestionTemplate, UUID> {
     List<IntakeQuestionTemplate> findByServiceTypeOrderBySortOrder(ServiceType serviceType);
     List<IntakeQuestionTemplate> findByServiceTypeAndSectionNameOrderBySortOrder(ServiceType serviceType, String sectionName);
     List<IntakeQuestionTemplate> findByServiceTypeAndIsTriggerQuestionTrueOrderBySortOrder(ServiceType serviceType);

@@ -18,8 +18,8 @@ import { CasePackage, PackageIndex, PackageReadinessReport, ValidationIssue } fr
   styleUrls: ['./package-approval.component.css']
 })
 export class PackageApprovalComponent implements OnChanges {
-  @Input() caseId!: number;
-  @Input() packageProfileId: number | null = null;
+  @Input() caseId!: string;
+  @Input() packageProfileId: string | null = null;
 
   pkg: CasePackage | null = null;
   index: PackageIndex | null = null;

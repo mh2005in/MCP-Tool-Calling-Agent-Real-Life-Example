@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.*;
 import com.immiauto.entity.*;
 import com.immiauto.enums.ServiceType;
@@ -46,7 +48,7 @@ public class IntakeService {
     }
 
     @Transactional
-    public List<IntakeResponseDto> submitIntake(Long caseId, IntakeSubmissionRequest request) {
+    public List<IntakeResponseDto> submitIntake(UUID caseId, IntakeSubmissionRequest request) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
 
@@ -132,13 +134,13 @@ public class IntakeService {
     }
 
     @Transactional(readOnly = true)
-    public List<IntakeResponseDto> getResponses(Long caseId) {
+    public List<IntakeResponseDto> getResponses(UUID caseId) {
         return responseRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream().map(this::toResponseDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public IntakeSummaryDto getIntakeSummary(Long caseId) {
+    public IntakeSummaryDto getIntakeSummary(UUID caseId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
 
@@ -164,7 +166,7 @@ public class IntakeService {
     }
 
     @Transactional
-    public IntakeResponseDto flagResponse(Long responseId, boolean flagged) {
+    public IntakeResponseDto flagResponse(UUID responseId, boolean flagged) {
         IntakeResponse response = responseRepository.findById(responseId)
                 .orElseThrow(() -> new EntityNotFoundException("Response not found: " + responseId));
         response.setFlaggedForReview(flagged);
@@ -172,7 +174,7 @@ public class IntakeService {
     }
 
     @Transactional
-    public IntakeResponseDto updateResponse(Long responseId, String answer) {
+    public IntakeResponseDto updateResponse(UUID responseId, String answer) {
         IntakeResponse response = responseRepository.findById(responseId)
                 .orElseThrow(() -> new EntityNotFoundException("Response not found: " + responseId));
         response.setAnswer(answer);

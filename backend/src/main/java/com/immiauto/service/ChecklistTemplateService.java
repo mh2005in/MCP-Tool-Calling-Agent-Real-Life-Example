@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ChecklistTemplateDto;
 import com.immiauto.entity.AuditLog;
 import com.immiauto.entity.ChecklistTemplate;
@@ -30,7 +32,7 @@ public class ChecklistTemplateService {
     private final ChecklistTemplateMapper checklistTemplateMapper;
 
     @Transactional
-    public ChecklistTemplateDto createTemplate(ChecklistTemplateDto dto, Long consultantId) {
+    public ChecklistTemplateDto createTemplate(ChecklistTemplateDto dto, UUID consultantId) {
         Consultant consultant = findAdminConsultantOrThrow(consultantId);
 
         ChecklistTemplate template = ChecklistTemplate.builder()
@@ -58,7 +60,7 @@ public class ChecklistTemplateService {
     }
 
     @Transactional
-    public ChecklistTemplateDto updateTemplate(Long templateId, ChecklistTemplateDto dto, Long consultantId) {
+    public ChecklistTemplateDto updateTemplate(UUID templateId, ChecklistTemplateDto dto, UUID consultantId) {
         ChecklistTemplate template = findTemplateOrThrow(templateId);
         Consultant consultant = findAdminConsultantOrThrow(consultantId);
 
@@ -99,7 +101,7 @@ public class ChecklistTemplateService {
     }
 
     @Transactional
-    public ChecklistTemplateDto reviewTemplate(Long templateId, Long consultantId) {
+    public ChecklistTemplateDto reviewTemplate(UUID templateId, UUID consultantId) {
         ChecklistTemplate template = findTemplateOrThrow(templateId);
         Consultant consultant = findConsultantOrThrow(consultantId);
 
@@ -118,7 +120,7 @@ public class ChecklistTemplateService {
     }
 
     @Transactional
-    public ChecklistTemplateDto approveTemplate(Long templateId, Long consultantId) {
+    public ChecklistTemplateDto approveTemplate(UUID templateId, UUID consultantId) {
         ChecklistTemplate template = findTemplateOrThrow(templateId);
         Consultant consultant = findAdminConsultantOrThrow(consultantId);
 
@@ -138,7 +140,7 @@ public class ChecklistTemplateService {
     }
 
     @Transactional
-    public ChecklistTemplateDto revokeApproval(Long templateId, Long consultantId) {
+    public ChecklistTemplateDto revokeApproval(UUID templateId, UUID consultantId) {
         ChecklistTemplate template = findTemplateOrThrow(templateId);
         Consultant consultant = findAdminConsultantOrThrow(consultantId);
 
@@ -169,7 +171,7 @@ public class ChecklistTemplateService {
     }
 
     @Transactional(readOnly = true)
-    public ChecklistTemplateDto getTemplate(Long templateId) {
+    public ChecklistTemplateDto getTemplate(UUID templateId) {
         return checklistTemplateMapper.toDto(findTemplateOrThrow(templateId));
     }
 
@@ -180,7 +182,7 @@ public class ChecklistTemplateService {
     }
 
     @Transactional
-    public void deleteTemplate(Long templateId, Long consultantId) {
+    public void deleteTemplate(UUID templateId, UUID consultantId) {
         ChecklistTemplate template = findTemplateOrThrow(templateId);
         Consultant consultant = findAdminConsultantOrThrow(consultantId);
 
@@ -192,22 +194,22 @@ public class ChecklistTemplateService {
     }
 
     @Transactional(readOnly = true)
-    public List<AuditLog> getTemplateAuditHistory(Long templateId) {
+    public List<AuditLog> getTemplateAuditHistory(UUID templateId) {
         return auditLogRepository.findByEntityTypeAndEntityIdOrderByPerformedAtDesc(
                 "ChecklistTemplate", templateId);
     }
 
-    private ChecklistTemplate findTemplateOrThrow(Long id) {
+    private ChecklistTemplate findTemplateOrThrow(UUID id) {
         return templateRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Checklist template not found: " + id));
     }
 
-    private Consultant findConsultantOrThrow(Long id) {
+    private Consultant findConsultantOrThrow(UUID id) {
         return consultantRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant not found: " + id));
     }
 
-    private Consultant findAdminConsultantOrThrow(Long id) {
+    private Consultant findAdminConsultantOrThrow(UUID id) {
         Consultant consultant = findConsultantOrThrow(id);
         if (!consultant.isAdmin()) {
             throw new AdminAccessRequiredException(

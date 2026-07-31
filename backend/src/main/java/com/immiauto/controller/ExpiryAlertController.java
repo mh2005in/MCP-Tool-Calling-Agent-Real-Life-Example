@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ExpiryAlertDto;
 import com.immiauto.service.ExpiryAlertService;
 import lombok.RequiredArgsConstructor;
@@ -16,17 +18,17 @@ public class ExpiryAlertController {
     private final ExpiryAlertService expiryAlertService;
 
     @GetMapping("/consultants/{consultantId}/expiry-alerts")
-    public List<ExpiryAlertDto> getAlertsByConsultant(@PathVariable Long consultantId) {
+    public List<ExpiryAlertDto> getAlertsByConsultant(@PathVariable UUID consultantId) {
         return expiryAlertService.getAlertsByConsultant(consultantId);
     }
 
     @GetMapping("/cases/{caseId}/expiry-alerts")
-    public List<ExpiryAlertDto> getAlertsForCase(@PathVariable Long caseId) {
+    public List<ExpiryAlertDto> getAlertsForCase(@PathVariable UUID caseId) {
         return expiryAlertService.getAlertsForCase(caseId);
     }
 
     @PutMapping("/expiry-alerts/{alertId}/acknowledge")
-    public ExpiryAlertDto acknowledgeAlert(@PathVariable Long alertId,
+    public ExpiryAlertDto acknowledgeAlert(@PathVariable UUID alertId,
                                             @RequestParam String acknowledgedBy) {
         return expiryAlertService.acknowledgeAlert(alertId, acknowledgedBy);
     }

@@ -27,16 +27,16 @@ import {
   styleUrls: ['./mapping-review.component.css']
 })
 export class MappingReviewComponent implements OnInit {
-  consultantId!: number;
-  caseId!: number;
+  consultantId!: string;
+  caseId!: string;
 
   profiles: PackageProfileSummary[] = [];
-  selectedProfileId: number | null = null;
+  selectedProfileId: string | null = null;
   preview: MappingPreview | null = null;
 
   drafts: CaseFormDraft[] = [];
   generating = false;
-  uploadingFormId: number | null = null;
+  uploadingFormId: string | null = null;
 
   loadingProfiles = false;
   loadingPreview = false;
@@ -46,8 +46,8 @@ export class MappingReviewComponent implements OnInit {
   constructor(private route: ActivatedRoute, private api: ApiService) {}
 
   ngOnInit(): void {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
-    this.caseId = Number(this.route.snapshot.paramMap.get('id'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
+    this.caseId = this.route.snapshot.paramMap.get('id') || '';
     this.loadProfiles();
     this.loadDrafts();
   }
@@ -70,7 +70,7 @@ export class MappingReviewComponent implements OnInit {
     });
   }
 
-  selectProfile(profileId: number): void {
+  selectProfile(profileId: string): void {
     this.selectedProfileId = profileId;
     this.loadingPreview = true;
     this.preview = null;

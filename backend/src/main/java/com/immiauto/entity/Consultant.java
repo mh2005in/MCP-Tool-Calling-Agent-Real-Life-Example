@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +19,8 @@ import java.util.List;
 @Builder
 public class Consultant extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "consultants_gen")
-    @SequenceGenerator(name = "consultants_gen", sequenceName = "consultants_seq", allocationSize = 1)
-    private Long id;
-
+    // Human-facing number derived from the UUID id by a Postgres STORED generated column.
+    @Generated(event = EventType.INSERT)
     @Column(nullable = false, unique = true, updatable = false, length = 15)
     private String consultantNumber;
 
@@ -51,11 +50,4 @@ public class Consultant extends BaseEntity {
     @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ImmigrationCase> cases = new ArrayList<>();
-
-    @PrePersist
-    private void onPrePersist() {
-        if (this.consultantNumber == null) {
-            this.consultantNumber = "CO" + String.format("%013d", id);
-        }
-    }
 }

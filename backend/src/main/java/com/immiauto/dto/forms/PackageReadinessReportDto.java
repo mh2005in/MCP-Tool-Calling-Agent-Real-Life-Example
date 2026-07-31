@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Deterministic readiness report for a case + package profile: a flat list of
@@ -13,8 +14,8 @@ import java.util.List;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class PackageReadinessReportDto {
 
-    private Long caseId;
-    private Long packageProfileId;
+    private UUID caseId;
+    private UUID packageProfileId;
     private String profileCode;
     private String profileDisplayName;
     private String generatedAt; // ISO-8601 timestamp

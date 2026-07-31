@@ -18,11 +18,11 @@ export class ClientChecklistComponent implements OnInit {
   loading = true;
   error = '';
 
-  uploadingItemId: number | null = null;
+  uploadingItemId: string | null = null;
   dragOver = false;
   generalUploading = false;
 
-  private caseId = 0;
+  private caseId = '';
 
   private readonly uploadableStatuses: DocumentStatus[] = [
     'NOT_UPLOADED', 'REJECTED', 'EXPIRED', 'CLIENT_ACTION_NEEDED', 'INCORRECT_DOCUMENT'
@@ -31,7 +31,7 @@ export class ClientChecklistComponent implements OnInit {
   constructor(private api: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.caseId = Number(this.route.snapshot.paramMap.get('caseId'));
+    this.caseId = this.route.snapshot.paramMap.get('caseId') || '';
     this.loadChecklist();
   }
 

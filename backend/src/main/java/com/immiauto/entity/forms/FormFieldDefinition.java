@@ -13,11 +13,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class FormFieldDefinition extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "form_field_definitions_gen")
-    @SequenceGenerator(name = "form_field_definitions_gen", sequenceName = "form_field_definitions_seq", allocationSize = 1)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "form_definition_id", nullable = false)
     private FormDefinition formDefinition;

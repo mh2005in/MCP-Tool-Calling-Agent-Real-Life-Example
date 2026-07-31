@@ -13,11 +13,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class CanonicalDataField extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "canonical_data_fields_gen")
-    @SequenceGenerator(name = "canonical_data_fields_gen", sequenceName = "canonical_data_fields_seq", allocationSize = 1)
-    private Long id;
-
     @Column(nullable = false, unique = true)
     private String fieldKey;
 

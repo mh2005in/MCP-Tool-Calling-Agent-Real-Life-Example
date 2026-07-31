@@ -6,9 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface CanonicalDataFieldRepository extends JpaRepository<CanonicalDataField, Long> {
+public interface CanonicalDataFieldRepository extends JpaRepository<CanonicalDataField, UUID> {
 
     Optional<CanonicalDataField> findByFieldKey(String fieldKey);
 

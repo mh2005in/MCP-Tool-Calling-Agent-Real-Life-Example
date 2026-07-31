@@ -1,5 +1,7 @@
 package com.immiauto.service.forms;
 
+import java.util.UUID;
+
 import com.immiauto.dto.forms.CanonicalDataConflictDto;
 import com.immiauto.dto.forms.CanonicalDataSnapshotDto;
 import com.immiauto.dto.forms.CanonicalValueDto;
@@ -51,7 +53,7 @@ public class CanonicalApplicantDataService {
     private final CanonicalDataFieldRepository canonicalDataFieldRepository;
 
     @Transactional(readOnly = true)
-    public CanonicalDataSnapshotDto buildSnapshot(Long caseId) {
+    public CanonicalDataSnapshotDto buildSnapshot(UUID caseId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
 
@@ -222,7 +224,7 @@ public class CanonicalApplicantDataService {
         add(list, SRC_INTAKE, r.getId(), label, r.getAnswer(), priority);
     }
 
-    private void add(List<CanonicalValueSourceDto> list, String sourceType, Long sourceId, String label, String value, int priority) {
+    private void add(List<CanonicalValueSourceDto> list, String sourceType, UUID sourceId, String label, String value, int priority) {
         if (!StringUtils.hasText(value)) return;
         list.add(CanonicalValueSourceDto.builder()
                 .sourceType(sourceType)

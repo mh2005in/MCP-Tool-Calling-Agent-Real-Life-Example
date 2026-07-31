@@ -1,5 +1,7 @@
 package com.immiauto.security;
 
+import java.util.UUID;
+
 import com.immiauto.entity.AppUser;
 import com.immiauto.entity.Consultant;
 import com.immiauto.enums.AppRole;
@@ -28,7 +30,7 @@ public class ConsultantAccessService {
     private final CaseRepository caseRepository;
     private final ChecklistItemRepository checklistItemRepository;
 
-    public boolean canAccess(Long consultantId) {
+    public boolean canAccess(UUID consultantId) {
         if (consultantId == null) {
             return false;
         }
@@ -53,10 +55,10 @@ public class ConsultantAccessService {
 
     /**
      * Authorizes access to a resource addressed by case id (documents, checklist, reminders, intake)
-     * by resolving the case's owning consultant and delegating to {@link #canAccess(Long)}.
+     * by resolving the case's owning consultant and delegating to {@link #canAccess(UUID)}.
      * Prevents IDOR where any authenticated consultant could reach another consultant's case.
      */
-    public boolean canAccessCase(Long caseId) {
+    public boolean canAccessCase(UUID caseId) {
         if (caseId == null) {
             return false;
         }
@@ -66,7 +68,7 @@ public class ConsultantAccessService {
     }
 
     /** Authorizes access to a checklist item by resolving its case -&gt; owning consultant. */
-    public boolean canAccessChecklistItem(Long itemId) {
+    public boolean canAccessChecklistItem(UUID itemId) {
         if (itemId == null) {
             return false;
         }

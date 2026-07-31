@@ -1,6 +1,6 @@
 export interface PartyProfile {
-  id: number;
-  caseId: number;
+  id: string;
+  caseId: string;
   partyType: 'HOST' | 'SPONSOR' | 'EMPLOYER';
   fullName: string;
   email?: string;

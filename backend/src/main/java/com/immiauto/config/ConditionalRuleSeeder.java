@@ -12,6 +12,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @Profile("dev")
 @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
@@ -144,7 +146,7 @@ public class ConditionalRuleSeeder implements CommandLineRunner {
     }
 
     private void rule(ServiceType serviceType, String triggerKey, String triggerValue,
-                      String operator, String actionType, Long targetTemplateId,
+                      String operator, String actionType, UUID targetTemplateId,
                       String description) {
         ruleRepo.save(ConditionalRule.builder()
                 .serviceType(serviceType)

@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Top-level mapping preview for a case + package profile: the canonical
@@ -12,8 +13,8 @@ import java.util.List;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class MappingPreviewDto {
 
-    private Long caseId;
-    private Long packageProfileId;
+    private UUID caseId;
+    private UUID packageProfileId;
     private String profileCode;
     private String profileDisplayName;
     private String generatedAt; // ISO-8601 timestamp

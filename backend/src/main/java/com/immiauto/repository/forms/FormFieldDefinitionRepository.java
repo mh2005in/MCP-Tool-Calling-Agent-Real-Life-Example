@@ -6,11 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDefinition, Long> {
+public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDefinition, UUID> {
 
-    List<FormFieldDefinition> findByFormDefinitionIdOrderByPageNumber(Long formDefinitionId);
+    List<FormFieldDefinition> findByFormDefinitionIdOrderByPageNumber(UUID formDefinitionId);
 
-    Optional<FormFieldDefinition> findByFormDefinitionIdAndPdfFieldName(Long formDefinitionId, String pdfFieldName);
+    Optional<FormFieldDefinition> findByFormDefinitionIdAndPdfFieldName(UUID formDefinitionId, String pdfFieldName);
 }

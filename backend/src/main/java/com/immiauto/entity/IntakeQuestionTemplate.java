@@ -9,11 +9,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class IntakeQuestionTemplate extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "intake_question_templates_gen")
-    @SequenceGenerator(name = "intake_question_templates_gen", sequenceName = "intake_question_templates_seq", allocationSize = 1)
-    private Long id;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ServiceType serviceType;

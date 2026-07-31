@@ -5,8 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface RecruitmentEvidenceRepository extends JpaRepository<RecruitmentEvidence, Long> {
-    List<RecruitmentEvidence> findByImmigrationCaseIdOrderBySortOrder(Long caseId);
+public interface RecruitmentEvidenceRepository extends JpaRepository<RecruitmentEvidence, UUID> {
+    List<RecruitmentEvidence> findByImmigrationCaseIdOrderBySortOrder(UUID caseId);
 }

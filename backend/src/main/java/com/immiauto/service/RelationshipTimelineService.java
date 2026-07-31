@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.RelationshipTimelineDto;
 import com.immiauto.entity.ImmigrationCase;
 import com.immiauto.entity.RelationshipTimeline;
@@ -22,7 +24,7 @@ public class RelationshipTimelineService {
     private final RelationshipTimelineMapper relationshipTimelineMapper;
 
     @Transactional
-    public RelationshipTimelineDto addEntry(Long caseId, RelationshipTimelineDto dto) {
+    public RelationshipTimelineDto addEntry(UUID caseId, RelationshipTimelineDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         RelationshipTimeline entry = RelationshipTimeline.builder()
@@ -39,13 +41,13 @@ public class RelationshipTimelineService {
     }
 
     @Transactional(readOnly = true)
-    public List<RelationshipTimelineDto> getEntries(Long caseId) {
+    public List<RelationshipTimelineDto> getEntries(UUID caseId) {
         return timelineRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream().map(relationshipTimelineMapper::toDto).toList();
     }
 
     @Transactional
-    public RelationshipTimelineDto updateEntry(Long caseId, Long id, RelationshipTimelineDto dto) {
+    public RelationshipTimelineDto updateEntry(UUID caseId, UUID id, RelationshipTimelineDto dto) {
         RelationshipTimeline entry = timelineRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {
@@ -61,7 +63,7 @@ public class RelationshipTimelineService {
     }
 
     @Transactional
-    public void deleteEntry(Long caseId, Long id) {
+    public void deleteEntry(UUID caseId, UUID id) {
         RelationshipTimeline entry = timelineRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {

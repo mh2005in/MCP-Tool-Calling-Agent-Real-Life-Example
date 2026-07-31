@@ -10,11 +10,6 @@ import java.time.LocalDate;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class WorkHistoryEntry extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "work_history_entries_gen")
-    @SequenceGenerator(name = "work_history_entries_gen", sequenceName = "work_history_entries_seq", allocationSize = 1)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)
     private ImmigrationCase immigrationCase;

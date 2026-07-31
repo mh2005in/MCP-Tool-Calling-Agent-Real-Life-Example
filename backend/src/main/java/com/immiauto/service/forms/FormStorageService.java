@@ -1,5 +1,7 @@
 package com.immiauto.service.forms;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -33,17 +35,17 @@ public class FormStorageService {
         return Paths.get(sourceDir, safe(formCode), edition(editionLabel), "source.pdf");
     }
 
-    public Path generatedFormsDir(String caseNumber, Long packageProfileId) {
+    public Path generatedFormsDir(String caseNumber, UUID packageProfileId) {
         return Paths.get(uploadDir, safe(caseNumber), "generated", "forms", String.valueOf(packageProfileId));
     }
 
-    public Path generatedFormFile(String caseNumber, Long packageProfileId, String formCode,
-                                  String editionLabel, Long draftId) {
+    public Path generatedFormFile(String caseNumber, UUID packageProfileId, String formCode,
+                                  String editionLabel, UUID draftId) {
         return generatedFormsDir(caseNumber, packageProfileId)
                 .resolve(generatedFileName(formCode, editionLabel, draftId));
     }
 
-    public String generatedFileName(String formCode, String editionLabel, Long draftId) {
+    public String generatedFileName(String formCode, String editionLabel, UUID draftId) {
         return safe(formCode) + "_" + edition(editionLabel) + "_" + draftId + ".pdf";
     }
 
@@ -52,16 +54,16 @@ public class FormStorageService {
         return Paths.get(uploadDir, safe(caseNumber), "generated", "forms", "uploaded");
     }
 
-    public Path uploadedFormFile(String caseNumber, String formCode, Long draftId) {
+    public Path uploadedFormFile(String caseNumber, String formCode, UUID draftId) {
         return uploadedFormsDir(caseNumber).resolve(safe(formCode) + "_" + draftId + ".pdf");
     }
 
     /** Directory for an assembled package's artifacts (index/manifest/zip). */
-    public Path packageDir(String caseNumber, Long packageId) {
+    public Path packageDir(String caseNumber, UUID packageId) {
         return Paths.get(uploadDir, safe(caseNumber), "generated", "packages", String.valueOf(packageId));
     }
 
-    public Path packageZip(String caseNumber, Long packageId) {
+    public Path packageZip(String caseNumber, UUID packageId) {
         return packageDir(caseNumber, packageId).resolve("submission-package.zip");
     }
 

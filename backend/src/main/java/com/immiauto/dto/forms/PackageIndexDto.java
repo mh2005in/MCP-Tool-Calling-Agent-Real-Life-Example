@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Ordered index of a submission package: the forms and supporting documents,
@@ -12,8 +13,8 @@ import java.util.List;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class PackageIndexDto {
 
-    private Long caseId;
-    private Long packageId;
+    private UUID caseId;
+    private UUID packageId;
     private String profileCode;
     private String profileDisplayName;
     private String generatedAt;
@@ -34,7 +35,7 @@ public class PackageIndexDto {
         private String origin;         // GENERATED, UPLOADED (null if not provided)
         private String status;         // draft status (null if not provided)
         private String fileName;       // artifact file name (null if not provided)
-        private Long draftId;
+        private UUID draftId;
     }
 
     @Data @Builder @NoArgsConstructor @AllArgsConstructor

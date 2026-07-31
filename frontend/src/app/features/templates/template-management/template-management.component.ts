@@ -41,10 +41,10 @@ export class TemplateManagementComponent implements OnInit {
   newTemplate: Partial<ChecklistTemplate> = this.emptyTemplate();
 
   showAuditPanel = false;
-  auditTemplateId = 0;
+  auditTemplateId = '';
   auditTemplateName = '';
 
-  consultantId = 0;
+  consultantId = '';
   isAdmin = false;
   accessDenied = false;
   successMsg = '';
@@ -53,7 +53,7 @@ export class TemplateManagementComponent implements OnInit {
   constructor(private api: ApiService, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
     if (this.consultantId) {
       this.api.getConsultant(this.consultantId).subscribe({
         next: (c) => {

@@ -25,8 +25,8 @@ interface ReviewableItem extends ChecklistItem {
   styleUrls: ['./checklist-approval.component.css']
 })
 export class ChecklistApprovalComponent implements OnInit {
-  @Input() caseId!: number;
-  @Input() consultantId!: number;
+  @Input() caseId!: string;
+  @Input() consultantId!: string;
   @Output() approved = new EventEmitter<void>();
 
   groups: ChecklistGroup[] = [];

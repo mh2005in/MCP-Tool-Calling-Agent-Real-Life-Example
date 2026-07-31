@@ -9,11 +9,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ChecklistItem extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "checklist_items_gen")
-    @SequenceGenerator(name = "checklist_items_gen", sequenceName = "checklist_items_seq", allocationSize = 1)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)
     private ImmigrationCase immigrationCase;

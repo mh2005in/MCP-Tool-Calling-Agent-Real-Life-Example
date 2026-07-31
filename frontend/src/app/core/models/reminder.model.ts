@@ -1,8 +1,8 @@
 export type ReminderStatus = 'DRAFT' | 'APPROVED' | 'SENT' | 'CANCELLED';
 
 export interface Reminder {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   subject: string;
   messageBody: string;
   channel: string;

@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.DocumentDto;
 import com.immiauto.enums.DocumentStatus;
@@ -24,7 +26,7 @@ public class DocumentController {
 
     @PostMapping(path = ApiPaths.DOCUMENTS_UPLOAD, consumes = "multipart/form-data")
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<DocumentDto> uploadDocument(@PathVariable Long caseId,
+    public ResponseEntity<DocumentDto> uploadDocument(@PathVariable UUID caseId,
                                                        @RequestParam("file") MultipartFile file,
                                                        @RequestParam(required = false) String category,
                                                        @RequestParam(required = false) String type) throws IOException {
@@ -34,14 +36,14 @@ public class DocumentController {
 
     @GetMapping(ApiPaths.DOCUMENTS_GET)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<List<DocumentDto>> getDocuments(@PathVariable Long caseId) {
+    public ResponseEntity<List<DocumentDto>> getDocuments(@PathVariable UUID caseId) {
         return ResponseEntity.ok(documentService.getDocumentsForCase(caseId));
     }
 
     @PatchMapping(ApiPaths.DOCUMENTS_REVIEW)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<DocumentDto> reviewDocument(@PathVariable Long caseId,
-                                                       @PathVariable Long docId,
+    public ResponseEntity<DocumentDto> reviewDocument(@PathVariable UUID caseId,
+                                                       @PathVariable UUID docId,
                                                        @RequestParam DocumentStatus status,
                                                        @RequestParam(required = false) String reviewNote,
                                                        @RequestParam(required = false) String rejectionReason) {

@@ -3,13 +3,11 @@
 -- V4: MCP tool invocation audit log
 -- ============================================================
 
-CREATE SEQUENCE IF NOT EXISTS immiauto_db.mcp_tool_audit_log_seq START WITH 1 INCREMENT BY 1;
-
 CREATE TABLE immiauto_db.mcp_tool_audit_log (
-    id                BIGINT       NOT NULL DEFAULT nextval('immiauto_db.mcp_tool_audit_log_seq'),
+    id                UUID         NOT NULL DEFAULT gen_random_uuid(),
     external_subject  VARCHAR(255),
     tenant_id         VARCHAR(255),
-    consultant_id     BIGINT,
+    consultant_id     UUID,
     tool_name         VARCHAR(255) NOT NULL,
     required_scope    VARCHAR(255),
     result_status     VARCHAR(255) NOT NULL,

@@ -5,16 +5,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "checklist_templates")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ChecklistTemplate extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "checklist_templates_gen")
-    @SequenceGenerator(name = "checklist_templates_gen", sequenceName = "checklist_templates_seq", allocationSize = 1)
-    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -48,7 +44,7 @@ public class ChecklistTemplate extends BaseEntity {
     private LocalDate lastReviewedDate;
 
     @Column
-    private Long reviewedByConsultantId;
+    private UUID reviewedByConsultantId;
 
     @Column
     private String reviewedByConsultantName;
@@ -62,7 +58,7 @@ public class ChecklistTemplate extends BaseEntity {
     private boolean approvedForUse = false;
 
     @Column
-    private Long approvedByConsultantId;
+    private UUID approvedByConsultantId;
 
     @Column
     private String approvedByConsultantName;

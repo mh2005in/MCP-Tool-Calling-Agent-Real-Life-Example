@@ -1,8 +1,8 @@
 import { DocumentStatus } from './checklist.model';
 
 export interface CaseDocument {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   originalFileName: string;
   mimeType?: string;
   fileSizeBytes?: number;

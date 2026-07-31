@@ -2,6 +2,8 @@ package com.immiauto.dto.forms;
 
 import lombok.*;
 
+import java.util.UUID;
+
 /**
  * A generated draft form record for a case (Section 4.1 - Phase F).
  * File paths are intentionally not exposed; downloads go through a secured endpoint.
@@ -9,12 +11,12 @@ import lombok.*;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class CaseFormDraftDto {
 
-    private Long id;
-    private Long caseId;
-    private Long formDefinitionId;
+    private UUID id;
+    private UUID caseId;
+    private UUID formDefinitionId;
     private String formCode;
     private String formDisplayName;
-    private Long mappingVersionId;
+    private UUID mappingVersionId;
     private Integer mappingVersion;
     private String origin;              // GENERATED, UPLOADED, DATA_SHEET
     private String status;

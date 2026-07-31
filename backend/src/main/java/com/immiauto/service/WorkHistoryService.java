@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.WorkHistoryDto;
 import com.immiauto.entity.ImmigrationCase;
 import com.immiauto.entity.WorkHistoryEntry;
@@ -22,7 +24,7 @@ public class WorkHistoryService {
     private final WorkHistoryMapper workHistoryMapper;
 
     @Transactional
-    public WorkHistoryDto addEntry(Long caseId, WorkHistoryDto dto) {
+    public WorkHistoryDto addEntry(UUID caseId, WorkHistoryDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         WorkHistoryEntry entry = WorkHistoryEntry.builder()
@@ -47,13 +49,13 @@ public class WorkHistoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<WorkHistoryDto> getEntries(Long caseId) {
+    public List<WorkHistoryDto> getEntries(UUID caseId) {
         return workHistoryRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream().map(workHistoryMapper::toDto).toList();
     }
 
     @Transactional
-    public WorkHistoryDto updateEntry(Long caseId, Long id, WorkHistoryDto dto) {
+    public WorkHistoryDto updateEntry(UUID caseId, UUID id, WorkHistoryDto dto) {
         WorkHistoryEntry entry = workHistoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {
@@ -77,7 +79,7 @@ public class WorkHistoryService {
     }
 
     @Transactional
-    public void deleteEntry(Long caseId, Long id) {
+    public void deleteEntry(UUID caseId, UUID id) {
         WorkHistoryEntry entry = workHistoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {

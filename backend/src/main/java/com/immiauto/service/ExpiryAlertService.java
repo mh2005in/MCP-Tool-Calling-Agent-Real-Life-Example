@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ExpiryAlertDto;
 import com.immiauto.entity.*;
 import com.immiauto.enums.ServiceType;
@@ -114,19 +116,19 @@ public class ExpiryAlertService {
     }
 
     @Transactional(readOnly = true)
-    public List<ExpiryAlertDto> getAlertsByConsultant(Long consultantId) {
+    public List<ExpiryAlertDto> getAlertsByConsultant(UUID consultantId) {
         return expiryAlertRepository.findActiveAlertsByConsultant(consultantId)
                 .stream().map(expiryAlertMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<ExpiryAlertDto> getAlertsForCase(Long caseId) {
+    public List<ExpiryAlertDto> getAlertsForCase(UUID caseId) {
         return expiryAlertRepository.findByImmigrationCaseId(caseId)
                 .stream().map(expiryAlertMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional
-    public ExpiryAlertDto acknowledgeAlert(Long alertId, String acknowledgedBy) {
+    public ExpiryAlertDto acknowledgeAlert(UUID alertId, String acknowledgedBy) {
         ExpiryAlert alert = expiryAlertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("Alert not found"));
         alert.setAcknowledged(true);

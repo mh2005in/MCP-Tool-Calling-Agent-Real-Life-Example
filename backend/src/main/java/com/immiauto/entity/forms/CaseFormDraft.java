@@ -21,11 +21,6 @@ import java.time.LocalDateTime;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class CaseFormDraft extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "case_form_drafts_gen")
-    @SequenceGenerator(name = "case_form_drafts_gen", sequenceName = "case_form_drafts_seq", allocationSize = 1)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)
     private ImmigrationCase immigrationCase;

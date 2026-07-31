@@ -2,10 +2,12 @@ package com.immiauto.dto;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class CandidateComparisonDto {
-    private Long id;
-    private Long caseId;
+    private UUID id;
+    private UUID caseId;
     private String candidateName;
     private String candidateType;
     private String qualifications;

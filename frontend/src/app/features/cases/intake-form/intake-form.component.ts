@@ -14,7 +14,7 @@ import { ServiceType } from '../../../core/models/case.model';
   styleUrls: ['./intake-form.component.css']
 })
 export class IntakeFormComponent implements OnInit, OnChanges {
-  @Input() caseId = 0;
+  @Input() caseId = '';
   @Input() serviceType: ServiceType = '' as ServiceType;
   @Output() checklistGenerated = new EventEmitter<void>();
 

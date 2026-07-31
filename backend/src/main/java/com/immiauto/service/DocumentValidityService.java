@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.IntakeResponseDto;
 import com.immiauto.entity.ImmigrationCase;
 import com.immiauto.enums.ServiceType;
@@ -25,12 +27,12 @@ public class DocumentValidityService {
     private final CaseRepository caseRepository;
 
     @Transactional(readOnly = true)
-    public Map<String, Object> validateExpressEntryDocuments(Long caseId) {
+    public Map<String, Object> validateExpressEntryDocuments(UUID caseId) {
         return validateExpressEntryDocuments(caseId, null);
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> validateExpressEntryDocuments(Long caseId, LocalDate plannedSubmissionDate) {
+    public Map<String, Object> validateExpressEntryDocuments(UUID caseId, LocalDate plannedSubmissionDate) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
 

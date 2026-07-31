@@ -13,11 +13,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class FormFieldMapping extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "form_field_mappings_gen")
-    @SequenceGenerator(name = "form_field_mappings_gen", sequenceName = "form_field_mappings_seq", allocationSize = 1)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mapping_version_id", nullable = false)
     private FormMappingVersion mappingVersion;

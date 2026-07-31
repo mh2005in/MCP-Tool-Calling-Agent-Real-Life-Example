@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A normalized snapshot of canonical applicant/case data for one case,
@@ -12,7 +13,7 @@ import java.util.List;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class CanonicalDataSnapshotDto {
 
-    private Long caseId;
+    private UUID caseId;
     private String caseNumber;
     private String generatedAt; // ISO-8601 timestamp
 

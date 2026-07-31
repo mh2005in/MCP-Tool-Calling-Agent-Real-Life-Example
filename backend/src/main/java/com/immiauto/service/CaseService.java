@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,7 +61,7 @@ public class CaseService {
     }
 
     @Transactional(readOnly = true)
-    public CaseDto getCase(Long consultantId, Long caseId) {
+    public CaseDto getCase(UUID consultantId, UUID caseId) {
         ImmigrationCase imCase = findCaseOrThrow(caseId);
         commonService.verifyOwnershipOrAdmin(consultantId, imCase.getConsultant().getId(), "case");
         return toDto(imCase);
@@ -72,33 +73,33 @@ public class CaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<CaseDto> getCasesByConsultant(Long consultantId) {
+    public List<CaseDto> getCasesByConsultant(UUID consultantId) {
         return caseRepository.findByConsultantId(consultantId).stream()
                 .map(this::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<CaseDto> getCasesByConsultantForAdmin(Long requestingConsultantId, Long targetConsultantId) {
+    public List<CaseDto> getCasesByConsultantForAdmin(UUID requestingConsultantId, UUID targetConsultantId) {
         commonService.requireAdmin(requestingConsultantId);
         return caseRepository.findByConsultantId(targetConsultantId).stream()
                 .map(this::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<CaseDto> getAllCasesForAdmin(Long requestingConsultantId) {
+    public List<CaseDto> getAllCasesForAdmin(UUID requestingConsultantId) {
         commonService.requireAdmin(requestingConsultantId);
         return caseRepository.findAll().stream()
                 .map(this::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public CaseDto getCaseForAdmin(Long requestingConsultantId, Long caseId) {
+    public CaseDto getCaseForAdmin(UUID requestingConsultantId, UUID caseId) {
         commonService.requireAdmin(requestingConsultantId);
         return toDto(findCaseOrThrow(caseId));
     }
 
     @Transactional(readOnly = true)
-    public CaseDto getCaseByCaseNumber(Long consultantId, String caseNumber) {
+    public CaseDto getCaseByCaseNumber(UUID consultantId, String caseNumber) {
         ImmigrationCase imCase = caseRepository.findByCaseNumber(caseNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found with number: " + caseNumber));
         commonService.verifyOwnershipOrAdmin(consultantId, imCase.getConsultant().getId(), "case");
@@ -106,13 +107,13 @@ public class CaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<CaseDto> getActiveCasesByConsultant(Long consultantId) {
+    public List<CaseDto> getActiveCasesByConsultant(UUID consultantId) {
         return caseRepository.findActiveCasesByConsultant(consultantId)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Transactional
-    public CaseDto updateCaseStatus(Long consultantId, Long id, CaseStatus newStatus) {
+    public CaseDto updateCaseStatus(UUID consultantId, UUID id, CaseStatus newStatus) {
         ImmigrationCase imCase = findCaseOrThrow(id);
         commonService.verifyOwnershipOrAdmin(consultantId, imCase.getConsultant().getId(), "case");
         CaseStatus old = imCase.getCaseStatus();
@@ -123,7 +124,7 @@ public class CaseService {
     }
 
     @Transactional
-    public CaseDto updateLeadStatus(Long consultantId, Long id, LeadStatus newStatus) {
+    public CaseDto updateLeadStatus(UUID consultantId, UUID id, LeadStatus newStatus) {
         ImmigrationCase imCase = findCaseOrThrow(id);
         commonService.verifyOwnershipOrAdmin(consultantId, imCase.getConsultant().getId(), "case");
         imCase.setLeadStatus(newStatus);
@@ -132,7 +133,7 @@ public class CaseService {
     }
 
     @Transactional
-    public CaseDto updateCase(Long consultantId, Long id, CaseDto dto) {
+    public CaseDto updateCase(UUID consultantId, UUID id, CaseDto dto) {
         ImmigrationCase imCase = findCaseOrThrow(id);
         commonService.verifyOwnershipOrAdmin(consultantId, imCase.getConsultant().getId(), "case");
         if (dto.getConsultantNotes() != null) imCase.setConsultantNotes(dto.getConsultantNotes());
@@ -163,7 +164,7 @@ public class CaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<CaseDto> getCasesWithUpcomingDeadlinesByConsultant(Long consultantId, int daysAhead) {
+    public List<CaseDto> getCasesWithUpcomingDeadlinesByConsultant(UUID consultantId, int daysAhead) {
         LocalDate cutoff = LocalDate.now().plusDays(daysAhead);
         return caseRepository.findCasesWithUpcomingDeadlinesByConsultant(consultantId, cutoff)
                 .stream().map(this::toDto).collect(Collectors.toList());
@@ -194,7 +195,7 @@ public class CaseService {
     }
 
 
-    private ImmigrationCase findCaseOrThrow(Long id) {
+    private ImmigrationCase findCaseOrThrow(UUID id) {
         return caseRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + id));
     }

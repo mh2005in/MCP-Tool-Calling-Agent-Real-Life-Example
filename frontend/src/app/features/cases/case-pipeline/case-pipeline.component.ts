@@ -21,7 +21,7 @@ interface PipelineStage {
 })
 export class CasePipelineComponent implements OnChanges {
   @Input() case!: ImmigrationCase;
-  @Input() consultantId!: number;
+  @Input() consultantId!: string;
   @Output() statusChanged = new EventEmitter<void>();
 
   stages: PipelineStage[] = [

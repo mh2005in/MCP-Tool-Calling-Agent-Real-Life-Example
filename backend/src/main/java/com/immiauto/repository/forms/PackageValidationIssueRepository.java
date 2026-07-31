@@ -6,15 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface PackageValidationIssueRepository extends JpaRepository<PackageValidationIssue, Long> {
+public interface PackageValidationIssueRepository extends JpaRepository<PackageValidationIssue, UUID> {
 
-    List<PackageValidationIssue> findByCasePackageId(Long casePackageId);
+    List<PackageValidationIssue> findByCasePackageId(UUID casePackageId);
 
-    List<PackageValidationIssue> findByCasePackageIdAndSeverity(Long casePackageId, ValidationSeverity severity);
+    List<PackageValidationIssue> findByCasePackageIdAndSeverity(UUID casePackageId, ValidationSeverity severity);
 
-    List<PackageValidationIssue> findByCaseFormDraftId(Long caseFormDraftId);
+    List<PackageValidationIssue> findByCaseFormDraftId(UUID caseFormDraftId);
 
-    long countByCasePackageIdAndSeverityAndResolvedFalse(Long casePackageId, ValidationSeverity severity);
+    long countByCasePackageIdAndSeverityAndResolvedFalse(UUID casePackageId, ValidationSeverity severity);
 }

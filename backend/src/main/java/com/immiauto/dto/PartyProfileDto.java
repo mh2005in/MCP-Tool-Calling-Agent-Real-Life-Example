@@ -2,10 +2,12 @@ package com.immiauto.dto;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class PartyProfileDto {
-    private Long id;
-    private Long caseId;
+    private UUID id;
+    private UUID caseId;
     private String partyType;
     private String fullName;
     private String email;

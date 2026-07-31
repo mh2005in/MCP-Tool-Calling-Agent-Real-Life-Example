@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ChecklistItemDto;
 import com.immiauto.dto.IntakeResponseDto;
 import com.immiauto.entity.*;
@@ -28,7 +30,7 @@ public class ChecklistGeneratorService {
     private final ChecklistItemMapper checklistItemMapper;
 
     @Transactional
-    public List<ChecklistItemDto> generateChecklist(Long caseId) {
+    public List<ChecklistItemDto> generateChecklist(UUID caseId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
 
@@ -52,8 +54,8 @@ public class ChecklistGeneratorService {
                         IntakeResponse::getAnswer,
                         (a, b) -> b));
 
-        Set<Long> excludedTemplateIds = new HashSet<>();
-        Set<Long> includedConditionalIds = new HashSet<>();
+        Set<UUID> excludedTemplateIds = new HashSet<>();
+        Set<UUID> includedConditionalIds = new HashSet<>();
 
         for (ConditionalRule rule : rules) {
             boolean matches = evaluateRule(rule, intakeAnswers);

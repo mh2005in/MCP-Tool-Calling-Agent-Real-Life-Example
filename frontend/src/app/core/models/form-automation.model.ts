@@ -2,7 +2,7 @@
 
 export interface CanonicalValueSource {
   sourceType: string;
-  sourceId?: number;
+  sourceId?: string;
   sourceLabel: string;
   rawValue: string;
   selected: boolean;
@@ -32,7 +32,7 @@ export interface CanonicalDataConflict {
 }
 
 export interface CanonicalDataSnapshot {
-  caseId: number;
+  caseId: string;
   caseNumber: string;
   generatedAt: string;
   values: CanonicalValue[];
@@ -56,12 +56,12 @@ export interface MappedFieldPreview {
 }
 
 export interface FormMappingPreview {
-  formDefinitionId: number;
+  formDefinitionId: string;
   formCode: string;
   displayName: string;
   editionLabel?: string;
   supportsFill: boolean;
-  mappingVersionId?: number;
+  mappingVersionId?: string;
   mappingVersion?: number;
   mappingStatus?: string;
   diagnostic?: string;
@@ -70,8 +70,8 @@ export interface FormMappingPreview {
 }
 
 export interface MappingPreview {
-  caseId: number;
-  packageProfileId: number;
+  caseId: string;
+  packageProfileId: string;
   profileCode: string;
   profileDisplayName: string;
   generatedAt: string;
@@ -81,7 +81,7 @@ export interface MappingPreview {
 
 // --- Admin catalogue (Milestone 6) ---
 export interface FormDefinition {
-  id: number;
+  id: string;
   formCode: string;
   displayName: string;
   jurisdiction: string;
@@ -100,7 +100,7 @@ export interface FormDefinition {
 }
 
 export interface FormFieldDefinition {
-  id: number;
+  id: string;
   pdfFieldName: string;
   label?: string;
   fieldType: string;
@@ -114,7 +114,7 @@ export interface FormFieldDefinition {
 }
 
 export interface FormInspectionResult {
-  formId: number;
+  formId: string;
   formCode: string;
   hasAcroForm: boolean;
   hasXfa: boolean;
@@ -128,7 +128,7 @@ export interface FormInspectionResult {
 }
 
 export interface PackageProfileAdmin {
-  id: number;
+  id: string;
   profileCode: string;
   displayName: string;
   serviceType?: string;
@@ -143,8 +143,8 @@ export interface PackageProfileAdmin {
 }
 
 export interface FormMappingVersion {
-  id: number;
-  formDefinitionId: number;
+  id: string;
+  formDefinitionId: string;
   mappingVersion: number;
   status: string;
   approvedByConsultantName?: string;
@@ -154,7 +154,7 @@ export interface FormMappingVersion {
 }
 
 export interface PackageProfileSummary {
-  id: number;
+  id: string;
   profileCode: string;
   displayName: string;
   serviceType?: string;
@@ -167,7 +167,7 @@ export interface PackageProfileSummary {
 }
 
 export interface ValidationIssue {
-  id?: number;
+  id?: string;
   severity: string; // ERROR, WARNING, DECISION, CLIENT_CONFIRMATION, UNRESOLVED_EVIDENCE
   code: string;
   message: string;
@@ -175,7 +175,7 @@ export interface ValidationIssue {
   fieldKey?: string;
   pdfFieldName?: string;
   sourceType?: string;
-  sourceId?: number;
+  sourceId?: string;
   resolved?: boolean;
   resolvedBy?: string;
   resolvedAt?: string;
@@ -183,9 +183,9 @@ export interface ValidationIssue {
 }
 
 export interface CasePackage {
-  id: number;
-  caseId: number;
-  packageProfileId: number;
+  id: string;
+  caseId: string;
+  packageProfileId: string;
   profileCode: string;
   profileDisplayName: string;
   status: string; // DRAFT, VALIDATION_FAILED, READY_FOR_APPROVAL, APPROVED, SUPERSEDED
@@ -213,7 +213,7 @@ export interface PackageIndexForm {
   origin?: string;
   status?: string;
   fileName?: string;
-  draftId?: number;
+  draftId?: string;
 }
 
 export interface PackageIndexDocument {
@@ -229,8 +229,8 @@ export interface PackageIndexDocument {
 }
 
 export interface PackageIndex {
-  caseId: number;
-  packageId: number;
+  caseId: string;
+  packageId: string;
   profileCode: string;
   profileDisplayName: string;
   generatedAt: string;
@@ -239,8 +239,8 @@ export interface PackageIndex {
 }
 
 export interface PackageReadinessReport {
-  caseId: number;
-  packageProfileId: number;
+  caseId: string;
+  packageProfileId: string;
   profileCode: string;
   profileDisplayName: string;
   generatedAt: string;
@@ -254,12 +254,12 @@ export interface PackageReadinessReport {
 }
 
 export interface CaseFormDraft {
-  id: number;
-  caseId: number;
-  formDefinitionId: number;
+  id: string;
+  caseId: string;
+  formDefinitionId: string;
   formCode: string;
   formDisplayName: string;
-  mappingVersionId?: number;
+  mappingVersionId?: string;
   mappingVersion?: number;
   origin: string; // GENERATED, UPLOADED, DATA_SHEET
   status: string; // DRAFT, VALIDATION_FAILED, READY_FOR_APPROVAL, APPROVED, SUPERSEDED

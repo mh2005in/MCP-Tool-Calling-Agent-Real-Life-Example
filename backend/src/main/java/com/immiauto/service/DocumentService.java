@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.DocumentDto;
 import com.immiauto.entity.Document;
 import com.immiauto.entity.ImmigrationCase;
@@ -42,7 +44,7 @@ public class DocumentService {
     );
 
     @Transactional
-    public DocumentDto uploadDocument(Long caseId, MultipartFile file,
+    public DocumentDto uploadDocument(UUID caseId, MultipartFile file,
                                        String documentCategory, String documentType) throws IOException {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
@@ -76,13 +78,13 @@ public class DocumentService {
     }
 
     @Transactional(readOnly = true)
-    public List<DocumentDto> getDocumentsForCase(Long caseId) {
+    public List<DocumentDto> getDocumentsForCase(UUID caseId) {
         return documentRepository.findByImmigrationCaseId(caseId)
                 .stream().map(documentMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional
-    public DocumentDto reviewDocument(Long caseId, Long docId, DocumentStatus status,
+    public DocumentDto reviewDocument(UUID caseId, UUID docId, DocumentStatus status,
                                        String reviewNote, String rejectionReason) {
         Document doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new EntityNotFoundException("Document not found"));

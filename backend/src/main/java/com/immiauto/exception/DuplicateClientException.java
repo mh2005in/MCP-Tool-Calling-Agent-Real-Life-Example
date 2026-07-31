@@ -1,15 +1,17 @@
 package com.immiauto.exception;
 
+import java.util.UUID;
+
 public class DuplicateClientException extends RuntimeException {
 
-    private final Long existingClientId;
+    private final UUID existingClientId;
 
-    public DuplicateClientException(String message, Long existingClientId) {
+    public DuplicateClientException(String message, UUID existingClientId) {
         super(message);
         this.existingClientId = existingClientId;
     }
 
-    public Long getExistingClientId() {
+    public UUID getExistingClientId() {
         return existingClientId;
     }
 }

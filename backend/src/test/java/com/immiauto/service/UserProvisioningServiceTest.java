@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,8 +72,9 @@ class UserProvisioningServiceTest {
                 .claim("name", "Demo Consultant")
                 .build();
 
+        UUID consultantId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         Consultant seedConsultant = Consultant.builder().email("demo@immiauto.ca").build();
-        seedConsultant.setId(1L);
+        seedConsultant.setId(consultantId);
 
         when(appUserRepository.findByExternalSubject("user-sub-123")).thenReturn(Optional.empty());
         when(consultantRepository.findByEmail("demo@immiauto.ca")).thenReturn(Optional.of(seedConsultant));
@@ -82,7 +84,7 @@ class UserProvisioningServiceTest {
 
         assertThat(result.getRole()).isEqualTo(AppRole.CONSULTANT_OWNER);
         assertThat(result.getStatus()).isEqualTo(AppUserStatus.ACTIVE);
-        assertThat(result.getConsultantId()).isEqualTo(1L);
+        assertThat(result.getConsultantId()).isEqualTo(consultantId);
         // Linked to an existing consultant, so none is created.
         verify(consultantRepository, never()).save(any());
     }

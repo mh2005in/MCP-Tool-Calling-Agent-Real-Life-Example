@@ -8,6 +8,8 @@ import com.immiauto.enums.ServiceType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,20 +21,10 @@ import java.util.List;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ImmigrationCase extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "immigration_cases_gen")
-    @SequenceGenerator(name = "immigration_cases_gen", sequenceName = "immigration_cases_seq", allocationSize = 1)
-    private Long id;
-
+    // Human-facing number derived from the UUID id by a Postgres STORED generated column.
+    @Generated(event = EventType.INSERT)
     @Column(nullable = false, unique = true, updatable = false, length = 15)
     private String caseNumber;
-
-    @PrePersist
-    private void generateCaseNumber() {
-        if (caseNumber == null) {
-            caseNumber = "CS" + String.format("%013d", id);
-        }
-    }
 
     @NotNull
     @Enumerated(EnumType.STRING)

@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.dto.forms.*;
 import com.immiauto.service.forms.FormCatalogueService;
 import jakarta.validation.Valid;
@@ -34,27 +36,27 @@ public class FormCatalogueController {
     }
 
     @GetMapping("/forms/{formId}")
-    public FormDefinitionDto getForm(@PathVariable Long formId) {
+    public FormDefinitionDto getForm(@PathVariable UUID formId) {
         return formCatalogueService.getForm(formId);
     }
 
     @GetMapping("/forms/{formId}/fields")
-    public List<FormFieldDefinitionDto> getFields(@PathVariable Long formId) {
+    public List<FormFieldDefinitionDto> getFields(@PathVariable UUID formId) {
         return formCatalogueService.getFields(formId);
     }
 
     @PostMapping("/forms/{formId}/inspect")
-    public FormInspectionResultDto inspectForm(@PathVariable Long formId) {
+    public FormInspectionResultDto inspectForm(@PathVariable UUID formId) {
         return formCatalogueService.inspectForm(formId);
     }
 
     @GetMapping("/forms/{formId}/mappings")
-    public List<FormMappingVersionDto> listMappings(@PathVariable Long formId) {
+    public List<FormMappingVersionDto> listMappings(@PathVariable UUID formId) {
         return formCatalogueService.listMappings(formId);
     }
 
     @PostMapping("/forms/{formId}/mappings/{mappingVersionId}/approve")
-    public FormMappingVersionDto approveMapping(@PathVariable Long formId, @PathVariable Long mappingVersionId) {
+    public FormMappingVersionDto approveMapping(@PathVariable UUID formId, @PathVariable UUID mappingVersionId) {
         return formCatalogueService.approveMappingVersion(formId, mappingVersionId);
     }
 
@@ -71,7 +73,7 @@ public class FormCatalogueController {
     }
 
     @PutMapping("/package-profiles/{profileId}")
-    public PackageProfileDto updateProfile(@PathVariable Long profileId, @RequestBody PackageProfileDto dto) {
+    public PackageProfileDto updateProfile(@PathVariable UUID profileId, @RequestBody PackageProfileDto dto) {
         return formCatalogueService.updateProfile(profileId, dto);
     }
 }

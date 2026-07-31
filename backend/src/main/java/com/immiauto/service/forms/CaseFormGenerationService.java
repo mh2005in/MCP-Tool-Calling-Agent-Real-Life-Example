@@ -1,5 +1,7 @@
 package com.immiauto.service.forms;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.immiauto.dto.forms.CanonicalDataSnapshotDto;
 import com.immiauto.dto.forms.CaseFormDraftDto;
@@ -90,7 +92,7 @@ public class CaseFormGenerationService {
      * missing are skipped (logged); a source-hash mismatch produces a VALIDATION_FAILED draft.
      */
     @Transactional
-    public List<CaseFormDraftDto> generateDraftForms(Long caseId, Long packageProfileId) {
+    public List<CaseFormDraftDto> generateDraftForms(UUID caseId, UUID packageProfileId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
         PackageProfile profile = packageProfileRepository.findById(packageProfileId)
@@ -118,7 +120,7 @@ public class CaseFormGenerationService {
      * UPLOADED draft tied to the case + form, superseding any prior draft for that form.
      */
     @Transactional
-    public CaseFormDraftDto uploadFilledForm(Long caseId, Long formDefinitionId, MultipartFile file) {
+    public CaseFormDraftDto uploadFilledForm(UUID caseId, UUID formDefinitionId, MultipartFile file) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
         FormDefinition form = formDefinitionRepository.findById(formDefinitionId)
@@ -156,7 +158,7 @@ public class CaseFormGenerationService {
     }
 
     @Transactional
-    public CaseFormDraftDto regenerateDraftForm(Long caseId, Long draftId) {
+    public CaseFormDraftDto regenerateDraftForm(UUID caseId, UUID draftId) {
         CaseFormDraft existing = requireDraft(caseId, draftId);
         FormDefinition form = existing.getFormDefinition();
 
@@ -164,7 +166,7 @@ public class CaseFormGenerationService {
         // Regenerate into the same folder the prior draft used (keeps package grouping).
         Path outputDir = existing.getDraftFilePath() != null
                 ? Paths.get(existing.getDraftFilePath()).getParent()
-                : storage.generatedFormsDir(existing.getImmigrationCase().getCaseNumber(), 0L);
+                : storage.generatedFormsDir(existing.getImmigrationCase().getCaseNumber(), new UUID(0L, 0L));
 
         CaseFormDraft draft = generateOne(existing.getImmigrationCase(), form, snapshot,
                 toJson(snapshot), currentUserLabel(), outputDir);
@@ -176,7 +178,7 @@ public class CaseFormGenerationService {
     }
 
     @Transactional(readOnly = true)
-    public List<CaseFormDraftDto> listDrafts(Long caseId) {
+    public List<CaseFormDraftDto> listDrafts(UUID caseId) {
         return draftRepository.findByImmigrationCaseId(caseId).stream()
                 .sorted(Comparator.comparing(CaseFormDraft::getGeneratedAt,
                         Comparator.nullsLast(Comparator.reverseOrder())))
@@ -185,7 +187,7 @@ public class CaseFormGenerationService {
     }
 
     @Transactional(readOnly = true)
-    public CaseFormDraftDto getFormDraft(Long caseId, Long draftId) {
+    public CaseFormDraftDto getFormDraft(UUID caseId, UUID draftId) {
         return draftMapper.toDto(requireDraft(caseId, draftId));
     }
 
@@ -194,7 +196,7 @@ public class CaseFormGenerationService {
      * Returns the entity so the controller can stream the file through a secured endpoint.
      */
     @Transactional(readOnly = true)
-    public CaseFormDraft getDraftForDownload(Long caseId, Long draftId) {
+    public CaseFormDraft getDraftForDownload(UUID caseId, UUID draftId) {
         CaseFormDraft draft = requireDraft(caseId, draftId);
         if (!StringUtils.hasText(draft.getDraftFilePath())
                 || !Files.exists(Paths.get(draft.getDraftFilePath()))) {
@@ -292,7 +294,7 @@ public class CaseFormGenerationService {
         return draft;
     }
 
-    private void supersedePriorDrafts(Long caseId, Long formDefinitionId) {
+    private void supersedePriorDrafts(UUID caseId, UUID formDefinitionId) {
         for (CaseFormDraft prior : draftRepository.findByImmigrationCaseIdAndFormDefinitionId(caseId, formDefinitionId)) {
             if (prior.getStatus() == PackageStatus.APPROVED || prior.getStatus() == PackageStatus.SUPERSEDED) {
                 continue;
@@ -314,7 +316,7 @@ public class CaseFormGenerationService {
         commonService.logAudit("CaseFormDraft", draft.getId(), action, toJson(details));
     }
 
-    private CaseFormDraft requireDraft(Long caseId, Long draftId) {
+    private CaseFormDraft requireDraft(UUID caseId, UUID draftId) {
         CaseFormDraft draft = draftRepository.findById(draftId)
                 .orElseThrow(() -> new EntityNotFoundException("Draft not found: " + draftId));
         if (!draft.getImmigrationCase().getId().equals(caseId)) {

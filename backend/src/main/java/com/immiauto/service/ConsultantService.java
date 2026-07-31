@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ConsultantDto;
 import com.immiauto.entity.Consultant;
 import com.immiauto.enums.AppUserStatus;
@@ -31,12 +33,12 @@ public class ConsultantService {
     }
 
     @Transactional(readOnly = true)
-    public ConsultantDto getConsultant(Long id) {
+    public ConsultantDto getConsultant(UUID id) {
         return toDto(findById(id));
     }
 
     @Transactional(readOnly = true)
-    public ConsultantDto getOwnProfile(Long id) {
+    public ConsultantDto getOwnProfile(UUID id) {
         return toDto(findById(id));
     }
 
@@ -68,7 +70,7 @@ public class ConsultantService {
     }
 
     @Transactional
-    public ConsultantDto updateConsultant(Long id, ConsultantDto dto) {
+    public ConsultantDto updateConsultant(UUID id, ConsultantDto dto) {
         Consultant consultant = findById(id);
 
         if (dto.getEmail() != null && !dto.getEmail().equalsIgnoreCase(consultant.getEmail())) {
@@ -94,7 +96,7 @@ public class ConsultantService {
      * the user is blocked on every request (see DisabledUserFilter) even with an unexpired token.
      */
     @Transactional
-    public ConsultantDto setActive(Long id, boolean active) {
+    public ConsultantDto setActive(UUID id, boolean active) {
         Consultant consultant = findById(id);
         consultant.setActive(active);
         consultantRepository.save(consultant);
@@ -108,7 +110,7 @@ public class ConsultantService {
         return toDto(consultant);
     }
 
-    private Consultant findById(Long id) {
+    private Consultant findById(UUID id) {
         return consultantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Consultant not found: " + id));
     }

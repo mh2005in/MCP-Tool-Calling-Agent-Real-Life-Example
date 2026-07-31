@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.CandidateComparisonDto;
 import com.immiauto.dto.RecruitmentEvidenceDto;
 import com.immiauto.entity.*;
@@ -22,7 +24,7 @@ public class RecruitmentService {
     // --- Recruitment Evidence ---
 
     @Transactional
-    public RecruitmentEvidenceDto addEvidence(Long caseId, RecruitmentEvidenceDto dto) {
+    public RecruitmentEvidenceDto addEvidence(UUID caseId, RecruitmentEvidenceDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         RecruitmentEvidence entry = RecruitmentEvidence.builder()
@@ -43,13 +45,13 @@ public class RecruitmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<RecruitmentEvidenceDto> getEvidence(Long caseId) {
+    public List<RecruitmentEvidenceDto> getEvidence(UUID caseId) {
         return evidenceRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream().map(this::toEvidenceDto).toList();
     }
 
     @Transactional
-    public void deleteEvidence(Long caseId, Long id) {
+    public void deleteEvidence(UUID caseId, UUID id) {
         RecruitmentEvidence entry = evidenceRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {
@@ -61,7 +63,7 @@ public class RecruitmentService {
     // --- Candidate Comparison ---
 
     @Transactional
-    public CandidateComparisonDto addCandidate(Long caseId, CandidateComparisonDto dto) {
+    public CandidateComparisonDto addCandidate(UUID caseId, CandidateComparisonDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         CandidateComparison entry = CandidateComparison.builder()
@@ -82,13 +84,13 @@ public class RecruitmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<CandidateComparisonDto> getCandidates(Long caseId) {
+    public List<CandidateComparisonDto> getCandidates(UUID caseId) {
         return candidateRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream().map(this::toCandidateDto).toList();
     }
 
     @Transactional
-    public void deleteCandidate(Long caseId, Long id) {
+    public void deleteCandidate(UUID caseId, UUID id) {
         CandidateComparison entry = candidateRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {

@@ -17,7 +17,7 @@ export class CaseListComponent implements OnInit {
   filteredCases: ImmigrationCase[] = [];
   loading = true;
 
-  consultantId = 0;
+  consultantId = '';
   searchQuery = '';
   filterServiceType = '';
   filterCaseStatus = '';
@@ -25,7 +25,7 @@ export class CaseListComponent implements OnInit {
   constructor(private api: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
     this.api.getCases(this.consultantId).subscribe({
       next: (data) => { this.cases = data; this.applyFilters(); this.loading = false; },
       error: () => { this.loading = false; }

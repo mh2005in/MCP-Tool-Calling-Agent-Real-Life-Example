@@ -5,10 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class ClientDto {
-    private Long id;
+    private UUID id;
     private String clientNumber;
 
     @NotBlank(message = "Full name is required")
@@ -17,7 +18,7 @@ public class ClientDto {
     @Email @NotBlank(message = "Email is required")
     private String email;
 
-    private Long consultantId;
+    private UUID consultantId;
 
     private String phone;
     private String whatsapp;

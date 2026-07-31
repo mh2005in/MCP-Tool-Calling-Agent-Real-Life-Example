@@ -13,7 +13,7 @@ import { LmiaCompliance } from '../../../core/models/automation.model';
   styleUrls: ['./recruitment-tracker.component.css']
 })
 export class RecruitmentTrackerComponent implements OnInit {
-  @Input() caseId!: number;
+  @Input() caseId!: string;
 
   evidence: RecruitmentEvidence[] = [];
   candidates: CandidateComparison[] = [];
@@ -81,7 +81,7 @@ export class RecruitmentTrackerComponent implements OnInit {
     });
   }
 
-  deleteEvidence(id: number) {
+  deleteEvidence(id: string) {
     this.api.deleteRecruitmentEvidence(this.caseId, id).subscribe(() => {
       this.loadEvidence();
       this.loadCompliance();
@@ -98,7 +98,7 @@ export class RecruitmentTrackerComponent implements OnInit {
     });
   }
 
-  deleteCandidate(id: number) {
+  deleteCandidate(id: string) {
     this.api.deleteCandidate(this.caseId, id).subscribe(() => this.loadCandidates());
   }
 

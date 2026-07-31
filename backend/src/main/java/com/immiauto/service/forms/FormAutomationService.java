@@ -1,5 +1,7 @@
 package com.immiauto.service.forms;
 
+import java.util.UUID;
+
 import com.immiauto.dto.forms.CanonicalDataSnapshotDto;
 import com.immiauto.dto.forms.FormMappingPreviewDto;
 import com.immiauto.dto.forms.MappingPreviewDto;
@@ -44,7 +46,7 @@ public class FormAutomationService {
      * type, or matching the case's service type.
      */
     @Transactional(readOnly = true)
-    public List<PackageProfileSummaryDto> listAvailableProfiles(Long caseId) {
+    public List<PackageProfileSummaryDto> listAvailableProfiles(UUID caseId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
 
@@ -64,7 +66,7 @@ public class FormAutomationService {
     }
 
     @Transactional(readOnly = true)
-    public CanonicalDataSnapshotDto getCanonicalSnapshot(Long caseId) {
+    public CanonicalDataSnapshotDto getCanonicalSnapshot(UUID caseId) {
         return canonicalDataService.buildSnapshot(caseId);
     }
 
@@ -73,7 +75,7 @@ public class FormAutomationService {
      * snapshot plus per-form mapped field previews.
      */
     @Transactional(readOnly = true)
-    public MappingPreviewDto previewMappings(Long caseId, Long packageProfileId) {
+    public MappingPreviewDto previewMappings(UUID caseId, UUID packageProfileId) {
         PackageProfile profile = packageProfileRepository.findById(packageProfileId)
                 .orElseThrow(() -> new EntityNotFoundException("Package profile not found: " + packageProfileId));
 

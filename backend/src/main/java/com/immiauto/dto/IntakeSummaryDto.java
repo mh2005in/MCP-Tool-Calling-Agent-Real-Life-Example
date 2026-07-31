@@ -5,10 +5,11 @@ import lombok.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class IntakeSummaryDto {
-    private Long caseId;
+    private UUID caseId;
     private ServiceType serviceType;
     private Map<String, List<IntakeResponseDto>> responsesBySection;
     private String aiSummary;

@@ -12,7 +12,7 @@ import { WorkHistoryEntry } from '../../../core/models/workflow.model';
   styleUrls: ['./work-history.component.css']
 })
 export class WorkHistoryComponent implements OnInit {
-  @Input() caseId!: number;
+  @Input() caseId!: string;
 
   entries: WorkHistoryEntry[] = [];
   showForm = false;
@@ -56,7 +56,7 @@ export class WorkHistoryComponent implements OnInit {
     }
   }
 
-  deleteEntry(id: number) {
+  deleteEntry(id: string) {
     this.api.deleteWorkEntry(this.caseId, id).subscribe(() => this.loadEntries());
   }
 

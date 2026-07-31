@@ -17,12 +17,12 @@ export class ClientListComponent implements OnInit {
   filteredClients: Client[] = [];
   loading = true;
   searchQuery = '';
-  consultantId = 0;
+  consultantId = '';
 
   constructor(private api: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
     this.api.getClients(this.consultantId).subscribe({
       next: (data) => { this.clients = data; this.filteredClients = data; this.loading = false; },
       error: () => { this.loading = false; }

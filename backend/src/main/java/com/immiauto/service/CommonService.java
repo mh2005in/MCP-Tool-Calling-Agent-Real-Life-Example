@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,13 +19,13 @@ public class CommonService {
     private final AuditLogRepository auditLogRepository;
     private final ConsultantRepository consultantRepository;
 
-    public void logAudit(String entityType, Long entityId, String action, String details) {
+    public void logAudit(String entityType, UUID entityId, String action, String details) {
         auditLogRepository.save(AuditLog.builder()
                 .entityType(entityType).entityId(entityId)
                 .action(action).details(details).build());
     }
 
-    public void verifyOwnershipOrAdmin(Long consultantId, Long ownerConsultantId, String resourceName) {
+    public void verifyOwnershipOrAdmin(UUID consultantId, UUID ownerConsultantId, String resourceName) {
         if (ownerConsultantId.equals(consultantId)) {
             return;
         }
@@ -36,7 +37,7 @@ public class CommonService {
         }
     }
 
-    public void requireAdmin(Long consultantId) {
+    public void requireAdmin(UUID consultantId) {
         Consultant consultant = consultantRepository.findById(consultantId)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant not found: " + consultantId));
         if (!consultant.isAdmin()) {

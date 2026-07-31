@@ -5,16 +5,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "expiry_alerts")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ExpiryAlert extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "expiry_alerts_gen")
-    @SequenceGenerator(name = "expiry_alerts_gen", sequenceName = "expiry_alerts_seq", allocationSize = 1)
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)
@@ -42,5 +38,5 @@ public class ExpiryAlert extends BaseEntity {
     private String acknowledgedBy;
 
     @Column
-    private Long linkedDocumentId;
+    private UUID linkedDocumentId;
 }

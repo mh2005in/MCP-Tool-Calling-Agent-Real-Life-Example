@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.ChecklistTemplateDto;
 import com.immiauto.entity.AuditLog;
@@ -24,37 +26,37 @@ public class ChecklistTemplateController {
     @PostMapping(ApiPaths.TEMPLATES_CREATE)
     public ResponseEntity<ChecklistTemplateDto> createTemplate(
             @Valid @RequestBody ChecklistTemplateDto dto,
-            @RequestParam Long consultantId) {
+            @RequestParam UUID consultantId) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(templateService.createTemplate(dto, consultantId));
     }
 
     @PutMapping(ApiPaths.TEMPLATES_UPDATE)
     public ResponseEntity<ChecklistTemplateDto> updateTemplate(
-            @PathVariable Long templateId,
+            @PathVariable UUID templateId,
             @Valid @RequestBody ChecklistTemplateDto dto,
-            @RequestParam Long consultantId) {
+            @RequestParam UUID consultantId) {
         return ResponseEntity.ok(templateService.updateTemplate(templateId, dto, consultantId));
     }
 
     @PatchMapping(ApiPaths.TEMPLATES_REVIEW)
     public ResponseEntity<ChecklistTemplateDto> reviewTemplate(
-            @PathVariable Long templateId,
-            @RequestParam Long consultantId) {
+            @PathVariable UUID templateId,
+            @RequestParam UUID consultantId) {
         return ResponseEntity.ok(templateService.reviewTemplate(templateId, consultantId));
     }
 
     @PatchMapping(ApiPaths.TEMPLATES_APPROVE)
     public ResponseEntity<ChecklistTemplateDto> approveTemplate(
-            @PathVariable Long templateId,
-            @RequestParam Long consultantId) {
+            @PathVariable UUID templateId,
+            @RequestParam UUID consultantId) {
         return ResponseEntity.ok(templateService.approveTemplate(templateId, consultantId));
     }
 
     @PatchMapping(ApiPaths.TEMPLATES_REVOKE)
     public ResponseEntity<ChecklistTemplateDto> revokeApproval(
-            @PathVariable Long templateId,
-            @RequestParam Long consultantId) {
+            @PathVariable UUID templateId,
+            @RequestParam UUID consultantId) {
         return ResponseEntity.ok(templateService.revokeApproval(templateId, consultantId));
     }
 
@@ -71,7 +73,7 @@ public class ChecklistTemplateController {
     }
 
     @GetMapping(ApiPaths.TEMPLATES_GET_BY_ID)
-    public ResponseEntity<ChecklistTemplateDto> getTemplate(@PathVariable Long templateId) {
+    public ResponseEntity<ChecklistTemplateDto> getTemplate(@PathVariable UUID templateId) {
         return ResponseEntity.ok(templateService.getTemplate(templateId));
     }
 
@@ -82,14 +84,14 @@ public class ChecklistTemplateController {
 
     @DeleteMapping(ApiPaths.TEMPLATES_DELETE)
     public ResponseEntity<Void> deleteTemplate(
-            @PathVariable Long templateId,
-            @RequestParam Long consultantId) {
+            @PathVariable UUID templateId,
+            @RequestParam UUID consultantId) {
         templateService.deleteTemplate(templateId, consultantId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping(ApiPaths.TEMPLATES_AUDIT)
-    public ResponseEntity<List<AuditLog>> getAuditHistory(@PathVariable Long templateId) {
+    public ResponseEntity<List<AuditLog>> getAuditHistory(@PathVariable UUID templateId) {
         return ResponseEntity.ok(templateService.getTemplateAuditHistory(templateId));
     }
 }
