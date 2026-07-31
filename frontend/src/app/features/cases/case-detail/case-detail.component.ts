@@ -63,14 +63,14 @@ export class CaseDetailComponent implements OnInit {
   showAddParty = false;
   newParty: Partial<PartyProfile> = { partyType: 'HOST', fullName: '', email: '', portalEnabled: false };
 
-  consultantId = 0;
-  private caseId = 0;
+  consultantId = '';
+  private caseId = '';
 
   constructor(private api: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
-    this.caseId = Number(this.route.snapshot.paramMap.get('id'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
+    this.caseId = this.route.snapshot.paramMap.get('id') || '';
     this.loadCase();
     this.loadChecklist();
     this.loadDocuments();
@@ -130,11 +130,11 @@ export class CaseDetailComponent implements OnInit {
     });
   }
 
-  deleteParty(id: number) {
+  deleteParty(id: string) {
     this.api.deleteParty(id).subscribe(() => this.loadParties());
   }
 
-  acknowledgeAlert(id: number) {
+  acknowledgeAlert(id: string) {
     this.api.acknowledgeExpiryAlert(id, 'consultant').subscribe(() => this.loadAlerts());
   }
 

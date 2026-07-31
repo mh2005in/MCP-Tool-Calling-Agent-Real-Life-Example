@@ -2,15 +2,17 @@ package com.immiauto.dto.forms;
 
 import lombok.*;
 
+import java.util.UUID;
+
 /**
  * A generated submission package for a case (Section 4.1 - Milestone 5).
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class CasePackageDto {
 
-    private Long id;
-    private Long caseId;
-    private Long packageProfileId;
+    private UUID id;
+    private UUID caseId;
+    private UUID packageProfileId;
     private String profileCode;
     private String profileDisplayName;
     private String status;

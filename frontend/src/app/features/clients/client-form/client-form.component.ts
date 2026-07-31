@@ -18,19 +18,19 @@ export class ClientFormComponent implements OnInit {
   submitting = false;
   errorMsg = '';
   successMsg = '';
-  consultantId = 0;
-  duplicateClientId: number | null = null;
+  consultantId = '';
+  duplicateClientId: string | null = null;
   duplicateEmail = false;
   isAdmin = false;
 
-  private clientId: number | null = null;
+  private clientId: string | null = null;
 
   constructor(private api: ApiService, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
     const idParam = this.route.snapshot.paramMap.get('id');
-    this.clientId = idParam ? Number(idParam) : null;
+    this.clientId = idParam || null;
 
     if (this.consultantId) {
       this.api.getConsultant(this.consultantId).subscribe({

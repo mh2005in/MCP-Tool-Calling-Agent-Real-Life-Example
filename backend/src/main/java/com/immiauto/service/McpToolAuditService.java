@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.mcp.McpAuditEventRequest;
 import com.immiauto.entity.McpToolAuditLog;
 import com.immiauto.mapper.McpAuditMapper;
@@ -17,7 +19,7 @@ public class McpToolAuditService {
     private final McpToolAuditLogRepository auditLogRepository;
     private final McpAuditMapper auditMapper;
 
-    public void record(McpAuditEventRequest request, Long consultantId) {
+    public void record(McpAuditEventRequest request, UUID consultantId) {
         McpToolAuditLog entry = auditMapper.toEntity(request);
         entry.setConsultantId(consultantId);
         auditLogRepository.save(entry);

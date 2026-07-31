@@ -24,8 +24,8 @@ interface SeverityGroup {
   styleUrls: ['./validation-readiness.component.css']
 })
 export class ValidationReadinessComponent implements OnChanges {
-  @Input() caseId!: number;
-  @Input() packageProfileId: number | null = null;
+  @Input() caseId!: string;
+  @Input() packageProfileId: string | null = null;
 
   report: PackageReadinessReport | null = null;
   loading = false;

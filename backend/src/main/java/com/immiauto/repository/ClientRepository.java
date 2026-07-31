@@ -8,13 +8,14 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface ClientRepository extends JpaRepository<Client, Long> {
+public interface ClientRepository extends JpaRepository<Client, UUID> {
     Optional<Client> findByClientNumber(String clientNumber);
     Optional<Client> findByEmail(String email);
     List<Client> findByFullNameContainingIgnoreCase(String name);
-    List<Client> findByConsultantId(Long consultantId);
+    List<Client> findByConsultantId(UUID consultantId);
 
     Optional<Client> findByFullNameIgnoreCaseAndDateOfBirthAndEmailIgnoreCase(
             String fullName, LocalDate dateOfBirth, String email);
@@ -22,7 +23,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     @Query("SELECT c FROM Client c WHERE c.consultant.id = :consultantId AND " +
            "(LOWER(c.fullName) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(c.email) LIKE LOWER(CONCAT('%', :search, '%')))")
-    List<Client> searchByConsultant(Long consultantId, String search);
+    List<Client> searchByConsultant(UUID consultantId, String search);
 
     @Query("SELECT c FROM Client c WHERE LOWER(c.fullName) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(c.email) LIKE LOWER(CONCAT('%', :search, '%'))")

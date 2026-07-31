@@ -13,7 +13,7 @@ import { AuthService } from './core/auth/auth.service';
 })
 export class AppComponent implements OnInit {
   isAdminPage = true;
-  consultantId = 0;
+  consultantId = '';
 
   constructor(private router: Router, public auth: AuthService) {
     this.router.events.pipe(
@@ -27,13 +27,13 @@ export class AppComponent implements OnInit {
         || url.startsWith('/client/');
 
       const match = url.match(/\/consultant\/([^/]+)/);
-      this.consultantId = match ? Number(match[1]) : 0;
+      this.consultantId = match ? match[1] : '';
     });
   }
 
   /** Consultant id for sidebar links: the one in the URL, or the logged-in user's own (e.g. on /admin). */
-  get navConsultantId(): number {
-    return this.consultantId || (this.auth.currentUser()?.consultantId ?? 0);
+  get navConsultantId(): string {
+    return this.consultantId || (this.auth.currentUser()?.consultantId ?? '');
   }
 
   ngOnInit(): void {

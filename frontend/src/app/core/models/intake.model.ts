@@ -1,7 +1,7 @@
 import { ServiceType } from './case.model';
 
 export interface IntakeQuestionTemplate {
-  id?: number;
+  id?: string;
   serviceType: ServiceType;
   sectionName: string;
   questionKey: string;
@@ -15,8 +15,8 @@ export interface IntakeQuestionTemplate {
 }
 
 export interface IntakeResponse {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   sectionName: string;
   questionKey: string;
   questionLabel: string;
@@ -30,7 +30,7 @@ export interface IntakeSubmissionRequest {
 }
 
 export interface IntakeSummary {
-  caseId: number;
+  caseId: string;
   serviceType: ServiceType;
   responsesBySection: { [section: string]: IntakeResponse[] };
   aiSummary: string;
@@ -38,13 +38,13 @@ export interface IntakeSummary {
 }
 
 export interface ConditionalRule {
-  id?: number;
+  id?: string;
   serviceType: ServiceType;
   triggerQuestionKey: string;
   triggerValue: string;
   operator: 'EQUALS' | 'NOT_EQUALS' | 'CONTAINS' | 'NOT_CONTAINS' | 'YES' | 'NO';
   actionType: 'INCLUDE' | 'EXCLUDE';
-  targetChecklistTemplateId?: number;
+  targetChecklistTemplateId?: string;
   targetQuestionKey?: string;
   description: string;
   active: boolean;

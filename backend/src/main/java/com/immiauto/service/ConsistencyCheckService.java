@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.entity.ChecklistItem;
 import com.immiauto.entity.Document;
 import com.immiauto.entity.ImmigrationCase;
@@ -25,7 +27,7 @@ public class ConsistencyCheckService {
     private final CaseRepository caseRepository;
 
     @Transactional(readOnly = true)
-    public List<Map<String, String>> checkConsistency(Long caseId) {
+    public List<Map<String, String>> checkConsistency(UUID caseId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
 
@@ -53,7 +55,7 @@ public class ConsistencyCheckService {
         }
     }
 
-    private void checkMissingRequiredItems(Long caseId, List<Map<String, String>> issues) {
+    private void checkMissingRequiredItems(UUID caseId, List<Map<String, String>> issues) {
         List<ChecklistItem> missing = checklistItemRepository
                 .findByImmigrationCaseIdAndStatus(caseId, DocumentStatus.NOT_UPLOADED);
         long requiredMissing = missing.stream().filter(ChecklistItem::isRequired).count();

@@ -23,104 +23,104 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   // --- Clients ---
-  getClients(consultantId: number): Observable<Client[]> {
+  getClients(consultantId: string): Observable<Client[]> {
     return this.http.get<Client[]>(API_ENDPOINTS.CLIENTS_GET(consultantId));
   }
 
-  getClient(consultantId: number, id: number): Observable<Client> {
+  getClient(consultantId: string, id: string): Observable<Client> {
     return this.http.get<Client>(API_ENDPOINTS.CLIENTS_GET_BY_ID(consultantId, id));
   }
 
-  createClient(consultantId: number, client: Client): Observable<Client> {
+  createClient(consultantId: string, client: Client): Observable<Client> {
     return this.http.post<Client>(API_ENDPOINTS.CLIENTS_CREATE(consultantId), client);
   }
 
-  updateClient(consultantId: number, id: number, client: Client): Observable<Client> {
+  updateClient(consultantId: string, id: string, client: Client): Observable<Client> {
     return this.http.put<Client>(API_ENDPOINTS.CLIENTS_UPDATE(consultantId, id), client);
   }
 
-  searchClients(consultantId: number, query: string): Observable<Client[]> {
+  searchClients(consultantId: string, query: string): Observable<Client[]> {
     return this.http.get<Client[]>(API_ENDPOINTS.CLIENTS_SEARCH(consultantId), {
       params: new HttpParams().set('q', query)
     });
   }
 
-  getClientByNumber(consultantId: number, clientNumber: string): Observable<Client> {
+  getClientByNumber(consultantId: string, clientNumber: string): Observable<Client> {
     return this.http.get<Client>(API_ENDPOINTS.CLIENTS_SEARCH_BY_NUMBER(consultantId), {
       params: new HttpParams().set('clientNumber', clientNumber)
     });
   }
 
   // --- Cases ---
-  getCases(consultantId: number): Observable<ImmigrationCase[]> {
+  getCases(consultantId: string): Observable<ImmigrationCase[]> {
     return this.http.get<ImmigrationCase[]>(API_ENDPOINTS.CASES_GET(consultantId));
   }
 
-  getCase(consultantId: number, id: number): Observable<ImmigrationCase> {
+  getCase(consultantId: string, id: string): Observable<ImmigrationCase> {
     return this.http.get<ImmigrationCase>(API_ENDPOINTS.CASES_GET_BY_ID(consultantId, id));
   }
 
-  createCase(consultantId: number, request: CreateCaseRequest): Observable<ImmigrationCase> {
+  createCase(consultantId: string, request: CreateCaseRequest): Observable<ImmigrationCase> {
     return this.http.post<ImmigrationCase>(API_ENDPOINTS.CASES_CREATE(consultantId), request);
   }
 
-  updateCase(consultantId: number, id: number, data: Partial<ImmigrationCase>): Observable<ImmigrationCase> {
+  updateCase(consultantId: string, id: string, data: Partial<ImmigrationCase>): Observable<ImmigrationCase> {
     return this.http.put<ImmigrationCase>(API_ENDPOINTS.CASES_UPDATE(consultantId, id), data);
   }
 
-  updateCaseStatus(consultantId: number, id: number, status: CaseStatus): Observable<ImmigrationCase> {
+  updateCaseStatus(consultantId: string, id: string, status: CaseStatus): Observable<ImmigrationCase> {
     return this.http.patch<ImmigrationCase>(API_ENDPOINTS.CASES_STATUS(consultantId, id), null, {
       params: new HttpParams().set('status', status)
     });
   }
 
-  updateLeadStatus(consultantId: number, id: number, status: LeadStatus): Observable<ImmigrationCase> {
+  updateLeadStatus(consultantId: string, id: string, status: LeadStatus): Observable<ImmigrationCase> {
     return this.http.patch<ImmigrationCase>(API_ENDPOINTS.CASES_LEAD_STATUS(consultantId, id), null, {
       params: new HttpParams().set('status', status)
     });
   }
 
-  getCaseByNumber(consultantId: number, caseNumber: string): Observable<ImmigrationCase> {
+  getCaseByNumber(consultantId: string, caseNumber: string): Observable<ImmigrationCase> {
     return this.http.get<ImmigrationCase>(API_ENDPOINTS.CASES_SEARCH_BY_NUMBER(consultantId), {
       params: new HttpParams().set('caseNumber', caseNumber)
     });
   }
 
-  getUpcomingDeadlines(consultantId: number, days: number = 14): Observable<ImmigrationCase[]> {
+  getUpcomingDeadlines(consultantId: string, days: number = 14): Observable<ImmigrationCase[]> {
     return this.http.get<ImmigrationCase[]>(API_ENDPOINTS.CASES_DEADLINES(consultantId), {
       params: new HttpParams().set('daysAhead', days.toString())
     });
   }
 
   // --- Checklist ---
-  getChecklist(caseId: number): Observable<ChecklistItem[]> {
+  getChecklist(caseId: string): Observable<ChecklistItem[]> {
     return this.http.get<ChecklistItem[]>(API_ENDPOINTS.CHECKLIST_GET(caseId));
   }
 
-  getMissingItems(caseId: number): Observable<ChecklistItem[]> {
+  getMissingItems(caseId: string): Observable<ChecklistItem[]> {
     return this.http.get<ChecklistItem[]>(API_ENDPOINTS.CHECKLIST_MISSING(caseId));
   }
 
-  addChecklistItem(caseId: number, item: ChecklistItem): Observable<ChecklistItem> {
+  addChecklistItem(caseId: string, item: ChecklistItem): Observable<ChecklistItem> {
     return this.http.post<ChecklistItem>(API_ENDPOINTS.CHECKLIST_CREATE(caseId), item);
   }
 
-  updateChecklistItemStatus(caseId: number, itemId: number, status: DocumentStatus, reviewNote?: string): Observable<ChecklistItem> {
+  updateChecklistItemStatus(caseId: string, itemId: string, status: DocumentStatus, reviewNote?: string): Observable<ChecklistItem> {
     let params = new HttpParams().set('status', status);
     if (reviewNote) params = params.set('reviewNote', reviewNote);
     return this.http.patch<ChecklistItem>(API_ENDPOINTS.CHECKLIST_UPDATE_STATUS(caseId, itemId), null, { params });
   }
 
-  deleteChecklistItem(caseId: number, itemId: number): Observable<void> {
+  deleteChecklistItem(caseId: string, itemId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.CHECKLIST_DELETE(itemId));
   }
 
   // --- Documents ---
-  getDocuments(caseId: number): Observable<CaseDocument[]> {
+  getDocuments(caseId: string): Observable<CaseDocument[]> {
     return this.http.get<CaseDocument[]>(API_ENDPOINTS.DOCUMENTS_GET(caseId));
   }
 
-  uploadDocument(caseId: number, file: File, category?: string, type?: string): Observable<CaseDocument> {
+  uploadDocument(caseId: string, file: File, category?: string, type?: string): Observable<CaseDocument> {
     const formData = new FormData();
     formData.append('file', file);
     if (category) formData.append('category', category);
@@ -128,7 +128,7 @@ export class ApiService {
     return this.http.post<CaseDocument>(API_ENDPOINTS.DOCUMENTS_UPLOAD(caseId), formData);
   }
 
-  reviewDocument(caseId: number, docId: number, status: DocumentStatus, reviewNote?: string, rejectionReason?: string): Observable<CaseDocument> {
+  reviewDocument(caseId: string, docId: string, status: DocumentStatus, reviewNote?: string, rejectionReason?: string): Observable<CaseDocument> {
     let params = new HttpParams().set('status', status);
     if (reviewNote) params = params.set('reviewNote', reviewNote);
     if (rejectionReason) params = params.set('rejectionReason', rejectionReason);
@@ -136,26 +136,26 @@ export class ApiService {
   }
 
   // --- Reminders ---
-  getReminders(caseId: number): Observable<Reminder[]> {
+  getReminders(caseId: string): Observable<Reminder[]> {
     return this.http.get<Reminder[]>(API_ENDPOINTS.REMINDERS_GET(caseId));
   }
 
-  createReminder(caseId: number, reminder: Reminder): Observable<Reminder> {
+  createReminder(caseId: string, reminder: Reminder): Observable<Reminder> {
     return this.http.post<Reminder>(API_ENDPOINTS.REMINDERS_CREATE(caseId), reminder);
   }
 
-  approveReminder(reminderId: number, approvedBy: string): Observable<Reminder> {
+  approveReminder(reminderId: string, approvedBy: string): Observable<Reminder> {
     return this.http.patch<Reminder>(API_ENDPOINTS.REMINDERS_APPROVE(reminderId), null, {
       params: new HttpParams().set('approvedBy', approvedBy)
     });
   }
 
-  getPendingReminders(consultantId: number): Observable<Reminder[]> {
+  getPendingReminders(consultantId: string): Observable<Reminder[]> {
     return this.http.get<Reminder[]>(API_ENDPOINTS.REMINDERS_PENDING(consultantId));
   }
 
   // --- Dashboard ---
-  getDashboard(consultantId: number): Observable<Dashboard> {
+  getDashboard(consultantId: string): Observable<Dashboard> {
     return this.http.get<Dashboard>(API_ENDPOINTS.DASHBOARD_GET(consultantId));
   }
 
@@ -168,7 +168,7 @@ export class ApiService {
     return this.http.get<Consultant[]>(API_ENDPOINTS.CONSULTANTS_GET);
   }
 
-  getConsultant(id: number): Observable<Consultant> {
+  getConsultant(id: string): Observable<Consultant> {
     return this.http.get<Consultant>(API_ENDPOINTS.CONSULTANTS_GET_BY_ID(id));
   }
 
@@ -176,11 +176,11 @@ export class ApiService {
     return this.http.post<Consultant>(API_ENDPOINTS.CONSULTANTS_CREATE, consultant);
   }
 
-  updateConsultant(id: number, consultant: Consultant): Observable<Consultant> {
+  updateConsultant(id: string, consultant: Consultant): Observable<Consultant> {
     return this.http.put<Consultant>(API_ENDPOINTS.CONSULTANTS_UPDATE(id), consultant);
   }
 
-  getOwnProfile(id: number): Observable<Consultant> {
+  getOwnProfile(id: string): Observable<Consultant> {
     return this.http.get<Consultant>(API_ENDPOINTS.CONSULTANTS_PROFILE(id));
   }
 
@@ -190,38 +190,38 @@ export class ApiService {
     });
   }
 
-  setConsultantActive(id: number, active: boolean): Observable<Consultant> {
+  setConsultantActive(id: string, active: boolean): Observable<Consultant> {
     return this.http.patch<Consultant>(API_ENDPOINTS.CONSULTANTS_SET_ACTIVE(id), null, {
       params: new HttpParams().set('active', active)
     });
   }
 
   // --- Checklist Templates ---
-  createTemplate(template: ChecklistTemplate, consultantId: number): Observable<ChecklistTemplate> {
+  createTemplate(template: ChecklistTemplate, consultantId: string): Observable<ChecklistTemplate> {
     return this.http.post<ChecklistTemplate>(API_ENDPOINTS.TEMPLATES_CREATE, template, {
       params: new HttpParams().set('consultantId', consultantId)
     });
   }
 
-  updateTemplate(templateId: number, template: ChecklistTemplate, consultantId: number): Observable<ChecklistTemplate> {
+  updateTemplate(templateId: string, template: ChecklistTemplate, consultantId: string): Observable<ChecklistTemplate> {
     return this.http.put<ChecklistTemplate>(API_ENDPOINTS.TEMPLATES_UPDATE(templateId), template, {
       params: new HttpParams().set('consultantId', consultantId)
     });
   }
 
-  reviewTemplate(templateId: number, consultantId: number): Observable<ChecklistTemplate> {
+  reviewTemplate(templateId: string, consultantId: string): Observable<ChecklistTemplate> {
     return this.http.patch<ChecklistTemplate>(API_ENDPOINTS.TEMPLATES_REVIEW(templateId), null, {
       params: new HttpParams().set('consultantId', consultantId)
     });
   }
 
-  approveTemplate(templateId: number, consultantId: number): Observable<ChecklistTemplate> {
+  approveTemplate(templateId: string, consultantId: string): Observable<ChecklistTemplate> {
     return this.http.patch<ChecklistTemplate>(API_ENDPOINTS.TEMPLATES_APPROVE(templateId), null, {
       params: new HttpParams().set('consultantId', consultantId)
     });
   }
 
-  revokeTemplateApproval(templateId: number, consultantId: number): Observable<ChecklistTemplate> {
+  revokeTemplateApproval(templateId: string, consultantId: string): Observable<ChecklistTemplate> {
     return this.http.patch<ChecklistTemplate>(API_ENDPOINTS.TEMPLATES_REVOKE(templateId), null, {
       params: new HttpParams().set('consultantId', consultantId)
     });
@@ -239,7 +239,7 @@ export class ApiService {
     });
   }
 
-  getTemplate(templateId: number): Observable<ChecklistTemplate> {
+  getTemplate(templateId: string): Observable<ChecklistTemplate> {
     return this.http.get<ChecklistTemplate>(API_ENDPOINTS.TEMPLATES_GET_BY_ID(templateId));
   }
 
@@ -247,49 +247,49 @@ export class ApiService {
     return this.http.get<ChecklistTemplate[]>(API_ENDPOINTS.TEMPLATES_GET_ALL);
   }
 
-  deleteTemplate(templateId: number, consultantId: number): Observable<void> {
+  deleteTemplate(templateId: string, consultantId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.TEMPLATES_DELETE(templateId), {
       params: new HttpParams().set('consultantId', consultantId)
     });
   }
 
-  getTemplateAuditHistory(templateId: number): Observable<AuditLogEntry[]> {
+  getTemplateAuditHistory(templateId: string): Observable<AuditLogEntry[]> {
     return this.http.get<AuditLogEntry[]>(API_ENDPOINTS.TEMPLATES_AUDIT(templateId));
   }
 
   // --- Admin (cross-consultant access) ---
-  adminGetAllClients(consultantId: number): Observable<Client[]> {
+  adminGetAllClients(consultantId: string): Observable<Client[]> {
     return this.http.get<Client[]>(API_ENDPOINTS.ADMIN_CLIENTS_ALL(consultantId));
   }
 
-  adminGetClientsByConsultant(consultantId: number, targetConsultantId: number): Observable<Client[]> {
+  adminGetClientsByConsultant(consultantId: string, targetConsultantId: string): Observable<Client[]> {
     return this.http.get<Client[]>(API_ENDPOINTS.ADMIN_CLIENTS_BY_CONSULTANT(consultantId, targetConsultantId));
   }
 
-  adminGetClient(consultantId: number, clientId: number): Observable<Client> {
+  adminGetClient(consultantId: string, clientId: string): Observable<Client> {
     return this.http.get<Client>(API_ENDPOINTS.ADMIN_CLIENT_BY_ID(consultantId, clientId));
   }
 
-  adminSearchClients(consultantId: number, query: string): Observable<Client[]> {
+  adminSearchClients(consultantId: string, query: string): Observable<Client[]> {
     return this.http.get<Client[]>(API_ENDPOINTS.ADMIN_CLIENTS_SEARCH(consultantId), {
       params: new HttpParams().set('q', query)
     });
   }
 
-  adminGetAllCases(consultantId: number): Observable<ImmigrationCase[]> {
+  adminGetAllCases(consultantId: string): Observable<ImmigrationCase[]> {
     return this.http.get<ImmigrationCase[]>(API_ENDPOINTS.ADMIN_CASES_ALL(consultantId));
   }
 
-  adminGetCasesByConsultant(consultantId: number, targetConsultantId: number): Observable<ImmigrationCase[]> {
+  adminGetCasesByConsultant(consultantId: string, targetConsultantId: string): Observable<ImmigrationCase[]> {
     return this.http.get<ImmigrationCase[]>(API_ENDPOINTS.ADMIN_CASES_BY_CONSULTANT(consultantId, targetConsultantId));
   }
 
-  adminGetCase(consultantId: number, caseId: number): Observable<ImmigrationCase> {
+  adminGetCase(consultantId: string, caseId: string): Observable<ImmigrationCase> {
     return this.http.get<ImmigrationCase>(API_ENDPOINTS.ADMIN_CASE_BY_ID(consultantId, caseId));
   }
 
   // --- Client Checklist (with disclaimer) ---
-  getClientChecklist(caseId: number): Observable<ClientChecklistResponse> {
+  getClientChecklist(caseId: string): Observable<ClientChecklistResponse> {
     return this.http.get<ClientChecklistResponse>(API_ENDPOINTS.CHECKLIST_CLIENT_VIEW(caseId));
   }
 
@@ -312,44 +312,44 @@ export class ApiService {
     });
   }
 
-  submitIntake(caseId: number, request: IntakeSubmissionRequest): Observable<IntakeResponse[]> {
+  submitIntake(caseId: string, request: IntakeSubmissionRequest): Observable<IntakeResponse[]> {
     return this.http.post<IntakeResponse[]>(API_ENDPOINTS.INTAKE_SUBMIT(caseId), request);
   }
 
-  getIntakeResponses(caseId: number): Observable<IntakeResponse[]> {
+  getIntakeResponses(caseId: string): Observable<IntakeResponse[]> {
     return this.http.get<IntakeResponse[]>(API_ENDPOINTS.INTAKE_RESPONSES(caseId));
   }
 
-  getIntakeSummary(caseId: number): Observable<IntakeSummary> {
+  getIntakeSummary(caseId: string): Observable<IntakeSummary> {
     return this.http.get<IntakeSummary>(API_ENDPOINTS.INTAKE_SUMMARY(caseId));
   }
 
-  flagIntakeResponse(responseId: number, flagged: boolean): Observable<IntakeResponse> {
+  flagIntakeResponse(responseId: string, flagged: boolean): Observable<IntakeResponse> {
     return this.http.patch<IntakeResponse>(API_ENDPOINTS.INTAKE_FLAG(responseId), null, {
       params: new HttpParams().set('flagged', flagged.toString())
     });
   }
 
-  updateIntakeResponse(responseId: number, answer: string): Observable<IntakeResponse> {
+  updateIntakeResponse(responseId: string, answer: string): Observable<IntakeResponse> {
     return this.http.patch<IntakeResponse>(API_ENDPOINTS.INTAKE_UPDATE_RESPONSE(responseId), null, {
       params: new HttpParams().set('answer', answer)
     });
   }
 
-  generateChecklistFromIntake(caseId: number): Observable<ChecklistItem[]> {
+  generateChecklistFromIntake(caseId: string): Observable<ChecklistItem[]> {
     return this.http.post<ChecklistItem[]>(API_ENDPOINTS.INTAKE_GENERATE_CHECKLIST(caseId), null);
   }
 
   // --- Expiry Alerts ---
-  getExpiryAlertsByConsultant(consultantId: number): Observable<ExpiryAlert[]> {
+  getExpiryAlertsByConsultant(consultantId: string): Observable<ExpiryAlert[]> {
     return this.http.get<ExpiryAlert[]>(API_ENDPOINTS.EXPIRY_ALERTS_BY_CONSULTANT(consultantId));
   }
 
-  getExpiryAlertsByCase(caseId: number): Observable<ExpiryAlert[]> {
+  getExpiryAlertsByCase(caseId: string): Observable<ExpiryAlert[]> {
     return this.http.get<ExpiryAlert[]>(API_ENDPOINTS.EXPIRY_ALERTS_BY_CASE(caseId));
   }
 
-  acknowledgeExpiryAlert(alertId: number, acknowledgedBy: string): Observable<ExpiryAlert> {
+  acknowledgeExpiryAlert(alertId: string, acknowledgedBy: string): Observable<ExpiryAlert> {
     return this.http.put<ExpiryAlert>(API_ENDPOINTS.EXPIRY_ALERT_ACKNOWLEDGE(alertId), null, {
       params: new HttpParams().set('acknowledgedBy', acknowledgedBy)
     });
@@ -366,32 +366,32 @@ export class ApiService {
     });
   }
 
-  checkConsistency(caseId: number): Observable<ConsistencyIssue[]> {
+  checkConsistency(caseId: string): Observable<ConsistencyIssue[]> {
     return this.http.get<ConsistencyIssue[]>(API_ENDPOINTS.CONSISTENCY_CHECK(caseId));
   }
 
-  getRequiredPoliceCertificates(caseId: number): Observable<PoliceCertificateRequirement[]> {
+  getRequiredPoliceCertificates(caseId: string): Observable<PoliceCertificateRequirement[]> {
     return this.http.get<PoliceCertificateRequirement[]>(API_ENDPOINTS.POLICE_CERTIFICATES(caseId));
   }
 
-  getLmiaCompliance(caseId: number): Observable<LmiaCompliance> {
+  getLmiaCompliance(caseId: string): Observable<LmiaCompliance> {
     return this.http.get<LmiaCompliance>(API_ENDPOINTS.LMIA_COMPLIANCE(caseId));
   }
 
   // --- Party Portals ---
-  createParty(caseId: number, party: PartyProfile): Observable<PartyProfile> {
+  createParty(caseId: string, party: PartyProfile): Observable<PartyProfile> {
     return this.http.post<PartyProfile>(API_ENDPOINTS.PARTIES_CREATE(caseId), party);
   }
 
-  getParties(caseId: number): Observable<PartyProfile[]> {
+  getParties(caseId: string): Observable<PartyProfile[]> {
     return this.http.get<PartyProfile[]>(API_ENDPOINTS.PARTIES_GET(caseId));
   }
 
-  updateParty(partyId: number, party: PartyProfile): Observable<PartyProfile> {
+  updateParty(partyId: string, party: PartyProfile): Observable<PartyProfile> {
     return this.http.put<PartyProfile>(API_ENDPOINTS.PARTY_UPDATE(partyId), party);
   }
 
-  deleteParty(partyId: number): Observable<void> {
+  deleteParty(partyId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.PARTY_DELETE(partyId));
   }
 
@@ -400,165 +400,165 @@ export class ApiService {
   }
 
   // --- Travel History ---
-  getTravelHistory(caseId: number): Observable<TravelHistoryEntry[]> {
+  getTravelHistory(caseId: string): Observable<TravelHistoryEntry[]> {
     return this.http.get<TravelHistoryEntry[]>(API_ENDPOINTS.TRAVEL_HISTORY(caseId));
   }
 
-  addTravelEntry(caseId: number, entry: TravelHistoryEntry): Observable<TravelHistoryEntry> {
+  addTravelEntry(caseId: string, entry: TravelHistoryEntry): Observable<TravelHistoryEntry> {
     return this.http.post<TravelHistoryEntry>(API_ENDPOINTS.TRAVEL_HISTORY(caseId), entry);
   }
 
-  updateTravelEntry(caseId: number, entryId: number, entry: TravelHistoryEntry): Observable<TravelHistoryEntry> {
+  updateTravelEntry(caseId: string, entryId: string, entry: TravelHistoryEntry): Observable<TravelHistoryEntry> {
     return this.http.put<TravelHistoryEntry>(API_ENDPOINTS.TRAVEL_HISTORY_ENTRY(caseId, entryId), entry);
   }
 
-  deleteTravelEntry(caseId: number, entryId: number): Observable<void> {
+  deleteTravelEntry(caseId: string, entryId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.TRAVEL_HISTORY_ENTRY(caseId, entryId));
   }
 
-  getPhysicalPresence(caseId: number): Observable<PhysicalPresenceSummary> {
+  getPhysicalPresence(caseId: string): Observable<PhysicalPresenceSummary> {
     return this.http.get<PhysicalPresenceSummary>(API_ENDPOINTS.PHYSICAL_PRESENCE(caseId));
   }
 
   // --- Work History ---
-  getWorkHistory(caseId: number): Observable<WorkHistoryEntry[]> {
+  getWorkHistory(caseId: string): Observable<WorkHistoryEntry[]> {
     return this.http.get<WorkHistoryEntry[]>(API_ENDPOINTS.WORK_HISTORY(caseId));
   }
 
-  addWorkEntry(caseId: number, entry: WorkHistoryEntry): Observable<WorkHistoryEntry> {
+  addWorkEntry(caseId: string, entry: WorkHistoryEntry): Observable<WorkHistoryEntry> {
     return this.http.post<WorkHistoryEntry>(API_ENDPOINTS.WORK_HISTORY(caseId), entry);
   }
 
-  updateWorkEntry(caseId: number, entryId: number, entry: WorkHistoryEntry): Observable<WorkHistoryEntry> {
+  updateWorkEntry(caseId: string, entryId: string, entry: WorkHistoryEntry): Observable<WorkHistoryEntry> {
     return this.http.put<WorkHistoryEntry>(API_ENDPOINTS.WORK_HISTORY_ENTRY(caseId, entryId), entry);
   }
 
-  deleteWorkEntry(caseId: number, entryId: number): Observable<void> {
+  deleteWorkEntry(caseId: string, entryId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.WORK_HISTORY_ENTRY(caseId, entryId));
   }
 
   // --- Relationship Timeline ---
-  getRelationshipTimeline(caseId: number): Observable<RelationshipTimelineEntry[]> {
+  getRelationshipTimeline(caseId: string): Observable<RelationshipTimelineEntry[]> {
     return this.http.get<RelationshipTimelineEntry[]>(API_ENDPOINTS.RELATIONSHIP_TIMELINE(caseId));
   }
 
-  addTimelineEntry(caseId: number, entry: RelationshipTimelineEntry): Observable<RelationshipTimelineEntry> {
+  addTimelineEntry(caseId: string, entry: RelationshipTimelineEntry): Observable<RelationshipTimelineEntry> {
     return this.http.post<RelationshipTimelineEntry>(API_ENDPOINTS.RELATIONSHIP_TIMELINE(caseId), entry);
   }
 
-  updateTimelineEntry(caseId: number, entryId: number, entry: RelationshipTimelineEntry): Observable<RelationshipTimelineEntry> {
+  updateTimelineEntry(caseId: string, entryId: string, entry: RelationshipTimelineEntry): Observable<RelationshipTimelineEntry> {
     return this.http.put<RelationshipTimelineEntry>(API_ENDPOINTS.RELATIONSHIP_TIMELINE_ENTRY(caseId, entryId), entry);
   }
 
-  deleteTimelineEntry(caseId: number, entryId: number): Observable<void> {
+  deleteTimelineEntry(caseId: string, entryId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.RELATIONSHIP_TIMELINE_ENTRY(caseId, entryId));
   }
 
   // --- Recruitment ---
-  getRecruitmentEvidence(caseId: number): Observable<RecruitmentEvidence[]> {
+  getRecruitmentEvidence(caseId: string): Observable<RecruitmentEvidence[]> {
     return this.http.get<RecruitmentEvidence[]>(API_ENDPOINTS.RECRUITMENT_EVIDENCE(caseId));
   }
 
-  addRecruitmentEvidence(caseId: number, evidence: RecruitmentEvidence): Observable<RecruitmentEvidence> {
+  addRecruitmentEvidence(caseId: string, evidence: RecruitmentEvidence): Observable<RecruitmentEvidence> {
     return this.http.post<RecruitmentEvidence>(API_ENDPOINTS.RECRUITMENT_EVIDENCE(caseId), evidence);
   }
 
-  deleteRecruitmentEvidence(caseId: number, entryId: number): Observable<void> {
+  deleteRecruitmentEvidence(caseId: string, entryId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.RECRUITMENT_EVIDENCE_ENTRY(caseId, entryId));
   }
 
-  getCandidates(caseId: number): Observable<CandidateComparison[]> {
+  getCandidates(caseId: string): Observable<CandidateComparison[]> {
     return this.http.get<CandidateComparison[]>(API_ENDPOINTS.CANDIDATES(caseId));
   }
 
-  addCandidate(caseId: number, candidate: CandidateComparison): Observable<CandidateComparison> {
+  addCandidate(caseId: string, candidate: CandidateComparison): Observable<CandidateComparison> {
     return this.http.post<CandidateComparison>(API_ENDPOINTS.CANDIDATES(caseId), candidate);
   }
 
-  deleteCandidate(caseId: number, candidateId: number): Observable<void> {
+  deleteCandidate(caseId: string, candidateId: string): Observable<void> {
     return this.http.delete<void>(API_ENDPOINTS.CANDIDATE_ENTRY(caseId, candidateId));
   }
 
   // --- Forms & Package Automation (Section 4.1) ---
-  getFormProfiles(caseId: number): Observable<PackageProfileSummary[]> {
+  getFormProfiles(caseId: string): Observable<PackageProfileSummary[]> {
     return this.http.get<PackageProfileSummary[]>(API_ENDPOINTS.FORM_PROFILES(caseId));
   }
 
-  getCanonicalSnapshot(caseId: number): Observable<CanonicalDataSnapshot> {
+  getCanonicalSnapshot(caseId: string): Observable<CanonicalDataSnapshot> {
     return this.http.get<CanonicalDataSnapshot>(API_ENDPOINTS.FORM_CANONICAL_SNAPSHOT(caseId));
   }
 
-  getMappingPreview(caseId: number, packageProfileId: number): Observable<MappingPreview> {
+  getMappingPreview(caseId: string, packageProfileId: string): Observable<MappingPreview> {
     return this.http.get<MappingPreview>(API_ENDPOINTS.FORM_MAPPING_PREVIEW(caseId), {
       params: new HttpParams().set('packageProfileId', packageProfileId)
     });
   }
 
-  getReadinessReport(caseId: number, packageProfileId: number): Observable<PackageReadinessReport> {
+  getReadinessReport(caseId: string, packageProfileId: string): Observable<PackageReadinessReport> {
     return this.http.get<PackageReadinessReport>(API_ENDPOINTS.FORM_READINESS(caseId), {
       params: new HttpParams().set('packageProfileId', packageProfileId)
     });
   }
 
-  generateDraftForms(caseId: number, profileId: number): Observable<CaseFormDraft[]> {
+  generateDraftForms(caseId: string, profileId: string): Observable<CaseFormDraft[]> {
     return this.http.post<CaseFormDraft[]>(API_ENDPOINTS.FORM_GENERATE_DRAFTS(caseId, profileId), null);
   }
 
-  getFormDrafts(caseId: number): Observable<CaseFormDraft[]> {
+  getFormDrafts(caseId: string): Observable<CaseFormDraft[]> {
     return this.http.get<CaseFormDraft[]>(API_ENDPOINTS.FORM_DRAFTS(caseId));
   }
 
-  regenerateDraft(caseId: number, draftId: number): Observable<CaseFormDraft> {
+  regenerateDraft(caseId: string, draftId: string): Observable<CaseFormDraft> {
     return this.http.post<CaseFormDraft>(API_ENDPOINTS.FORM_DRAFT_REGENERATE(caseId, draftId), null);
   }
 
-  uploadFilledForm(caseId: number, formDefinitionId: number, file: File): Observable<CaseFormDraft> {
+  uploadFilledForm(caseId: string, formDefinitionId: string, file: File): Observable<CaseFormDraft> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('formDefinitionId', String(formDefinitionId));
     return this.http.post<CaseFormDraft>(API_ENDPOINTS.FORM_DRAFT_UPLOAD(caseId), formData);
   }
 
-  downloadDraft(caseId: number, draftId: number): Observable<Blob> {
+  downloadDraft(caseId: string, draftId: string): Observable<Blob> {
     return this.http.get(API_ENDPOINTS.FORM_DRAFT_DOWNLOAD(caseId, draftId), { responseType: 'blob' });
   }
 
   // --- Packages (Milestone 5) ---
-  createOrRefreshPackage(caseId: number, packageProfileId: number): Observable<CasePackage> {
+  createOrRefreshPackage(caseId: string, packageProfileId: string): Observable<CasePackage> {
     return this.http.post<CasePackage>(API_ENDPOINTS.FORM_PACKAGES(caseId), null, {
       params: new HttpParams().set('packageProfileId', packageProfileId)
     });
   }
 
-  getPackages(caseId: number): Observable<CasePackage[]> {
+  getPackages(caseId: string): Observable<CasePackage[]> {
     return this.http.get<CasePackage[]>(API_ENDPOINTS.FORM_PACKAGES(caseId));
   }
 
-  refreshPackage(caseId: number, packageId: number): Observable<CasePackage> {
+  refreshPackage(caseId: string, packageId: string): Observable<CasePackage> {
     return this.http.post<CasePackage>(API_ENDPOINTS.FORM_PACKAGE_REFRESH(caseId, packageId), null);
   }
 
-  getPackageReadiness(caseId: number, packageId: number): Observable<PackageReadinessReport> {
+  getPackageReadiness(caseId: string, packageId: string): Observable<PackageReadinessReport> {
     return this.http.get<PackageReadinessReport>(API_ENDPOINTS.FORM_PACKAGE_READINESS(caseId, packageId));
   }
 
-  getPackageIndex(caseId: number, packageId: number): Observable<PackageIndex> {
+  getPackageIndex(caseId: string, packageId: string): Observable<PackageIndex> {
     return this.http.get<PackageIndex>(API_ENDPOINTS.FORM_PACKAGE_INDEX(caseId, packageId));
   }
 
-  resolvePackageIssue(caseId: number, packageId: number, issueId: number, notes?: string): Observable<PackageReadinessReport> {
+  resolvePackageIssue(caseId: string, packageId: string, issueId: string, notes?: string): Observable<PackageReadinessReport> {
     let params = new HttpParams();
     if (notes) params = params.set('notes', notes);
     return this.http.post<PackageReadinessReport>(API_ENDPOINTS.FORM_PACKAGE_RESOLVE_ISSUE(caseId, packageId, issueId), null, { params });
   }
 
-  approvePackage(caseId: number, packageId: number, acknowledged: boolean, notes?: string): Observable<CasePackage> {
+  approvePackage(caseId: string, packageId: string, acknowledged: boolean, notes?: string): Observable<CasePackage> {
     let params = new HttpParams().set('acknowledged', acknowledged);
     if (notes) params = params.set('notes', notes);
     return this.http.post<CasePackage>(API_ENDPOINTS.FORM_PACKAGE_APPROVE(caseId, packageId), null, { params });
   }
 
-  downloadPackage(caseId: number, packageId: number): Observable<Blob> {
+  downloadPackage(caseId: string, packageId: string): Observable<Blob> {
     return this.http.get(API_ENDPOINTS.FORM_PACKAGE_DOWNLOAD(caseId, packageId), { responseType: 'blob' });
   }
 
@@ -571,19 +571,19 @@ export class ApiService {
     return this.http.post<FormDefinition>(API_ENDPOINTS.CATALOGUE_FORMS, form);
   }
 
-  getCatalogueFormFields(formId: number): Observable<FormFieldDefinition[]> {
+  getCatalogueFormFields(formId: string): Observable<FormFieldDefinition[]> {
     return this.http.get<FormFieldDefinition[]>(API_ENDPOINTS.CATALOGUE_FORM_FIELDS(formId));
   }
 
-  inspectCatalogueForm(formId: number): Observable<FormInspectionResult> {
+  inspectCatalogueForm(formId: string): Observable<FormInspectionResult> {
     return this.http.post<FormInspectionResult>(API_ENDPOINTS.CATALOGUE_FORM_INSPECT(formId), null);
   }
 
-  getCatalogueFormMappings(formId: number): Observable<FormMappingVersion[]> {
+  getCatalogueFormMappings(formId: string): Observable<FormMappingVersion[]> {
     return this.http.get<FormMappingVersion[]>(API_ENDPOINTS.CATALOGUE_FORM_MAPPINGS(formId));
   }
 
-  approveCatalogueMapping(formId: number, mvId: number): Observable<FormMappingVersion> {
+  approveCatalogueMapping(formId: string, mvId: string): Observable<FormMappingVersion> {
     return this.http.post<FormMappingVersion>(API_ENDPOINTS.CATALOGUE_FORM_MAPPING_APPROVE(formId, mvId), null);
   }
 
@@ -595,7 +595,7 @@ export class ApiService {
     return this.http.post<PackageProfileAdmin>(API_ENDPOINTS.CATALOGUE_PROFILES, profile);
   }
 
-  updateCatalogueProfile(profileId: number, profile: Partial<PackageProfileAdmin>): Observable<PackageProfileAdmin> {
+  updateCatalogueProfile(profileId: string, profile: Partial<PackageProfileAdmin>): Observable<PackageProfileAdmin> {
     return this.http.put<PackageProfileAdmin>(API_ENDPOINTS.CATALOGUE_PROFILE(profileId), profile);
   }
 }

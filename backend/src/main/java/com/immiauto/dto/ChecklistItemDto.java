@@ -4,10 +4,12 @@ import com.immiauto.enums.DocumentStatus;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class ChecklistItemDto {
-    private Long id;
-    private Long caseId;
+    private UUID id;
+    private UUID caseId;
 
     @NotBlank(message = "Category is required")
     private String category;
@@ -22,5 +24,5 @@ public class ChecklistItemDto {
     private String conditionDescription;
     private int sortOrder;
     private String consultantReviewNote;
-    private Long linkedDocumentId;
+    private UUID linkedDocumentId;
 }

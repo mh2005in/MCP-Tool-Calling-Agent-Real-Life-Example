@@ -2,13 +2,15 @@ package com.immiauto.dto.forms;
 
 import lombok.*;
 
+import java.util.UUID;
+
 /**
  * Summary of a package profile for selection on the forms & package workspace.
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class PackageProfileSummaryDto {
 
-    private Long id;
+    private UUID id;
     private String profileCode;
     private String displayName;
     private String serviceType;

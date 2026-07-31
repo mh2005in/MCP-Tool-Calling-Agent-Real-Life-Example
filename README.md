@@ -35,7 +35,7 @@ Immigration consultants spend a large share of their time on repetitive, error-p
 | **Backend**   | Java 21, Spring Boot 3.3 (Web, Data JPA, Validation, Security, Mail), Spring Security OAuth2 Resource Server, MapStruct (DTO ↔ entity), Lombok, Apache PDFBox (form filling), springdoc-openapi (Swagger UI) |
 | **Frontend**  | Angular 18, TypeScript, `keycloak-angular` / `keycloak-js` |
 | **MCP server**| Java 21, Spring Boot 3.3 (Model Context Protocol tools, OAuth2 resource server + Keycloak service-account token for audit writes) |
-| **Database**  | PostgreSQL 16 (schema `immiauto_db`; primary keys via sequences) |
+| **Database**  | PostgreSQL 16 (schema `immiauto_db`; primary keys are database-generated GUIDs — `uuid DEFAULT gen_random_uuid()`) |
 | **Auth**      | Keycloak (OpenID Connect) — self-hosted, realm imported on first start |
 | **LLM + Chat**| Ollama (local, GPU) serving `qwen2.5:3b`; LibreChat chat UI (MongoDB-backed) wired to Ollama and the MCP tools over OAuth |
 | **Runtime**   | Docker & Docker Compose; nginx (serves the SPA and reverse-proxies the API) |

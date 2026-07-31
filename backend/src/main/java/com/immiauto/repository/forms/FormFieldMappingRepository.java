@@ -5,11 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface FormFieldMappingRepository extends JpaRepository<FormFieldMapping, Long> {
+public interface FormFieldMappingRepository extends JpaRepository<FormFieldMapping, UUID> {
 
-    List<FormFieldMapping> findByMappingVersionId(Long mappingVersionId);
+    List<FormFieldMapping> findByMappingVersionId(UUID mappingVersionId);
 
-    List<FormFieldMapping> findByMappingVersionIdAndRequiredForPackageTrue(Long mappingVersionId);
+    List<FormFieldMapping> findByMappingVersionIdAndRequiredForPackageTrue(UUID mappingVersionId);
 }

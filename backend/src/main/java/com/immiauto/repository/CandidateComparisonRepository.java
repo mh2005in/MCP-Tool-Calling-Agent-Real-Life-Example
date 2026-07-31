@@ -5,8 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface CandidateComparisonRepository extends JpaRepository<CandidateComparison, Long> {
-    List<CandidateComparison> findByImmigrationCaseIdOrderBySortOrder(Long caseId);
+public interface CandidateComparisonRepository extends JpaRepository<CandidateComparison, UUID> {
+    List<CandidateComparison> findByImmigrationCaseIdOrderBySortOrder(UUID caseId);
 }

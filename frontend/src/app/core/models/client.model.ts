@@ -1,7 +1,7 @@
 export interface Client {
-  id?: number;
+  id?: string;
   clientNumber?: string;
-  consultantId?: number;
+  consultantId?: string;
   fullName: string;
   email: string;
   phone?: string;

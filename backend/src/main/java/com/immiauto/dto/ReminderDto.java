@@ -5,11 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class ReminderDto {
-    private Long id;
-    private Long caseId;
+    private UUID id;
+    private UUID caseId;
 
     @NotBlank(message = "Subject is required")
     private String subject;

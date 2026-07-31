@@ -22,10 +22,10 @@ import {
 export class FormsCatalogueComponent implements OnInit {
   forms: FormDefinition[] = [];
   profiles: PackageProfileAdmin[] = [];
-  fieldsByForm: { [formId: number]: FormFieldDefinition[] } = {};
-  expandedFormId: number | null = null;
-  inspection: { [formId: number]: FormInspectionResult } = {};
-  busyFormId: number | null = null;
+  fieldsByForm: { [formId: string]: FormFieldDefinition[] } = {};
+  expandedFormId: string | null = null;
+  inspection: { [formId: string]: FormInspectionResult } = {};
+  busyFormId: string | null = null;
   error = '';
 
   showNewProfile = false;
@@ -75,7 +75,7 @@ export class FormsCatalogueComponent implements OnInit {
     this.loadFields(form.id);
   }
 
-  loadFields(formId: number): void {
+  loadFields(formId: string): void {
     this.api.getCatalogueFormFields(formId).subscribe({ next: (f) => this.fieldsByForm[formId] = f });
   }
 

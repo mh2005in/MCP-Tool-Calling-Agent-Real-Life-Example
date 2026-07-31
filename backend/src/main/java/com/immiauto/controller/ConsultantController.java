@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.ConsultantDto;
 import com.immiauto.service.ConsultantService;
@@ -33,12 +35,12 @@ public class ConsultantController {
     }
 
     @GetMapping(ApiPaths.CONSULTANTS_GET_BY_ID)
-    public ResponseEntity<ConsultantDto> getConsultant(@PathVariable Long id) {
+    public ResponseEntity<ConsultantDto> getConsultant(@PathVariable UUID id) {
         return ResponseEntity.ok(consultantService.getConsultant(id));
     }
 
     @GetMapping(ApiPaths.CONSULTANTS_PROFILE)
-    public ResponseEntity<ConsultantDto> getOwnProfile(@PathVariable Long id) {
+    public ResponseEntity<ConsultantDto> getOwnProfile(@PathVariable UUID id) {
         return ResponseEntity.ok(consultantService.getOwnProfile(id));
     }
 
@@ -48,7 +50,7 @@ public class ConsultantController {
     }
 
     @PutMapping(ApiPaths.CONSULTANTS_UPDATE)
-    public ResponseEntity<ConsultantDto> updateConsultant(@PathVariable Long id,
+    public ResponseEntity<ConsultantDto> updateConsultant(@PathVariable UUID id,
                                                           @RequestBody ConsultantDto dto) {
         return ResponseEntity.ok(consultantService.updateConsultant(id, dto));
     }
@@ -56,7 +58,7 @@ public class ConsultantController {
     /** Enable/disable a consultant's login (admin only). */
     @PatchMapping(ApiPaths.CONSULTANTS_SET_ACTIVE)
     @PreAuthorize("@adminGuard.isAdminConsultant()")
-    public ResponseEntity<ConsultantDto> setActive(@PathVariable Long id, @RequestParam boolean active) {
+    public ResponseEntity<ConsultantDto> setActive(@PathVariable UUID id, @RequestParam boolean active) {
         return ResponseEntity.ok(consultantService.setActive(id, active));
     }
 }

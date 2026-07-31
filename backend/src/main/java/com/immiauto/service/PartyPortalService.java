@@ -25,7 +25,7 @@ public class PartyPortalService {
     private final PartyProfileMapper partyProfileMapper;
 
     @Transactional
-    public PartyProfileDto createPartyProfile(Long caseId, PartyProfileDto dto) {
+    public PartyProfileDto createPartyProfile(UUID caseId, PartyProfileDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         PartyProfile profile = PartyProfile.builder()
@@ -44,7 +44,7 @@ public class PartyPortalService {
     }
 
     @Transactional(readOnly = true)
-    public List<PartyProfileDto> getPartiesForCase(Long caseId) {
+    public List<PartyProfileDto> getPartiesForCase(UUID caseId) {
         return partyProfileRepository.findByImmigrationCaseId(caseId)
                 .stream().map(partyProfileMapper::toDto).collect(Collectors.toList());
     }
@@ -56,7 +56,7 @@ public class PartyPortalService {
     }
 
     @Transactional
-    public PartyProfileDto updatePartyProfile(Long id, PartyProfileDto dto) {
+    public PartyProfileDto updatePartyProfile(UUID id, PartyProfileDto dto) {
         PartyProfile profile = partyProfileRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Party not found"));
         if (dto.getFullName() != null) profile.setFullName(dto.getFullName());
@@ -70,7 +70,7 @@ public class PartyPortalService {
     }
 
     @Transactional
-    public void deletePartyProfile(Long id) {
+    public void deletePartyProfile(UUID id) {
         partyProfileRepository.deleteById(id);
     }
 }

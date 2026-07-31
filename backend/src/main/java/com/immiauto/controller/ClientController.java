@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.ClientDto;
 import com.immiauto.service.ClientService;
@@ -22,55 +24,55 @@ public class ClientController {
     private final ClientService clientService;
 
     @PostMapping(ApiPaths.CLIENTS_CREATE)
-    public ResponseEntity<ClientDto> createClient(@PathVariable Long consultantId,
+    public ResponseEntity<ClientDto> createClient(@PathVariable UUID consultantId,
                                                    @Valid @RequestBody ClientDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(consultantId, dto));
     }
 
     @GetMapping(ApiPaths.CLIENTS_GET_BY_ID)
-    public ResponseEntity<ClientDto> getClient(@PathVariable Long consultantId,
-                                                @PathVariable Long id) {
+    public ResponseEntity<ClientDto> getClient(@PathVariable UUID consultantId,
+                                                @PathVariable UUID id) {
         return ResponseEntity.ok(clientService.getClient(consultantId, id));
     }
 
     @GetMapping(ApiPaths.CLIENTS_GET)
-    public ResponseEntity<List<ClientDto>> getAllClients(@PathVariable Long consultantId) {
+    public ResponseEntity<List<ClientDto>> getAllClients(@PathVariable UUID consultantId) {
         return ResponseEntity.ok(clientService.getClientsByConsultant(consultantId));
     }
 
     @GetMapping(ApiPaths.CLIENTS_SEARCH)
-    public ResponseEntity<List<ClientDto>> searchClients(@PathVariable Long consultantId,
+    public ResponseEntity<List<ClientDto>> searchClients(@PathVariable UUID consultantId,
                                                           @RequestParam String q) {
         return ResponseEntity.ok(clientService.searchClients(consultantId, q));
     }
 
     @GetMapping(ApiPaths.CLIENTS_SEARCH_BY_NUMBER)
-    public ResponseEntity<ClientDto> getClientByClientNumber(@PathVariable Long consultantId,
+    public ResponseEntity<ClientDto> getClientByClientNumber(@PathVariable UUID consultantId,
                                                               @RequestParam String clientNumber) {
         return ResponseEntity.ok(clientService.getClientByClientNumber(consultantId, clientNumber));
     }
 
     @PutMapping(ApiPaths.CLIENTS_UPDATE)
-    public ResponseEntity<ClientDto> updateClient(@PathVariable Long consultantId,
-                                                   @PathVariable Long id,
+    public ResponseEntity<ClientDto> updateClient(@PathVariable UUID consultantId,
+                                                   @PathVariable UUID id,
                                                    @RequestBody ClientDto dto) {
         return ResponseEntity.ok(clientService.updateClient(consultantId, id, dto));
     }
 
     @GetMapping(ApiPaths.CLIENTS_GET_ALL_ADMIN)
-    public ResponseEntity<List<ClientDto>> getAllClientsAdmin(@PathVariable Long consultantId) {
+    public ResponseEntity<List<ClientDto>> getAllClientsAdmin(@PathVariable UUID consultantId) {
         return ResponseEntity.ok(clientService.getAllClientsForAdmin(consultantId));
     }
 
     @GetMapping(ApiPaths.CLIENTS_GET_BY_TARGET_CONSULTANT)
     public ResponseEntity<List<ClientDto>> getClientsByTargetConsultant(
-            @PathVariable Long consultantId,
-            @PathVariable Long targetConsultantId) {
+            @PathVariable UUID consultantId,
+            @PathVariable UUID targetConsultantId) {
         return ResponseEntity.ok(clientService.getClientsByConsultantForAdmin(consultantId, targetConsultantId));
     }
 
     @GetMapping(ApiPaths.CLIENTS_SEARCH_ADMIN)
-    public ResponseEntity<List<ClientDto>> searchClientsAdmin(@PathVariable Long consultantId,
+    public ResponseEntity<List<ClientDto>> searchClientsAdmin(@PathVariable UUID consultantId,
                                                                @RequestParam String q) {
         return ResponseEntity.ok(clientService.searchClientsForAdmin(consultantId, q));
     }

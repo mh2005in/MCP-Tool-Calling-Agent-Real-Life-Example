@@ -3,6 +3,7 @@ package com.immiauto.dto.forms;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Governed form catalogue entry (Section 4.1 - Milestone 6).
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class FormDefinitionDto {
 
-    private Long id;
+    private UUID id;
     private String formCode;
     private String displayName;
     private String jurisdiction;

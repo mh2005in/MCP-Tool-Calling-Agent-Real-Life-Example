@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ConsultantDto {
 
-    private Long id;
+    private UUID id;
     private String consultantNumber;
 
     @NotBlank(message = "Full name is required")

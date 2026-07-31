@@ -1,6 +1,6 @@
 export interface TravelHistoryEntry {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   country: string;
   entryDate: string;
   exitDate?: string;
@@ -26,8 +26,8 @@ export interface PhysicalPresenceSummary {
 }
 
 export interface WorkHistoryEntry {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   employerName: string;
   jobTitle?: string;
   nocTeerCode?: string;
@@ -46,8 +46,8 @@ export interface WorkHistoryEntry {
 }
 
 export interface RelationshipTimelineEntry {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   milestoneType: string;
   milestoneDate: string;
   location?: string;
@@ -58,8 +58,8 @@ export interface RelationshipTimelineEntry {
 }
 
 export interface RecruitmentEvidence {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   evidenceType: string;
   platform: string;
   postingDate: string;
@@ -74,8 +74,8 @@ export interface RecruitmentEvidence {
 }
 
 export interface CandidateComparison {
-  id?: number;
-  caseId?: number;
+  id?: string;
+  caseId?: string;
   candidateName: string;
   candidateType: 'CANADIAN' | 'FOREIGN';
   qualifications?: string;

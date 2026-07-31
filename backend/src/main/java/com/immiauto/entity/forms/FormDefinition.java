@@ -18,11 +18,6 @@ import java.time.LocalDate;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class FormDefinition extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "form_definitions_gen")
-    @SequenceGenerator(name = "form_definitions_gen", sequenceName = "form_definitions_seq", allocationSize = 1)
-    private Long id;
-
     @Column(nullable = false)
     private String formCode; // e.g. IMM_5257
 

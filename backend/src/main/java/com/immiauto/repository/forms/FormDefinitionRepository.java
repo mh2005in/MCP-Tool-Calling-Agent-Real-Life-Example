@@ -7,9 +7,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface FormDefinitionRepository extends JpaRepository<FormDefinition, Long> {
+public interface FormDefinitionRepository extends JpaRepository<FormDefinition, UUID> {
 
     List<FormDefinition> findByStatus(FormStatus status);
 

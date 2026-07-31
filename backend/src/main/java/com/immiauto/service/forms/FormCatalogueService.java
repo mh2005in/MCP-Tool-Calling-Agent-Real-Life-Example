@@ -1,5 +1,7 @@
 package com.immiauto.service.forms;
 
+import java.util.UUID;
+
 import com.immiauto.dto.forms.*;
 import com.immiauto.entity.AppUser;
 import com.immiauto.entity.forms.*;
@@ -55,7 +57,7 @@ public class FormCatalogueService {
     }
 
     @Transactional(readOnly = true)
-    public FormDefinitionDto getForm(Long formId) {
+    public FormDefinitionDto getForm(UUID formId) {
         return toFormDto(requireForm(formId));
     }
 
@@ -83,7 +85,7 @@ public class FormCatalogueService {
     }
 
     @Transactional(readOnly = true)
-    public List<FormFieldDefinitionDto> getFields(Long formId) {
+    public List<FormFieldDefinitionDto> getFields(UUID formId) {
         requireForm(formId);
         return fieldDefinitionRepository.findByFormDefinitionIdOrderByPageNumber(formId)
                 .stream().map(mapper::toDto).toList();
@@ -94,7 +96,7 @@ public class FormCatalogueService {
      * source SHA-256, and classify (STANDARD_ACROFORM enables fill; DYNAMIC_XFA is BLOCKED).
      */
     @Transactional
-    public FormInspectionResultDto inspectForm(Long formId) {
+    public FormInspectionResultDto inspectForm(UUID formId) {
         FormDefinition form = requireForm(formId);
         Path source = storage.sourcePdf(form.getFormCode(), form.getEditionLabel());
         if (!Files.exists(source)) {
@@ -166,14 +168,14 @@ public class FormCatalogueService {
     // ---------------- mappings ----------------
 
     @Transactional(readOnly = true)
-    public List<FormMappingVersionDto> listMappings(Long formId) {
+    public List<FormMappingVersionDto> listMappings(UUID formId) {
         requireForm(formId);
         return mappingVersionRepository.findByFormDefinitionIdOrderByMappingVersionDesc(formId)
                 .stream().map(mapper::toDto).toList();
     }
 
     @Transactional
-    public FormMappingVersionDto approveMappingVersion(Long formId, Long mappingVersionId) {
+    public FormMappingVersionDto approveMappingVersion(UUID formId, UUID mappingVersionId) {
         FormMappingVersion mv = mappingVersionRepository.findById(mappingVersionId)
                 .orElseThrow(() -> new EntityNotFoundException("Mapping version not found: " + mappingVersionId));
         if (!mv.getFormDefinition().getId().equals(formId)) {
@@ -225,7 +227,7 @@ public class FormCatalogueService {
     }
 
     @Transactional
-    public PackageProfileDto updateProfile(Long profileId, PackageProfileDto dto) {
+    public PackageProfileDto updateProfile(UUID profileId, PackageProfileDto dto) {
         PackageProfile profile = packageProfileRepository.findById(profileId)
                 .orElseThrow(() -> new EntityNotFoundException("Package profile not found: " + profileId));
         if (StringUtils.hasText(dto.getDisplayName())) profile.setDisplayName(dto.getDisplayName());
@@ -243,7 +245,7 @@ public class FormCatalogueService {
 
     // ---------------- helpers ----------------
 
-    private FormDefinition requireForm(Long formId) {
+    private FormDefinition requireForm(UUID formId) {
         return formDefinitionRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException("Form not found: " + formId));
     }

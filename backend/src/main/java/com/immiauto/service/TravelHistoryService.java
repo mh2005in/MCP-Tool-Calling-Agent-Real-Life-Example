@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.TravelHistoryDto;
 import com.immiauto.entity.ImmigrationCase;
 import com.immiauto.entity.TravelHistoryEntry;
@@ -24,7 +26,7 @@ public class TravelHistoryService {
     private final TravelHistoryMapper travelHistoryMapper;
 
     @Transactional
-    public TravelHistoryDto addEntry(Long caseId, TravelHistoryDto dto) {
+    public TravelHistoryDto addEntry(UUID caseId, TravelHistoryDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         int days = dto.getDaysAbsent();
@@ -45,13 +47,13 @@ public class TravelHistoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<TravelHistoryDto> getEntries(Long caseId) {
+    public List<TravelHistoryDto> getEntries(UUID caseId) {
         return travelHistoryRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream().map(travelHistoryMapper::toDto).toList();
     }
 
     @Transactional
-    public TravelHistoryDto updateEntry(Long caseId, Long id, TravelHistoryDto dto) {
+    public TravelHistoryDto updateEntry(UUID caseId, UUID id, TravelHistoryDto dto) {
         TravelHistoryEntry entry = travelHistoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {
@@ -69,7 +71,7 @@ public class TravelHistoryService {
     }
 
     @Transactional
-    public void deleteEntry(Long caseId, Long id) {
+    public void deleteEntry(UUID caseId, UUID id) {
         TravelHistoryEntry entry = travelHistoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entry not found"));
         if (!entry.getImmigrationCase().getId().equals(caseId)) {
@@ -83,12 +85,12 @@ public class TravelHistoryService {
     private static final int PRE_PR_CAP_DAYS = 365;
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getPhysicalPresenceSummary(Long caseId) {
+    public Map<String, Object> getPhysicalPresenceSummary(UUID caseId) {
         return getPhysicalPresenceSummary(caseId, null, null);
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getPhysicalPresenceSummary(Long caseId,
+    public Map<String, Object> getPhysicalPresenceSummary(UUID caseId,
                                                            LocalDate applicationDate,
                                                            LocalDate prStartDate) {
         List<TravelHistoryEntry> entries = travelHistoryRepository

@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ReminderDto;
 import com.immiauto.entity.ImmigrationCase;
 import com.immiauto.entity.Reminder;
@@ -25,7 +27,7 @@ public class ReminderService {
     private final ReminderMapper reminderMapper;
 
     @Transactional
-    public ReminderDto createReminder(Long caseId, ReminderDto dto) {
+    public ReminderDto createReminder(UUID caseId, ReminderDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         Reminder reminder = Reminder.builder()
@@ -40,13 +42,13 @@ public class ReminderService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReminderDto> getRemindersForCase(Long caseId) {
+    public List<ReminderDto> getRemindersForCase(UUID caseId) {
         return reminderRepository.findByImmigrationCaseId(caseId)
                 .stream().map(reminderMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional
-    public ReminderDto approveReminder(Long reminderId, String approvedBy) {
+    public ReminderDto approveReminder(UUID reminderId, String approvedBy) {
         Reminder reminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new EntityNotFoundException("Reminder not found"));
         reminder.setStatus(ReminderStatus.APPROVED);
@@ -62,7 +64,7 @@ public class ReminderService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReminderDto> getPendingRemindersByConsultant(Long consultantId) {
+    public List<ReminderDto> getPendingRemindersByConsultant(UUID consultantId) {
         return reminderRepository.findByStatusAndConsultantId(ReminderStatus.DRAFT, consultantId)
                 .stream().map(reminderMapper::toDto).collect(Collectors.toList());
     }

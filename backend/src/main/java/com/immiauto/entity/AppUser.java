@@ -5,6 +5,8 @@ import com.immiauto.enums.AppUserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 /**
  * Maps a Microsoft Entra External ID identity (external subject / oid) to an
  * application user. Identity concerns are kept separate from the domain
@@ -18,11 +20,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class AppUser extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "app_users_gen")
-    @SequenceGenerator(name = "app_users_gen", sequenceName = "app_users_seq", allocationSize = 1)
-    private Long id;
 
     /** Entra object id (oid) or subject (sub) - the stable external identifier. */
     @Column(name = "external_subject", nullable = false, unique = true, updatable = false)
@@ -48,5 +45,5 @@ public class AppUser extends BaseEntity {
 
     /** Link to the consultant account this user acts under (null for unlinked/client users). */
     @Column(name = "consultant_id")
-    private Long consultantId;
+    private UUID consultantId;
 }

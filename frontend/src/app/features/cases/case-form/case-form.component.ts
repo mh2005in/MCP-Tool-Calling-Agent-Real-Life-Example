@@ -16,8 +16,8 @@ import { CreateCaseRequest, ServiceType, CaseSubtype, ApplicantRole } from '../.
 export class CaseFormComponent implements OnInit {
   request: CreateCaseRequest = {
     serviceType: '' as ServiceType,
-    clientId: 0,
-    consultantId: 0,
+    clientId: '',
+    consultantId: '',
     applyDefaultChecklist: true
   };
 
@@ -110,12 +110,12 @@ export class CaseFormComponent implements OnInit {
   submitting = false;
   errorMsg = '';
 
-  consultantId = 0;
+  consultantId = '';
 
   constructor(private api: ApiService, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
     this.request.consultantId = this.consultantId;
     this.api.getClients(this.consultantId).subscribe(data => this.clients = data);
   }
@@ -138,7 +138,7 @@ export class CaseFormComponent implements OnInit {
 
   clearClient() {
     this.selectedClient = null;
-    this.request.clientId = 0;
+    this.request.clientId = '';
   }
 
   canSubmit(): boolean {

@@ -14,8 +14,8 @@ import { Consultant } from '../../../core/models/consultant.model';
   styleUrls: ['./view-dashboard.component.css']
 })
 export class ViewDashboardComponent implements OnInit {
-  adminConsultantId = 0;
-  viewedConsultantId = 0;
+  adminConsultantId = '';
+  viewedConsultantId = '';
   viewedConsultant: Consultant | null = null;
   dashboard: Dashboard | null = null;
   cases: ImmigrationCase[] = [];
@@ -24,8 +24,8 @@ export class ViewDashboardComponent implements OnInit {
   constructor(private api: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.adminConsultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
-    this.viewedConsultantId = Number(this.route.snapshot.paramMap.get('targetId'));
+    this.adminConsultantId = this.route.snapshot.paramMap.get('consultantId') || '';
+    this.viewedConsultantId = this.route.snapshot.paramMap.get('targetId') || '';
 
     this.api.getConsultant(this.viewedConsultantId).subscribe({
       next: (c) => this.viewedConsultant = c,

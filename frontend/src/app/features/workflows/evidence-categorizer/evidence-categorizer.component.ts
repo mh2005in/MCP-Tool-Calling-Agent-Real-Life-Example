@@ -19,7 +19,7 @@ interface EvidenceCategory {
   styleUrls: ['./evidence-categorizer.component.css']
 })
 export class EvidenceCategorizerComponent implements OnInit {
-  @Input() caseId!: number;
+  @Input() caseId!: string;
 
   documents: CaseDocument[] = [];
   loading = true;

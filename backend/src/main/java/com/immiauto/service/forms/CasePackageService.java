@@ -1,5 +1,7 @@
 package com.immiauto.service.forms;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.immiauto.dto.forms.*;
 import com.immiauto.entity.Document;
@@ -61,7 +63,7 @@ public class CasePackageService {
     // ---------------- create / read ----------------
 
     @Transactional
-    public CasePackageDto createOrRefreshPackage(Long caseId, Long packageProfileId) {
+    public CasePackageDto createOrRefreshPackage(UUID caseId, UUID packageProfileId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
         PackageProfile profile = packageProfileRepository.findById(packageProfileId)
@@ -98,31 +100,31 @@ public class CasePackageService {
     }
 
     @Transactional
-    public CasePackageDto refreshPackage(Long caseId, Long packageId) {
+    public CasePackageDto refreshPackage(UUID caseId, UUID packageId) {
         CasePackage pkg = requirePackage(caseId, packageId);
         return createOrRefreshPackage(caseId, pkg.getPackageProfile().getId());
     }
 
     @Transactional(readOnly = true)
-    public List<CasePackageDto> listPackages(Long caseId) {
+    public List<CasePackageDto> listPackages(UUID caseId) {
         return casePackageRepository.findByImmigrationCaseId(caseId).stream()
                 .filter(p -> p.getStatus() != PackageStatus.SUPERSEDED)
                 .map(this::toDto).toList();
     }
 
     @Transactional(readOnly = true)
-    public CasePackageDto getPackage(Long caseId, Long packageId) {
+    public CasePackageDto getPackage(UUID caseId, UUID packageId) {
         return toDto(requirePackage(caseId, packageId));
     }
 
     @Transactional(readOnly = true)
-    public PackageReadinessReportDto getReadinessReport(Long caseId, Long packageId) {
+    public PackageReadinessReportDto getReadinessReport(UUID caseId, UUID packageId) {
         CasePackage pkg = requirePackage(caseId, packageId);
         return buildReadinessFromPersisted(pkg);
     }
 
     @Transactional(readOnly = true)
-    public PackageIndexDto getPackageIndex(Long caseId, Long packageId) {
+    public PackageIndexDto getPackageIndex(UUID caseId, UUID packageId) {
         CasePackage pkg = requirePackage(caseId, packageId);
         return buildIndex(pkg.getImmigrationCase(), pkg.getPackageProfile());
     }
@@ -130,7 +132,7 @@ public class CasePackageService {
     // ---------------- issue resolution (T7) ----------------
 
     @Transactional
-    public PackageReadinessReportDto resolveIssue(Long caseId, Long packageId, Long issueId, String notes) {
+    public PackageReadinessReportDto resolveIssue(UUID caseId, UUID packageId, UUID issueId, String notes) {
         CasePackage pkg = requirePackage(caseId, packageId);
         PackageValidationIssue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new EntityNotFoundException("Issue not found: " + issueId));
@@ -152,7 +154,7 @@ public class CasePackageService {
     // ---------------- approval (T6) ----------------
 
     @Transactional
-    public CasePackageDto approvePackage(Long caseId, Long packageId, String notes, boolean acknowledged) {
+    public CasePackageDto approvePackage(UUID caseId, UUID packageId, String notes, boolean acknowledged) {
         CasePackage pkg = requirePackage(caseId, packageId);
         if (pkg.getStatus() == PackageStatus.APPROVED) {
             throw new IllegalStateException("Package is already approved.");
@@ -184,7 +186,7 @@ public class CasePackageService {
 
     /** Resolve an approved package for secured zip download after building it if needed. */
     @Transactional
-    public CasePackage getPackageForDownload(Long caseId, Long packageId) {
+    public CasePackage getPackageForDownload(UUID caseId, UUID packageId) {
         CasePackage pkg = requirePackage(caseId, packageId);
         if (!StringUtils.hasText(pkg.getPackageZipPath()) || !Files.exists(Paths.get(pkg.getPackageZipPath()))) {
             try {
@@ -200,7 +202,7 @@ public class CasePackageService {
     // ---------------- index / issues / zip ----------------
 
     private PackageIndexDto buildIndex(ImmigrationCase imCase, PackageProfile profile) {
-        Map<Long, CaseFormDraft> drafts = currentDrafts(imCase.getId());
+        Map<UUID, CaseFormDraft> drafts = currentDrafts(imCase.getId());
         List<PackageIndexDto.PackageIndexFormDto> forms = new ArrayList<>();
         for (PackageProfileForm ppf : packageProfileFormRepository.findByPackageProfileIdOrderBySortOrder(profile.getId())) {
             FormDefinition form = ppf.getFormDefinition();
@@ -244,7 +246,7 @@ public class CasePackageService {
                 .build();
     }
 
-    private void persistIssues(CasePackage pkg, Long caseId, List<ValidationIssueDto> issues) {
+    private void persistIssues(CasePackage pkg, UUID caseId, List<ValidationIssueDto> issues) {
         issueRepository.deleteAll(issueRepository.findByCasePackageId(pkg.getId()));
         Map<String, CaseFormDraft> byFormCode = new HashMap<>();
         for (CaseFormDraft d : currentDrafts(caseId).values()) {
@@ -279,7 +281,7 @@ public class CasePackageService {
         byte[] indexBytes = toJson(index).getBytes();
         byte[] readinessBytes = (pkg.getReadinessReportJson() == null ? "{}" : pkg.getReadinessReportJson()).getBytes();
 
-        Map<Long, CaseFormDraft> drafts = currentDrafts(imCase.getId());
+        Map<UUID, CaseFormDraft> drafts = currentDrafts(imCase.getId());
         List<Map<String, Object>> manifest = new ArrayList<>();
         manifest.add(manifestEntry("package-index.json", indexBytes));
         manifest.add(manifestEntry("readiness-report.json", readinessBytes));
@@ -316,14 +318,14 @@ public class CasePackageService {
 
     // ---------------- helpers ----------------
 
-    private CasePackage activePackage(Long caseId, Long packageProfileId) {
+    private CasePackage activePackage(UUID caseId, UUID packageProfileId) {
         return casePackageRepository.findByImmigrationCaseIdAndPackageProfileId(caseId, packageProfileId).stream()
                 .filter(p -> p.getStatus() != PackageStatus.SUPERSEDED)
                 .max(Comparator.comparing(CasePackage::getId))
                 .orElse(null);
     }
 
-    private CasePackage requirePackage(Long caseId, Long packageId) {
+    private CasePackage requirePackage(UUID caseId, UUID packageId) {
         CasePackage pkg = casePackageRepository.findById(packageId)
                 .orElseThrow(() -> new EntityNotFoundException("Package not found: " + packageId));
         if (!pkg.getImmigrationCase().getId().equals(caseId)) {
@@ -332,11 +334,11 @@ public class CasePackageService {
         return pkg;
     }
 
-    private Map<Long, CaseFormDraft> currentDrafts(Long caseId) {
-        Map<Long, CaseFormDraft> byForm = new LinkedHashMap<>();
+    private Map<UUID, CaseFormDraft> currentDrafts(UUID caseId) {
+        Map<UUID, CaseFormDraft> byForm = new LinkedHashMap<>();
         for (CaseFormDraft d : draftRepository.findByImmigrationCaseId(caseId)) {
             if (d.getStatus() == PackageStatus.SUPERSEDED) continue;
-            Long formId = d.getFormDefinition().getId();
+            UUID formId = d.getFormDefinition().getId();
             CaseFormDraft existing = byForm.get(formId);
             if (existing == null || (d.getGeneratedAt() != null && existing.getGeneratedAt() != null
                     && d.getGeneratedAt().isAfter(existing.getGeneratedAt()))) {

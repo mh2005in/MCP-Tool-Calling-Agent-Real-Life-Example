@@ -1,6 +1,11 @@
 -- ============================================================
 -- Immigration Automation - Database Schema (SQL Server 2016+)
 -- V1: Initial schema creation
+--
+-- STALE: this SQL Server mirror is NOT used by the running stack (Postgres only)
+-- and has NOT been migrated to GUID primary keys. The PostgreSQL schema under
+-- ../postgresql is the source of truth (uuid PKs via gen_random_uuid()).
+-- Regenerate this mirror before targeting SQL Server.
 -- ============================================================
 
 -- ======================== TABLES ========================

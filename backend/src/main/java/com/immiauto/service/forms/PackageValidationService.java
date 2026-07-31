@@ -1,5 +1,7 @@
 package com.immiauto.service.forms;
 
+import java.util.UUID;
+
 import com.immiauto.dto.forms.*;
 import com.immiauto.entity.Document;
 import com.immiauto.entity.ImmigrationCase;
@@ -63,7 +65,7 @@ public class PackageValidationService {
     private final FormAutomationService formAutomationService;
 
     @Transactional(readOnly = true)
-    public PackageReadinessReportDto evaluate(Long caseId, Long packageProfileId) {
+    public PackageReadinessReportDto evaluate(UUID caseId, UUID packageProfileId) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
         PackageProfile profile = packageProfileRepository.findById(packageProfileId)
@@ -73,7 +75,7 @@ public class PackageValidationService {
         Map<String, CanonicalValueDto> snapshot = indexSnapshot(preview.getSnapshot());
 
         // Current (non-superseded) draft per form definition, for draft-aware rules.
-        Map<Long, CaseFormDraft> currentDraftByForm = currentDrafts(caseId);
+        Map<UUID, CaseFormDraft> currentDraftByForm = currentDrafts(caseId);
         List<PackageProfileForm> profileForms =
                 packageProfileFormRepository.findByPackageProfileIdOrderBySortOrder(packageProfileId);
 
@@ -87,13 +89,13 @@ public class PackageValidationService {
     }
 
     /** Latest non-superseded draft keyed by form definition id. */
-    private Map<Long, CaseFormDraft> currentDrafts(Long caseId) {
-        Map<Long, CaseFormDraft> byForm = new LinkedHashMap<>();
+    private Map<UUID, CaseFormDraft> currentDrafts(UUID caseId) {
+        Map<UUID, CaseFormDraft> byForm = new LinkedHashMap<>();
         for (CaseFormDraft d : caseFormDraftRepository.findByImmigrationCaseId(caseId)) {
             if (d.getStatus() == PackageStatus.SUPERSEDED) {
                 continue;
             }
-            Long formId = d.getFormDefinition().getId();
+            UUID formId = d.getFormDefinition().getId();
             CaseFormDraft existing = byForm.get(formId);
             if (existing == null || (d.getGeneratedAt() != null && existing.getGeneratedAt() != null
                     && d.getGeneratedAt().isAfter(existing.getGeneratedAt()))) {
@@ -105,7 +107,7 @@ public class PackageValidationService {
 
     /** T2: every required form must have a current draft (generated or uploaded). */
     private void validateRequiredForms(List<PackageProfileForm> profileForms,
-                                       Map<Long, CaseFormDraft> currentDraftByForm,
+                                       Map<UUID, CaseFormDraft> currentDraftByForm,
                                        List<ValidationIssueDto> issues) {
         for (PackageProfileForm ppf : profileForms) {
             if (ppf.isRequired() && !currentDraftByForm.containsKey(ppf.getFormDefinition().getId())) {
@@ -120,7 +122,7 @@ public class PackageValidationService {
 
     // ---------------- Layer 1: canonical data ----------------
 
-    private void validateCanonical(Long caseId, ImmigrationCase imCase, CanonicalDataSnapshotDto fullSnapshot,
+    private void validateCanonical(UUID caseId, ImmigrationCase imCase, CanonicalDataSnapshotDto fullSnapshot,
                                    Map<String, CanonicalValueDto> snapshot, List<ValidationIssueDto> issues) {
         requireField(snapshot, "primaryApplicant.fullName", "PRIMARY_NAME_REQUIRED",
                 "Primary applicant full name is required.", ValidationSeverity.ERROR, issues);
@@ -197,7 +199,7 @@ public class PackageValidationService {
 
     // ---------------- Layer 2: mapped form fields ----------------
 
-    private void validateForms(MappingPreviewDto preview, Map<Long, CaseFormDraft> currentDraftByForm,
+    private void validateForms(MappingPreviewDto preview, Map<UUID, CaseFormDraft> currentDraftByForm,
                                List<ValidationIssueDto> issues) {
         for (FormMappingPreviewDto form : preview.getForms()) {
             // T3: a manually-uploaded draft satisfies this form; skip auto-fill field findings.
@@ -250,7 +252,7 @@ public class PackageValidationService {
 
     // ---------------- Layer 3: package documents ----------------
 
-    private void validatePackage(Long caseId, Long packageProfileId, List<ValidationIssueDto> issues) {
+    private void validatePackage(UUID caseId, UUID packageProfileId, List<ValidationIssueDto> issues) {
         List<Document> docs = documentRepository.findByImmigrationCaseId(caseId);
 
         for (PackageDocumentRequirement req : documentRequirementRepository
@@ -344,7 +346,7 @@ public class PackageValidationService {
     }
 
     private void add(List<ValidationIssueDto> issues, ValidationSeverity severity, String code, String message,
-                     String formCode, String fieldKey, String pdfFieldName, String sourceType, Long sourceId) {
+                     String formCode, String fieldKey, String pdfFieldName, String sourceType, UUID sourceId) {
         issues.add(ValidationIssueDto.builder()
                 .severity(severity.name()).code(code).message(message)
                 .formCode(formCode).fieldKey(fieldKey).pdfFieldName(pdfFieldName)

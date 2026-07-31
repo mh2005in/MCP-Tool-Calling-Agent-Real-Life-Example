@@ -12,7 +12,7 @@ import { TravelHistoryEntry, PhysicalPresenceSummary } from '../../../core/model
   styleUrls: ['./travel-history.component.css']
 })
 export class TravelHistoryComponent implements OnInit {
-  @Input() caseId!: number;
+  @Input() caseId!: string;
   @Input() showPresenceCalc = false;
 
   entries: TravelHistoryEntry[] = [];
@@ -102,7 +102,7 @@ export class TravelHistoryComponent implements OnInit {
     }
   }
 
-  deleteEntry(id: number) {
+  deleteEntry(id: string) {
     this.api.deleteTravelEntry(this.caseId, id).subscribe(() => {
       this.loadEntries();
       if (this.showPresenceCalc) this.loadPresence();

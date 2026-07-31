@@ -6,13 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface CaseFormDraftRepository extends JpaRepository<CaseFormDraft, Long> {
+public interface CaseFormDraftRepository extends JpaRepository<CaseFormDraft, UUID> {
 
-    List<CaseFormDraft> findByImmigrationCaseId(Long caseId);
+    List<CaseFormDraft> findByImmigrationCaseId(UUID caseId);
 
-    List<CaseFormDraft> findByImmigrationCaseIdAndStatus(Long caseId, PackageStatus status);
+    List<CaseFormDraft> findByImmigrationCaseIdAndStatus(UUID caseId, PackageStatus status);
 
-    List<CaseFormDraft> findByImmigrationCaseIdAndFormDefinitionId(Long caseId, Long formDefinitionId);
+    List<CaseFormDraft> findByImmigrationCaseIdAndFormDefinitionId(UUID caseId, UUID formDefinitionId);
 }

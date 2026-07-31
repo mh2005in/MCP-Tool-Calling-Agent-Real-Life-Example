@@ -3,17 +3,15 @@
 -- V3: Microsoft Entra External ID -> application user mapping
 -- ============================================================
 
-CREATE SEQUENCE IF NOT EXISTS immiauto_db.app_users_seq START WITH 1 INCREMENT BY 1;
-
 CREATE TABLE immiauto_db.app_users (
-    id                BIGINT       NOT NULL DEFAULT nextval('immiauto_db.app_users_seq'),
+    id                UUID         NOT NULL DEFAULT gen_random_uuid(),
     external_subject  VARCHAR(255) NOT NULL,
     email             VARCHAR(255) NOT NULL,
     display_name      VARCHAR(255),
     tenant_id         VARCHAR(255),
     role              VARCHAR(255) NOT NULL,
     status            VARCHAR(255) NOT NULL,
-    consultant_id     BIGINT,
+    consultant_id     UUID,
     created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP,
     created_by        VARCHAR(255),
@@ -26,9 +24,8 @@ CREATE TABLE immiauto_db.app_users (
 -- ======================== DEMO APP USER ========================
 -- Maps the demo Entra identity (real oid) to the demo consultant seeded in V2 (resolved by
 -- email so it works regardless of the generated consultant id).
-INSERT INTO immiauto_db.app_users (id, external_subject, email, display_name, role, status, consultant_id, created_at)
-SELECT nextval('immiauto_db.app_users_seq'),
-       '0186e7d8-a81f-4526-b1bc-b4a5726af370',
+INSERT INTO immiauto_db.app_users (external_subject, email, display_name, role, status, consultant_id, created_at)
+SELECT '0186e7d8-a81f-4526-b1bc-b4a5726af370',
        c.email,
        c.full_name,
        'CONSULTANT_OWNER',

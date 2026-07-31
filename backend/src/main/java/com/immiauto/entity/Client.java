@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,20 +19,11 @@ import java.util.List;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Client extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "clients_gen")
-    @SequenceGenerator(name = "clients_gen", sequenceName = "clients_seq", allocationSize = 1)
-    private Long id;
-
+    // Human-facing number derived from the UUID id by a Postgres STORED generated column
+    // (see V1__create_schema.sql). Read-only here: the database computes it on INSERT.
+    @Generated(event = EventType.INSERT)
     @Column(nullable = false, unique = true, updatable = false, length = 15)
     private String clientNumber;
-
-    @PrePersist
-    private void generateClientNumber() {
-        if (clientNumber == null) {
-            clientNumber = "CN" + String.format("%013d", id);
-        }
-    }
 
     @NotBlank
     @Column(nullable = false)

@@ -10,10 +10,11 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class CaseDto {
-    private Long id;
+    private UUID id;
     private String caseNumber;
 
     @NotNull(message = "Service type is required")
@@ -26,11 +27,11 @@ public class CaseDto {
     private CaseStatus caseStatus;
 
     @NotNull(message = "Client ID is required")
-    private Long clientId;
+    private UUID clientId;
     private String clientName;
 
     @NotNull(message = "Consultant ID is required")
-    private Long consultantId;
+    private UUID consultantId;
     private String consultantName;
 
     private String intakeSummary;

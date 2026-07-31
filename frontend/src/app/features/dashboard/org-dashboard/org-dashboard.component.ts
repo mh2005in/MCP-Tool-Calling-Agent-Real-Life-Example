@@ -12,7 +12,7 @@ import { OrgDashboard, ConsultantSummary } from '../../../core/models/dashboard.
   styleUrls: ['./org-dashboard.component.css']
 })
 export class OrgDashboardComponent implements OnInit {
-  consultantId = 0;
+  consultantId = '';
   data: OrgDashboard | null = null;
   summaries: ConsultantSummary[] = [];
   loading = true;
@@ -20,7 +20,7 @@ export class OrgDashboardComponent implements OnInit {
   constructor(private api: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
     this.api.getOrgDashboard().subscribe({
       next: (d) => {
         this.data = d;

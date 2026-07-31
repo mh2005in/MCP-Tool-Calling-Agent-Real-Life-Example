@@ -2,12 +2,14 @@ package com.immiauto.dto.forms;
 
 import lombok.*;
 
+import java.util.UUID;
+
 /**
  * A PDF field discovered on a form (Section 4.1 - Milestone 6).
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class FormFieldDefinitionDto {
-    private Long id;
+    private UUID id;
     private String pdfFieldName;
     private String label;
     private String fieldType;

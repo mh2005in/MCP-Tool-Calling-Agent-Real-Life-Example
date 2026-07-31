@@ -5,11 +5,12 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class DocumentDto {
-    private Long id;
-    private Long caseId;
+    private UUID id;
+    private UUID caseId;
     private String originalFileName;
     private String mimeType;
     private Long fileSizeBytes;

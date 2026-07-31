@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.mcp.*;
 import com.immiauto.entity.*;
 import com.immiauto.enums.DocumentStatus;
@@ -34,7 +36,7 @@ public class McpDataService {
     private final AiBoundaryService aiBoundaryService;
 
     @Transactional(readOnly = true)
-    public Map<String, List<MaskedIntakeResponseDto>> getIntakeSummary(Long caseId, Consultant caller) {
+    public Map<String, List<MaskedIntakeResponseDto>> getIntakeSummary(UUID caseId, Consultant caller) {
         ImmigrationCase imCase = requireCaseWithAccess(caseId, caller);
         List<IntakeResponse> responses = intakeResponseRepository
                 .findByImmigrationCaseIdOrderBySortOrder(caseId);
@@ -42,14 +44,14 @@ public class McpDataService {
     }
 
     @Transactional(readOnly = true)
-    public List<SanitizedDocumentDto> getDocuments(Long caseId, Consultant caller) {
+    public List<SanitizedDocumentDto> getDocuments(UUID caseId, Consultant caller) {
         requireCaseWithAccess(caseId, caller);
         List<Document> docs = documentRepository.findByImmigrationCaseId(caseId);
         return documentMetadataSanitizer.sanitize(docs);
     }
 
     @Transactional(readOnly = true)
-    public List<McpChecklistItemDto> getChecklistStatus(Long caseId, Consultant caller) {
+    public List<McpChecklistItemDto> getChecklistStatus(UUID caseId, Consultant caller) {
         requireCaseWithAccess(caseId, caller);
         return checklistItemRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream()
@@ -66,13 +68,13 @@ public class McpDataService {
     }
 
     @Transactional(readOnly = true)
-    public List<Map<String, String>> getConsistencyReport(Long caseId, Consultant caller) {
+    public List<Map<String, String>> getConsistencyReport(UUID caseId, Consultant caller) {
         requireCaseWithAccess(caseId, caller);
         return consistencyCheckService.checkConsistency(caseId);
     }
 
     @Transactional(readOnly = true)
-    public List<McpTimelineEntryDto> getTimeline(Long caseId, Consultant caller) {
+    public List<McpTimelineEntryDto> getTimeline(UUID caseId, Consultant caller) {
         requireCaseWithAccess(caseId, caller);
         List<McpTimelineEntryDto> entries = new ArrayList<>();
 
@@ -108,7 +110,7 @@ public class McpDataService {
     }
 
     @Transactional(readOnly = true)
-    public List<McpReminderDto> getPendingReminders(Long caseId, Consultant caller) {
+    public List<McpReminderDto> getPendingReminders(UUID caseId, Consultant caller) {
         requireCaseWithAccess(caseId, caller);
         return reminderRepository.findByImmigrationCaseId(caseId)
                 .stream()
@@ -128,7 +130,7 @@ public class McpDataService {
     }
 
     @Transactional(readOnly = true)
-    public CaseSummaryProjection getCaseSummary(Long caseId, Consultant caller) {
+    public CaseSummaryProjection getCaseSummary(UUID caseId, Consultant caller) {
         ImmigrationCase imCase = requireCaseWithAccess(caseId, caller);
 
         long total = checklistItemRepository.countByImmigrationCaseId(caseId);
@@ -155,7 +157,7 @@ public class McpDataService {
     }
 
     @Transactional(readOnly = true)
-    public MaskedClientDto getMaskedClient(Long clientId, Consultant caller) {
+    public MaskedClientDto getMaskedClient(UUID clientId, Consultant caller) {
         requireAuthenticated(caller);
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new EntityNotFoundException("Client not found: " + clientId));
@@ -217,7 +219,7 @@ public class McpDataService {
         }
     }
 
-    private ImmigrationCase requireCaseWithAccess(Long caseId, Consultant caller) {
+    private ImmigrationCase requireCaseWithAccess(UUID caseId, Consultant caller) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
         if (caller != null && !caller.isAdmin()) {

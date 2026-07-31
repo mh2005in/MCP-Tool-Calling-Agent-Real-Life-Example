@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.entity.RecruitmentEvidence;
 import com.immiauto.repository.RecruitmentEvidenceRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +24,12 @@ public class LmiaCalculatorService {
     private final RecruitmentEvidenceRepository recruitmentEvidenceRepository;
 
     @Transactional(readOnly = true)
-    public Map<String, Object> calculateRecruitmentCompliance(Long caseId) {
+    public Map<String, Object> calculateRecruitmentCompliance(UUID caseId) {
         return calculateRecruitmentCompliance(caseId, null);
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> calculateRecruitmentCompliance(Long caseId, LocalDate intendedSubmissionDate) {
+    public Map<String, Object> calculateRecruitmentCompliance(UUID caseId, LocalDate intendedSubmissionDate) {
         List<RecruitmentEvidence> evidence = recruitmentEvidenceRepository
                 .findByImmigrationCaseIdOrderBySortOrder(caseId);
 

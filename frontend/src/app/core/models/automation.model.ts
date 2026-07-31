@@ -1,6 +1,6 @@
 export interface ExpiryAlert {
-  id: number;
-  caseId: number;
+  id: string;
+  caseId: string;
   caseNumber: string;
   clientName: string;
   alertType: string;
@@ -10,7 +10,7 @@ export interface ExpiryAlert {
   severity: 'INFO' | 'WARNING' | 'URGENT' | 'CRITICAL';
   acknowledged: boolean;
   acknowledgedBy?: string;
-  linkedDocumentId?: number;
+  linkedDocumentId?: string;
   createdAt: string;
 }
 
@@ -18,7 +18,7 @@ export interface ConsistencyIssue {
   type: string;
   severity: 'INFO' | 'WARNING' | 'CRITICAL';
   description: string;
-  documentId?: number;
+  documentId?: string;
 }
 
 export interface DocumentClassification {

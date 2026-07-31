@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * A deterministic validation result attached to a package (and optionally a
@@ -15,11 +16,6 @@ import java.time.LocalDateTime;
 @Table(name = "package_validation_issues")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PackageValidationIssue extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "package_validation_issues_gen")
-    @SequenceGenerator(name = "package_validation_issues_gen", sequenceName = "package_validation_issues_seq", allocationSize = 1)
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_package_id", nullable = false)
@@ -49,7 +45,7 @@ public class PackageValidationIssue extends BaseEntity {
     private String sourceType; // client, intake, document, checklist, travel history, work history, package
 
     @Column
-    private Long sourceId;
+    private UUID sourceId;
 
     @Column
     private boolean resolved;

@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.ChecklistItemDto;
 import com.immiauto.dto.ClientChecklistResponse;
@@ -24,27 +26,27 @@ public class ChecklistController {
 
     @PostMapping(ApiPaths.CHECKLIST_CREATE)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<ChecklistItemDto> addItem(@PathVariable Long caseId,
+    public ResponseEntity<ChecklistItemDto> addItem(@PathVariable UUID caseId,
                                                      @Valid @RequestBody ChecklistItemDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(checklistService.addItem(caseId, dto));
     }
 
     @GetMapping(ApiPaths.CHECKLIST_GET)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<List<ChecklistItemDto>> getChecklist(@PathVariable Long caseId) {
+    public ResponseEntity<List<ChecklistItemDto>> getChecklist(@PathVariable UUID caseId) {
         return ResponseEntity.ok(checklistService.getChecklistForCase(caseId));
     }
 
     @GetMapping(ApiPaths.CHECKLIST_MISSING)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<List<ChecklistItemDto>> getMissingItems(@PathVariable Long caseId) {
+    public ResponseEntity<List<ChecklistItemDto>> getMissingItems(@PathVariable UUID caseId) {
         return ResponseEntity.ok(checklistService.getMissingItems(caseId));
     }
 
     @PatchMapping(ApiPaths.CHECKLIST_UPDATE_STATUS)
     @PreAuthorize("@consultantAccess.canAccessCase(#caseId)")
-    public ResponseEntity<ChecklistItemDto> updateStatus(@PathVariable Long caseId,
-                                                          @PathVariable Long itemId,
+    public ResponseEntity<ChecklistItemDto> updateStatus(@PathVariable UUID caseId,
+                                                          @PathVariable UUID itemId,
                                                           @RequestParam DocumentStatus status,
                                                           @RequestParam(required = false) String reviewNote) {
         return ResponseEntity.ok(checklistService.updateItemStatus(itemId, status, reviewNote));
@@ -52,13 +54,13 @@ public class ChecklistController {
 
     @DeleteMapping(ApiPaths.CHECKLIST_DELETE)
     @PreAuthorize("@consultantAccess.canAccessChecklistItem(#itemId)")
-    public ResponseEntity<Void> deleteItem(@PathVariable Long caseId, @PathVariable Long itemId) {
+    public ResponseEntity<Void> deleteItem(@PathVariable UUID caseId, @PathVariable UUID itemId) {
         checklistService.deleteItem(itemId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping(ApiPaths.CHECKLIST_CLIENT_VIEW)
-    public ResponseEntity<ClientChecklistResponse> getClientChecklist(@PathVariable Long caseId) {
+    public ResponseEntity<ClientChecklistResponse> getClientChecklist(@PathVariable UUID caseId) {
         return ResponseEntity.ok(checklistService.getClientChecklist(caseId));
     }
 }

@@ -3,10 +3,12 @@ package com.immiauto.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class IntakeResponseDto {
-    private Long id;
-    private Long caseId;
+    private UUID id;
+    private UUID caseId;
     private String sectionName;
     @NotBlank(message = "Question key is required")
     private String questionKey;

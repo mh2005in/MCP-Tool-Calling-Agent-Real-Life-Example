@@ -2,6 +2,8 @@ package com.immiauto.dto.forms;
 
 import lombok.*;
 
+import java.util.UUID;
+
 /**
  * Outcome of inspecting a form's governed source PDF and syncing its fields
  * (Section 4.1 - Milestone 6). Drives supportsFill / status and thus whether
@@ -9,7 +11,7 @@ import lombok.*;
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class FormInspectionResultDto {
-    private Long formId;
+    private UUID formId;
     private String formCode;
     private boolean hasAcroForm;
     private boolean hasXfa;

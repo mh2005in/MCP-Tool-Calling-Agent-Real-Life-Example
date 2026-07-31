@@ -55,7 +55,7 @@ export class PartyTaskViewComponent implements OnInit {
     });
   }
 
-  private loadChecklist(caseId: number) {
+  private loadChecklist(caseId: string) {
     this.api.getChecklist(caseId).subscribe({
       next: (items) => {
         this.allItems = items;

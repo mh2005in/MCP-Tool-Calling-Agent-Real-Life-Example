@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ChecklistItemDto;
 import com.immiauto.dto.ClientChecklistResponse;
 import com.immiauto.entity.ChecklistItem;
@@ -25,7 +27,7 @@ public class ChecklistService {
     private final ChecklistItemMapper checklistItemMapper;
 
     @Transactional
-    public ChecklistItemDto addItem(Long caseId, ChecklistItemDto dto) {
+    public ChecklistItemDto addItem(UUID caseId, ChecklistItemDto dto) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
         ChecklistItem item = ChecklistItem.builder()
@@ -43,19 +45,19 @@ public class ChecklistService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChecklistItemDto> getChecklistForCase(Long caseId) {
+    public List<ChecklistItemDto> getChecklistForCase(UUID caseId) {
         return checklistItemRepository.findByImmigrationCaseIdOrderBySortOrder(caseId)
                 .stream().map(checklistItemMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<ChecklistItemDto> getMissingItems(Long caseId) {
+    public List<ChecklistItemDto> getMissingItems(UUID caseId) {
         return checklistItemRepository.findByImmigrationCaseIdAndStatus(caseId, DocumentStatus.NOT_UPLOADED)
                 .stream().map(checklistItemMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional
-    public ChecklistItemDto updateItemStatus(Long itemId, DocumentStatus status, String reviewNote) {
+    public ChecklistItemDto updateItemStatus(UUID itemId, DocumentStatus status, String reviewNote) {
         ChecklistItem item = checklistItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Checklist item not found"));
         item.setStatus(status);
@@ -64,12 +66,12 @@ public class ChecklistService {
     }
 
     @Transactional
-    public void deleteItem(Long itemId) {
+    public void deleteItem(UUID itemId) {
         checklistItemRepository.deleteById(itemId);
     }
 
     @Transactional(readOnly = true)
-    public ClientChecklistResponse getClientChecklist(Long caseId) {
+    public ClientChecklistResponse getClientChecklist(UUID caseId) {
         List<ChecklistItemDto> items = getChecklistForCase(caseId);
         long total = items.size();
         long completed = items.stream().filter(i -> i.getStatus() == DocumentStatus.ACCEPTED).count();

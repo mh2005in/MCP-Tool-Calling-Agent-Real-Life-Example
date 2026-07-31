@@ -6,10 +6,11 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class ChecklistTemplateDto {
-    private Long id;
+    private UUID id;
 
     @NotNull(message = "Service type is required")
     private ServiceType serviceType;
@@ -27,11 +28,11 @@ public class ChecklistTemplateDto {
     private int sortOrder;
     private String sourceUrl;
     private LocalDate lastReviewedDate;
-    private Long reviewedByConsultantId;
+    private UUID reviewedByConsultantId;
     private String reviewedByConsultantName;
     private int ruleVersion;
     private boolean approvedForUse;
-    private Long approvedByConsultantId;
+    private UUID approvedByConsultantId;
     private String approvedByConsultantName;
     private LocalDate approvedDate;
 }

@@ -3,13 +3,14 @@ package com.immiauto.dto.forms;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Full package profile for admin management (Section 4.1 - Milestone 6).
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class PackageProfileDto {
-    private Long id;
+    private UUID id;
     private String profileCode;
     private String displayName;
     private String serviceType;

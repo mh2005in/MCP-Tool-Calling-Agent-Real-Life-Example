@@ -2,12 +2,12 @@ export type AppRole = 'PLATFORM_ADMIN' | 'CONSULTANT_OWNER' | 'CONSULTANT_STAFF'
 export type AppUserStatus = 'ACTIVE' | 'PENDING' | 'DISABLED';
 
 export interface Me {
-  id: number;
+  id: string;
   email: string;
   displayName: string;
   role: AppRole;
   status: AppUserStatus;
-  consultantId: number | null;
+  consultantId: string | null;
   consultantAdmin: boolean;
   consultantName: string | null;
   companyName: string | null;

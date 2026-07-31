@@ -35,16 +35,16 @@ export type CaseStatus = 'INTAKE_PENDING' | 'INTAKE_COMPLETED' | 'CHECKLIST_PEND
   'APPLICATION_SUBMITTED' | 'POST_SUBMISSION' | 'DECISION_RECEIVED' | 'CLOSED';
 
 export interface ImmigrationCase {
-  id?: number;
+  id?: string;
   caseNumber?: string;
   serviceType: ServiceType;
   subtype?: CaseSubtype;
   applicantRole?: ApplicantRole;
   leadStatus: LeadStatus;
   caseStatus: CaseStatus;
-  clientId: number;
+  clientId: string;
   clientName?: string;
-  consultantId: number;
+  consultantId: string;
   consultantName?: string;
   intakeSummary?: string;
   consultantNotes?: string;
@@ -72,8 +72,8 @@ export interface CreateCaseRequest {
   serviceType: ServiceType;
   subtype?: CaseSubtype;
   applicantRole?: ApplicantRole;
-  clientId: number;
-  consultantId: number;
+  clientId: string;
+  consultantId: string;
   deadline?: string;
   urgencyReason?: string;
   consultantNotes?: string;

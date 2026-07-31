@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.ClientDto;
 import com.immiauto.entity.Client;
 import com.immiauto.entity.Consultant;
@@ -27,7 +29,7 @@ public class ClientService {
     private final ClientMapper clientMapper;
 
     @Transactional
-    public ClientDto createClient(Long consultantId, ClientDto dto) {
+    public ClientDto createClient(UUID consultantId, ClientDto dto) {
         Consultant consultant = consultantRepository.findById(consultantId)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant not found: " + consultantId));
 
@@ -70,7 +72,7 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public ClientDto getClient(Long consultantId, Long clientId) {
+    public ClientDto getClient(UUID consultantId, UUID clientId) {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new EntityNotFoundException("Client not found: " + clientId));
         commonService.verifyOwnershipOrAdmin(consultantId, client.getConsultant().getId(), "client");
@@ -78,41 +80,41 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClientDto> getClientsByConsultant(Long consultantId) {
+    public List<ClientDto> getClientsByConsultant(UUID consultantId) {
         return clientRepository.findByConsultantId(consultantId).stream()
                 .map(clientMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<ClientDto> getClientsByConsultantForAdmin(Long requestingConsultantId, Long targetConsultantId) {
+    public List<ClientDto> getClientsByConsultantForAdmin(UUID requestingConsultantId, UUID targetConsultantId) {
         commonService.requireAdmin(requestingConsultantId);
         return clientRepository.findByConsultantId(targetConsultantId).stream()
                 .map(clientMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<ClientDto> getAllClientsForAdmin(Long requestingConsultantId) {
+    public List<ClientDto> getAllClientsForAdmin(UUID requestingConsultantId) {
         commonService.requireAdmin(requestingConsultantId);
         return clientRepository.findAll().stream()
                 .map(clientMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public ClientDto getClientForAdmin(Long requestingConsultantId, Long clientId) {
+    public ClientDto getClientForAdmin(UUID requestingConsultantId, UUID clientId) {
         commonService.requireAdmin(requestingConsultantId);
         return clientMapper.toDto(clientRepository.findById(clientId)
                 .orElseThrow(() -> new EntityNotFoundException("Client not found: " + clientId)));
     }
 
     @Transactional(readOnly = true)
-    public List<ClientDto> searchClientsForAdmin(Long requestingConsultantId, String query) {
+    public List<ClientDto> searchClientsForAdmin(UUID requestingConsultantId, String query) {
         commonService.requireAdmin(requestingConsultantId);
         return clientRepository.search(query).stream()
                 .map(clientMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public ClientDto getClientByClientNumber(Long consultantId, String clientNumber) {
+    public ClientDto getClientByClientNumber(UUID consultantId, String clientNumber) {
         Client client = clientRepository.findByClientNumber(clientNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Client not found with number: " + clientNumber));
         commonService.verifyOwnershipOrAdmin(consultantId, client.getConsultant().getId(), "client");
@@ -120,13 +122,13 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClientDto> searchClients(Long consultantId, String query) {
+    public List<ClientDto> searchClients(UUID consultantId, String query) {
         return clientRepository.searchByConsultant(consultantId, query).stream()
                 .map(clientMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional
-    public ClientDto updateClient(Long consultantId, Long id, ClientDto dto) {
+    public ClientDto updateClient(UUID consultantId, UUID id, ClientDto dto) {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Client not found: " + id));
         commonService.verifyOwnershipOrAdmin(consultantId, client.getConsultant().getId(), "client");

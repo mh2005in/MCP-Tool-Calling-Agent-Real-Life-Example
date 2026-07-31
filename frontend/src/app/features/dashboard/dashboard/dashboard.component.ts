@@ -16,7 +16,7 @@ import { ExpiryAlert } from '../../../core/models/automation.model';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  consultantId = 0;
+  consultantId = '';
   consultant: Consultant | null = null;
   dashboard: Dashboard | null = null;
   cases: ImmigrationCase[] = [];
@@ -30,7 +30,7 @@ export class DashboardComponent implements OnInit {
   constructor(private api: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.consultantId = Number(this.route.snapshot.paramMap.get('consultantId'));
+    this.consultantId = this.route.snapshot.paramMap.get('consultantId') || '';
 
     if (this.consultantId) {
       this.api.getOwnProfile(this.consultantId).subscribe({
@@ -67,7 +67,7 @@ export class DashboardComponent implements OnInit {
     const urgent = this.dashboard?.urgentCases || [];
     const recent = this.dashboard?.recentCases || [];
     const all = [...urgent, ...recent];
-    const unique = new Map<number, ImmigrationCase>();
+    const unique = new Map<string, ImmigrationCase>();
     for (const c of all) {
       if ((c.missingItems || 0) > 0 && !unique.has(c.id!)) {
         unique.set(c.id!, c);

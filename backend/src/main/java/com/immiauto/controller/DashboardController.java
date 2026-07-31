@@ -1,5 +1,7 @@
 package com.immiauto.controller;
 
+import java.util.UUID;
+
 import com.immiauto.constants.ApiPaths;
 import com.immiauto.dto.DashboardDto;
 import com.immiauto.dto.OrgDashboardDto;
@@ -20,7 +22,7 @@ public class DashboardController {
 
     @GetMapping(ApiPaths.DASHBOARD_GET_BY_ID)
     @PreAuthorize("@consultantAccess.canAccess(#consultantId)")
-    public ResponseEntity<DashboardDto> getDashboard(@PathVariable Long consultantId) {
+    public ResponseEntity<DashboardDto> getDashboard(@PathVariable UUID consultantId) {
         return ResponseEntity.ok(dashboardService.getDashboard(consultantId));
     }
 

@@ -3,9 +3,11 @@ package com.immiauto.dto;
 import com.immiauto.enums.ServiceType;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class IntakeQuestionTemplateDto {
-    private Long id;
+    private UUID id;
     private ServiceType serviceType;
     private String sectionName;
     private String questionKey;

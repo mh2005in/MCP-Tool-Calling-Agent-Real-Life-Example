@@ -2,14 +2,16 @@ package com.immiauto.dto.mcp;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class MaskedClientDto {
 
-    private Long id;
+    private UUID id;
     private String clientNumber;
     private String fullName;
     private String email;
-    private Long consultantId;
+    private UUID consultantId;
     private String phone;
     private String whatsapp;
     private String dateOfBirth;

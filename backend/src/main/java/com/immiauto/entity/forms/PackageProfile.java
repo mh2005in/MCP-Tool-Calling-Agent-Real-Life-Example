@@ -18,11 +18,6 @@ import java.time.LocalDate;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PackageProfile extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "package_profiles_gen")
-    @SequenceGenerator(name = "package_profiles_gen", sequenceName = "package_profiles_seq", allocationSize = 1)
-    private Long id;
-
     @Column(nullable = false, unique = true)
     private String profileCode;
 

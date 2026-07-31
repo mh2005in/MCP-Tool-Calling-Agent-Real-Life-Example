@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.entity.ImmigrationCase;
 import com.immiauto.entity.TravelHistoryEntry;
 import com.immiauto.repository.CaseRepository;
@@ -26,7 +28,7 @@ public class PoliceCertificateService {
     private final CaseRepository caseRepository;
 
     @Transactional(readOnly = true)
-    public Map<String, Object> determineRequiredCertificates(Long caseId, LocalDate dateOfBirth) {
+    public Map<String, Object> determineRequiredCertificates(UUID caseId, LocalDate dateOfBirth) {
         ImmigrationCase imCase = caseRepository.findById(caseId)
                 .orElseThrow(() -> new EntityNotFoundException("Case not found"));
 
@@ -115,7 +117,7 @@ public class PoliceCertificateService {
     }
 
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> determineRequiredCertificates(Long caseId) {
+    public List<Map<String, Object>> determineRequiredCertificates(UUID caseId) {
         Map<String, Object> full = determineRequiredCertificates(caseId, null);
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> required = (List<Map<String, Object>>) full.get("requiredCertificates");

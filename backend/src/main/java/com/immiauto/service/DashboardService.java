@@ -1,5 +1,7 @@
 package com.immiauto.service;
 
+import java.util.UUID;
+
 import com.immiauto.dto.CaseDto;
 import com.immiauto.dto.ConsultantDto;
 import com.immiauto.dto.DashboardDto;
@@ -29,7 +31,7 @@ public class DashboardService {
     private final ConsultantService consultantService;
 
     @Transactional(readOnly = true)
-    public DashboardDto getDashboard(Long consultantId) {
+    public DashboardDto getDashboard(UUID consultantId) {
         List<CaseDto> activeCases = caseService.getActiveCasesByConsultant(consultantId);
 
         long awaitingDocs = activeCases.stream()
