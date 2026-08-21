@@ -1,0 +1,148 @@
+Immigration Consultation - Validation Compliance Review
+
+                2.3 Missing Validation
+
+          Backend and frontend audit against current IRCC and ESDC requirements
+                                           Prepared June 15, 2026
+
+Executive Summary
+
+The implementation includes useful intake, checklist, travel, work-history, document, and LMIA workflows, but several outputs
+are currently presented as compliance determinations without the validations needed to support those conclusions. The most
+serious issues affect citizenship physical presence, intake integrity, police-certificate requirements, and LMIA recruitment
+compliance.
+
+Severity  Count  Meaning
+P0        4      May produce materially incorrect compliance or eligibility results.
+P1        4      Allows incomplete, invalid, insecure, or cross-case data.
+
+Detailed Findings
+
+    P0 1. Citizenship eligibility calculation can produce false results
+
+backend/.../service/TravelHistoryService.java:76-84 frontend/.../travel-history.component.html:14-37
+
+Impact: The application can display "Requirement met" even when the applicant does not satisfy IRCC physical-presence rules.
+
+Missing validation: The calculation assumes 1,826 eligible days and subtracts absences. It does not use the
+application-signing date, PR start date, the minimum 730 days as a permanent resident, half-day pre-PR credits, the 365-day
+pre-PR cap, prohibited periods, or Crown-servant exceptions.
+
+Required remediation: Collect the full status timeline and application date. Calculate each eligible day under IRCC rules, return
+an explainable breakdown, and label the output as an estimate until consultant review.
+
+Official source: https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/adult-minor/who.html
+
+    P0 2. Intake compliance is enforced only in the browser
+
+backend/.../service/IntakeService.java:46-64 backend/.../dto/IntakeSubmissionRequest.java:10-11
+frontend/.../intake-form.component.ts:104-150
+
+Impact: A direct API caller can omit mandatory answers, inject arbitrary questions or options, and overwrite a previously valid
+intake.
+
+Missing validation: The API validates only that the response list is non-empty. It trusts client-supplied section names, question
+keys, labels, sort order, and answers. It does not validate required questions, allowed options, input formats, duplicate keys,
+conditional requirements, or association with the case service type.
+
+Required remediation: Resolve questions from server-side templates by key, reject unknown or duplicate keys, validate
+required and conditional answers, parse dates and numbers, enforce allowed options, and persist server-owned labels and
+ordering.
+
+                                                                                      Page 1
+Immigration Consultation - Validation Compliance Review
+
+     P0 3. Police-certificate residence logic uses cumulative rather than continuous stays
+
+  backend/.../service/PoliceCertificateService.java:22-42
+
+  Impact: The system can request unnecessary certificates or miss relevant age and time-window restrictions.
+  Missing validation: All stays in a country are summed and compared with 183 days. Express Entry generally asks for countries
+  where the person stayed for six months in a row or longer during the last ten years after age 18. Current-country certificate age
+  and previous-country issue-date rules are also absent.
+  Required remediation: Evaluate continuous residence intervals per person, exclude Canada and periods before age 18, restrict
+  the evaluation to the applicable ten-year window, and validate certificate issue dates based on current versus former residence.
+  Official source:
+  https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/police-certificates.html
+
+     P0 4. LMIA tracker can incorrectly report that recruitment requirements are met
+
+  backend/.../service/LmiaCalculatorService.java:17-71 frontend/.../recruitment-tracker.component.html:153-170
+
+  Impact: An employer may rely on a positive compliance indicator despite incomplete recruitment evidence.
+  Missing validation: The calculator checks only a 28-day Job Bank duration and two records labelled JOB_AD. It does not
+  validate the three-month pre-application window, an ongoing activity, national scope, distinct audiences, required advertisement
+  content, Job Match and Direct Apply obligations, stream differences, or provincial variations.
+  Required remediation: Require an intended LMIA submission date and stream. Model each recruitment method, scope,
+  audience, ad content, proof, and ongoing status. Return granular checks and use "preliminary review" rather than "requirements
+  met."
+  Official source: https://www.canada.ca/en/employment-social-development/services/foreign-workers/median-wage/high/requirements.html
+
+     P1 5. Express Entry document-validity checks are missing
+
+  backend/.../config/IntakeQuestionSeeder.java - Express Entry language and education sections
+
+  Impact: Expired language tests or ECAs may be treated as valid and generate an apparently complete checklist.
+  Missing validation: The intake records a language-test date but never checks its two-year validity. It records only whether an
+  ECA was completed, without issue date, designated organization, report number, or five-year expiry.
+  Required remediation: Capture structured test type, result date, scores and certificate identifiers. Capture ECA issue date,
+  organization, report number and credential. Validate validity both when the profile is prepared and at planned submission.
+  Official source: Language:
+  https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-test.html
+  ECA:
+  https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/education-assessment.html
+
+     P1 6. Workflow dates and numeric values have no backend validation
+
+  backend/.../dto/TravelHistoryDto.java backend/.../dto/WorkHistoryDto.java
+  backend/.../dto/RecruitmentEvidenceDto.java backend/.../dto/RelationshipTimelineDto.java
+
+  Impact: Invalid or impossible records can corrupt physical-presence, police-certificate, work-history, and LMIA calculations.
+  Missing validation: The API accepts end dates before start dates, future historical dates, negative hours or counts, current jobs
+  with end dates, blank required data, and interview totals greater than applicant totals. Controllers do not use @Valid.
+  Required remediation: Add Jakarta Bean Validation for field constraints and service-level cross-field validators. Mirror these
+  constraints in Angular forms, but treat backend validation as authoritative.
+
+                                                                                                                                                                                            Page 2
+Immigration Consultation - Validation Compliance Review
+
+     P1 7. Nested resources are not verified against their case
+
+  backend/.../service/WorkHistoryService.java:55-57 backend/.../service/TravelHistoryService.java:52-54
+  backend/.../service/DocumentService.java:72-75
+
+  Impact: A caller with a record UUID can potentially update or delete data belonging to another immigration case.
+  Missing validation: Update, delete and review operations load records by entry ID alone. The caseId in the route is not checked
+  against the resource owner. Several API routes are also broadly permitted by the security configuration.
+  Required remediation: Use repository queries scoped by both caseId and resourceId, enforce consultant and party ownership,
+  return 404 for cross-case access, and add authorization tests for every nested resource.
+
+     P1 8. Document uploads lack security and compliance validation
+
+  backend/.../service/DocumentService.java:35-60 backend/.../controller/DocumentController.java:25-35
+
+  Impact: The system can store unsafe, unreadable, oversized, empty, or misclassified files and then treat them as uploaded
+  evidence.
+  Missing validation: There is no empty-file rejection, size limit, extension allowlist, content-signature verification, malware scan,
+  safe filename normalization, page/readability validation, or required metadata validation. MIME type is trusted from the request.
+  Required remediation: Enforce configured size and type limits, inspect file signatures, sanitize filenames, scan uploads, verify
+  readable documents, require category/type linkage to checklist items, and capture expiry, translation and review metadata.
+
+ Recommended Implementation Order
+
+  1. Replace definitive citizenship and LMIA compliance statements with preliminary-review language.
+  2. Add authoritative server-side intake and workflow DTO validation.
+  3. Correct police-certificate and physical-presence algorithms with test fixtures from official examples.
+  4. Enforce case ownership and authentication before exposing client data.
+  5. Harden document ingestion and add structured expiry and translation validation.
+  6. Version each compliance rule with an official source URL and last-reviewed date.
+
+ Verification Notes
+
+  The review covered the backend and frontend source code and the project requirement PDFs. No source files were changed.
+  Backend tests could not run because Maven was unavailable in the environment. The Angular build was attempted but the
+  sandbox denied access to several stylesheet and module paths. This report is a software compliance audit and does not
+  constitute legal or immigration advice.
+
+                                                                                                                                                                                            Page 3
+

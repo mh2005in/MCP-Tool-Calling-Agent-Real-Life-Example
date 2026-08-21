@@ -1,0 +1,109 @@
+Oracle AI Database Free Install and Local
+Database Setup
+
+Windows-focused guide for installing Oracle's free database edition and configuring this Spring Boot
+project to use a local Oracle database.
+
+Free Edition And Current Version
+
+As of June 17, 2026, Oracle's current free local database page is Oracle AI Database 26ai Free.
+Oracle lists free resource limits of up to 2 CPU threads, 2 GB of database RAM, and 12 GB of user data.
+Oracle also keeps the older Oracle Database XE page, which describes XE as free to use, embed, and
+redistribute.
+Official page: https://www.oracle.com/database/free/
+
+Download And Install On Windows
+
+1. Go to https://www.oracle.com/database/free/.
+2. Under Oracle AI Database Free for Windows, choose Download for Windows.
+3. Sign in with an Oracle account if Oracle requires it.
+4. Download the Windows x64 installer ZIP or executable for Oracle AI Database 26ai Free.
+5. Extract the ZIP if needed, then run setup.exe as Administrator.
+6. Choose the install location, usually under C:\app or C:\Program Files\Oracle.
+7. Set and save the administrative password for SYS, SYSTEM, and PDBADMIN when prompted.
+8. Keep the default listener port 1521 unless another Oracle listener already uses it.
+9. Finish the installer and let it create the Windows services.
+10. Restart your terminal after installation so PATH changes are available.
+
+Verify The Install
+
+                  sqlplus -v
+                  lsnrctl status
+
+Oracle AI Database Free local setup guide                                                                Page 1
+For local app development, connect to the pluggable database service. The common default service name for
+Oracle Database Free is FREEPDB1.
+
+                  sqlplus system@localhost:1521/FREEPDB1
+
+Create Local Schema User
+
+Log in with the SYSTEM user, then run:
+
+                  CREATE USER immiauto_user
+                      IDENTIFIED BY "ChangeThisStrongPassword123!"
+                      DEFAULT TABLESPACE users
+                      QUOTA UNLIMITED ON users;
+
+                  GRANT CREATE SESSION TO immiauto_user;
+                  GRANT CREATE TABLE TO immiauto_user;
+                  GRANT CREATE VIEW TO immiauto_user;
+                  GRANT CREATE SEQUENCE TO immiauto_user;
+                  GRANT CREATE PROCEDURE TO immiauto_user;
+                  GRANT CREATE TRIGGER TO immiauto_user;
+
+Test the app user:
+
+                  sqlplus immiauto_user/ChangeThisStrongPassword123!@localhost:1521/FREEPDB1
+
+Oracle AI Database Free local setup guide  Page 2
+Spring Boot Project Configuration
+
+Add the Oracle JDBC driver to backend/pom.xml:
+
+                  <dependency>
+                         <groupId>com.oracle.database.jdbc</groupId>
+                         <artifactId>ojdbc11</artifactId>
+                         <scope>runtime</scope>
+
+                  </dependency>
+
+Use these application.properties database settings:
+
+                  spring.datasource.url=jdbc:oracle:thin:@localhost:1521/FREEPDB1
+                  spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+                  spring.datasource.username=immiauto_user
+                  spring.datasource.password=ChangeThisStrongPassword123!
+
+                  spring.jpa.hibernate.ddl-auto=update
+                  spring.jpa.show-sql=true
+                  spring.jpa.properties.hibernate.format_sql=true
+                  spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
+
+                  spring.h2.console.enabled=false
+
+Run the backend:
+
+                  cd C:\Users\mh200\Projects\Immigration-Consultation\backend
+                  .\mvnw spring-boot:run
+
+Oracle AI Database Free local setup guide                                                      Page 3
+Connection Summary
+
+                  Host: localhost
+                  Port: 1521
+                  Service name: FREEPDB1
+                  Username: immiauto_user
+                  Password: ChangeThisStrongPassword123!
+                  JDBC URL: jdbc:oracle:thin:@localhost:1521/FREEPDB1
+
+Use the dedicated immiauto_user for the application. Keep SYS, SYSTEM, and PDBADMIN only for
+administration.
+
+Official References
+
+Oracle AI Database Free: https://www.oracle.com/database/free/
+Oracle Database XE: https://www.oracle.com/database/technologies/appdev/xe.html
+
+Oracle AI Database Free local setup guide                                                     Page 4
+

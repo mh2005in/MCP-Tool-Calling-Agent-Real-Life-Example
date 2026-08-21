@@ -1,0 +1,126 @@
+MySQL Latest Free Version Install and Local
+Database Setup
+
+Windows-focused guide for installing MySQL Community Server and configuring this Spring Boot project
+to use a local MySQL database.
+
+Current Official Version
+
+As of June 17, 2026, Oracle's MySQL Community download page lists MySQL Community Server 9.7.1 LTS
+as the latest free Community Server release for Windows.
+Download page: https://dev.mysql.com/downloads/mysql/
+Important: the old MySQL Installer wizard is only for MySQL 8.0. For MySQL 8.1 and newer, use the product
+MSI or ZIP archive. The server MSI includes MySQL Configurator.
+
+Download And Install
+
+1. Go to https://dev.mysql.com/downloads/mysql/.
+2. Select Version: 9.7.1 LTS.
+3. Select Operating System: Microsoft Windows.
+4. Select OS Version: All Windows (x86, 64-bit).
+5. Download the Windows MSI Installer, named similar to mysql-9.7.1-winx64.msi.
+6. If Oracle asks you to sign in, choose No thanks, just start my download.
+7. Run the MSI as Administrator.
+8. When installation finishes, launch MySQL Configurator immediately.
+
+MySQL Configurator Settings
+
+ - Configuration type: Development Computer.
+ - Connectivity: TCP/IP enabled.
+ - Port: 3306.
+ - Firewall: opening the port is optional for local-only development.
+
+MySQL Community Server local setup guide  Page 1
+ - Authentication: strong password encryption.
+ - Root password: choose and save a strong password.
+ - Windows Service: enabled.
+ - Service name: usually MySQL97 or similar.
+ - Start MySQL Server at system startup: yes.
+
+Verify The Install
+
+                  mysql --version
+                  mysql -u root -p
+
+If mysql is not recognized, add this folder to your Windows PATH, then open a new PowerShell window:
+
+                  C:\Program Files\MySQL\MySQL Server 9.7\bin
+
+Create Local Database And App User
+
+Log in as root:
+
+                  mysql -u root -p
+
+Run the following SQL:
+
+                  CREATE DATABASE immiauto
+                     CHARACTER SET utf8mb4
+                     COLLATE utf8mb4_0900_ai_ci;
+
+                  CREATE USER 'immiauto_user'@'localhost'
+                     IDENTIFIED BY 'ChangeThisStrongPassword123!';
+
+                  GRANT ALL PRIVILEGES ON immiauto.* TO 'immiauto_user'@'localhost';
+
+                  FLUSH PRIVILEGES;
+
+Test the new app user:
+
+                  mysql -u immiauto_user -p -h localhost -P 3306 immiauto
+
+MySQL Community Server local setup guide                                                              Page 2
+Spring Boot Project Configuration
+
+This project currently uses H2 in backend/src/main/resources/application.properties. To use MySQL locally, add
+the MySQL JDBC driver and update the datasource settings.
+Add this dependency to backend/pom.xml:
+
+                  <dependency>
+                         <groupId>com.mysql</groupId>
+                         <artifactId>mysql-connector-j</artifactId>
+                         <scope>runtime</scope>
+
+                  </dependency>
+
+Use these application.properties database settings:
+
+                  spring.datasource.url=jdbc:mysql://localhost:3306/immiauto?useSSL=false&allowPublicKeyR
+                  etrieval=true&serverTimezone=UTC
+                  spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+                  spring.datasource.username=immiauto_user
+                  spring.datasource.password=ChangeThisStrongPassword123!
+
+                  spring.jpa.hibernate.ddl-auto=update
+                  spring.jpa.show-sql=true
+                  spring.jpa.properties.hibernate.format_sql=true
+                  spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+
+                  spring.h2.console.enabled=false
+
+Run The Backend
+
+                  cd C:\Users\mh200\Projects\Immigration-Consultation\backend
+                  .\mvnw spring-boot:run
+
+MySQL Community Server local setup guide  Page 3
+Connection Summary
+
+                  Host: localhost
+                  Port: 3306
+                  Database: immiauto
+                  Username: immiauto_user
+                  Password: ChangeThisStrongPassword123!
+                  JDBC URL: jdbc:mysql://localhost:3306/immiauto?useSSL=false&allowPublicKeyRetrieval=tru
+                  e&serverTimezone=UTC
+
+Use the dedicated immiauto_user for the application. Keep root only for administration.
+
+Official References
+
+MySQL Community Server downloads: https://dev.mysql.com/downloads/mysql/
+MySQL Installer note: https://dev.mysql.com/downloads/installer/
+MySQL Windows installation docs: https://dev.mysql.com/doc/refman/9.7/en/windows-installation.html
+
+MySQL Community Server local setup guide  Page 4
+

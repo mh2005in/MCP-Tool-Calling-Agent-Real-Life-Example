@@ -1,0 +1,194 @@
+        Immigration Consultation -- Entra Auth
+                   Configuration Runbook
+
+Microsoft Entra External ID setup for frontend, backend, and MCP server (Phases 1­3)
+
+This runbook lists every Entra app-registration setting and every application property/env var configured while
+migrating from API-key auth to Microsoft Entra OAuth2 across the Angular SPA, the Spring Boot backend,
+and the HTTP MCP server. Values below are the project's actual identifiers.
+
+Architecture                              -> SPA gets access token (aud=api://immigration-saas-api)
+                                          -> Backend API (:8080, /api) validates issuer + audience
+             Consultant (browser)
+                   -> MSAL login (Entra)
+                   -> Bearer token
+
+AI agent / Claude Code
+
+-> token (aud=api://immigration-saas-mcp, mcp.* scopes)
+
+-> Bearer token                           -> MCP server (:8084, /mcp) validates + per-tool scope
+
+MCP server --On-Behalf-Of--> token (aud=api://immigration-saas-api)
+
+-> Bearer token                           -> Backend API /v1/mcp/**  sees the REAL user
+
+Tenant & issuer
+
+             Tenant ID : <ENTRA_TENANT_ID>
+             Issuer : https://login.microsoftonline.com/<ENTRA_TENANT_ID>/v2.0
+             (Standard login.microsoftonline.com endpoint - NOT ciamlogin.com.)
+1. Entra app registrations (four)
+
+1a. immigration-saas-frontend (SPA / public client)
+
+             Client ID : <SPA_CLIENT_ID>
+
+· Authentication -> platform Single-page application; redirect URI
+
+    http://localhost:4200/auth/callback (+ prod URI). No secret.
+
+· API permissions -> My APIs -> immigration-saas-api -> Delegated -> the six
+
+    cases/documents/checklists/messages scopes -> Grant admin consent.
+
+1b. immigration-saas-api (backend resource)
+
+             Client ID : <BACKEND_API_CLIENT_ID>
+             App ID URI : api://<BACKEND_API_CLIENT_ID>
+
+· Expose an API -> add scopes: cases.read, cases.write, documents.read,
+
+    documents.write, checklists.generate, messages.draft.
+
+· Manifest -> accessTokenAcceptedVersion: 2 (else v1 tokens cause an issuer-mismatch 401).
+· Token configuration -> add optional Access-token claims: email, upn, preferred_username (so the
+
+    user maps to a consultant instead of landing PENDING).
+
+1c. immigration-saas-mcp (MCP resource + OBO client)
+
+             Client ID : <MCP_API_CLIENT_ID>
+             App ID URI : api://<MCP_API_CLIENT_ID>
+
+· Expose an API -> add scopes: mcp.tools.read, mcp.cases.read, mcp.documents.read,
+
+    mcp.checklists.generate, mcp.messages.draft (read/draft only).
+
+· Manifest -> accessTokenAcceptedVersion: 2.
+· Certificates & secrets -> client secret (Phase-3 OBO). Provide it to the server as
+
+    ENTRA_MCP_CLIENT_SECRET.
+
+· API permissions -> My APIs -> immigration-saas-api -> Delegated -> cases.read -> Grant admin
+
+    consent (OBO target).
+
+1d. immigration-mcp-client (pre-registered client for Claude Code/testing)
+
+             Client ID : <MCP_PREREG_CLIENT_ID>
+
+· Authentication -> Advanced -> Allow public client flows = Yes (device-code; no secret).
+· API permissions -> My APIs -> immigration-saas-mcp -> Delegated -> the five mcp.* scopes -> Grant
+
+    admin consent.
+2. Phase 1 -- Frontend (Angular MSAL)
+
+frontend/src/environments/environment.ts (and .prod.ts):
+
+             msal: {
+                 clientId: '<SPA_CLIENT_ID>',
+                 authority: 'https://login.microsoftonline.com/<ENTRA_TENANT_ID>',
+                 redirectUri: 'http://localhost:4200/auth/callback',
+                 apiScopes: [ 'api://4a49c769-.../cases.read', '.../cases.write', '.../documents.read',
+                                        '.../documents.write', '.../checklists.generate', '.../messages.draft' ],
+                 useIdTokenAsBearer: false // send a real access token, not the ID token
+
+             }
+
+3. Phase 1 -- Backend resource server
+
+backend/src/main/resources/application.properties (env-overridable):
+
+             spring.security.oauth2.resourceserver.jwt.issuer-uri=
+                   ${ENTRA_ISSUER:https://login.microsoftonline.com/924a9d3d-.../v2.0}
+
+             app.security.entra.tenant-id=${ENTRA_TENANT_ID:924a9d3d-...}
+             # accepts App ID URI OR bare client-id GUID (v2 tokens vary)
+             app.security.audience=${ENTRA_BACKEND_AUDIENCE:api://4a49c769-...,4a49c769-...}
+             app.security.audience-validation.enabled=${ENTRA_AUDIENCE_VALIDATION:true}
+             app.security.auto-provision-consultant.enabled=${AUTO_PROVISION_CONSULTANT:true}
+
+· Authorization is DB row-level, not scope-based:
+
+    @consultantAccess.canAccess(#consultantId), canAccessCase(#caseId),
+    @adminGuard.isAdminConsultant(). Admin = the consultants.admin flag.
+
+· Provisioning: first valid token auto-maps/creates an app_users row (CONSULTANT_OWNER); self-heals
+
+    PENDING once an email claim is present.
+
+4. Phase 2 -- MCP server (HTTP resource server, port 8084)
+
+MCPServer/src/main/resources/application.properties:
+
+             server.port=8084
+             spring.security.oauth2.resourceserver.jwt.issuer-uri=${ENTRA_ISSUER:.../v2.0}
+             app.security.audience=${ENTRA_MCP_AUDIENCE:api://95c00e44-...,95c00e44-...}
+             app.security.audience-validation.enabled=${ENTRA_AUDIENCE_VALIDATION:true}
+             app.mcp.resource=${MCP_RESOURCE:http://localhost:8084/mcp}
+
+· Streamable HTTP transport at /mcp; protected-resource metadata at
+
+    /.well-known/oauth-protected-resource.
+
+· Per-tool mcp.* scope enforced; tools are read/draft only (no create/send/delete).
+
+5. Phase 3 -- On-Behalf-Of (MCP -> backend)
+
+MCP server exchanges the user's MCP token for a backend-API token, so the backend sees the real user
+(the old X-MCP-API-Key is gone; /v1/mcp/** is now authenticated).
+
+mcp.obo.token-endpoint=${ENTRA_TOKEN_ENDPOINT:https://login.microsoftonline.com/924a9d3d-.../oauth2/v2.0/to
+
+mcp.obo.client-id=${ENTRA_MCP_CLIENT_ID:<MCP_API_CLIENT_ID>}
+
+mcp.obo.client-secret=${ENTRA_MCP_CLIENT_SECRET:}  # the immigration-saas-mcp secret
+
+mcp.obo.backend-scope=${ENTRA_BACKEND_SCOPE:api://4a49c769-.../cases.read}
+
+mcp.backend.audit-url=${MCP_AUDIT_URL:http://localhost:8080/api/v1/mcp/audit}
+
+6. Connect an MCP client (Claude Code)
+
+1 Mint a token: .\scripts\get-mcp-token.ps1 (device-code via immigration-mcp-client). Verify at
+
+    jwt.ms: aud=api://95c00e44-..., ver=2.0, scp has mcp.*.
+2 claude mcp add --transport http immigration-mcp http://localhost:8084/mcp
+
+    --header "Authorization: Bearer <token>"
+
+3 /mcp in a session -> tools list; call list_clients -> masked data.
+
+7. Database migrations (Flyway disabled -- apply manually)
+
+· V3__app_users.sql -- Entra identity -> app user mapping (+ demo seed).
+· V4__mcp_tool_audit_log.sql -- MCP tool-call audit log.
+· Schema-qualified with immiauto_db.; entities use tablename_seq sequences.
+
+8. Environment variables (production overrides)
+
+Backend : ENTRA_ISSUER, ENTRA_TENANT_ID, ENTRA_BACKEND_AUDIENCE,
+
+     ENTRA_AUDIENCE_VALIDATION, AUTO_PROVISION_CONSULTANT
+
+MCP  : ENTRA_ISSUER, ENTRA_MCP_AUDIENCE, ENTRA_AUDIENCE_VALIDATION,
+
+     ENTRA_TOKEN_ENDPOINT, ENTRA_MCP_CLIENT_ID, ENTRA_MCP_CLIENT_SECRET,
+
+     ENTRA_BACKEND_SCOPE, MCP_AUDIT_URL, MCP_RESOURCE, MCP_TOOL_CONFIG
+
+9. Gotchas & verification
+
+· v1.0 token 401: if a resource 401s, decode at jwt.ms -- ver must be 2.0. Fix = set accessTokenAcceptedVersion:
+2 on that app's manifest, then get a fresh token.
+
+· 'Not linked to a consultant' (PENDING): the access token has no email-type claim. Add
+email/upn/preferred_username as optional Access claims on immigration-saas-api; next login self-heals.
+
+· MCP scope-check / OBO threading (caveat 2): if a tool returns 'Forbidden' with a valid token, or OBO 401s, or audit
+rows have a null subject -- the MCP SDK ran the handler off the request thread; fix = a transport context-extractor in the
+MCP server.
+
+· Build: backend + MCPServer compile in Eclipse (no Maven/JDK on CLI); frontend via npx ng build.
+

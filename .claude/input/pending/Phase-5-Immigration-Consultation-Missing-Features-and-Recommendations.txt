@@ -1,0 +1,1171 @@
+   IMMIGRATION CONSULTATION
+
+ Missing Features and Product
+ Recommendations
+
+  A detailed competitive gap analysis, target-state feature catalogue,
+  implementation priorities, and 18-month product roadmap for a
+  Canadian immigration practice-management platform.
+
+   Prepared from a static review of the Angular frontend, Spring Boot backend, database entities, API
+   surface, and product documentation.
+   Assessment date: June 22, 2026 | Version 1.0
+
+Recommended positioning: Canadian immigration compliance and application-quality automation for
+small and mid-sized practices - not another generic legal CRM.
+Immigration Consultation - Product Gap Analysis
+
+Contents
+
+Contents                                           2
+
+1. Executive Summary                               3
+
+Competitive intensity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+Top recommendations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+
+2. Assessment Basis and Current Product Strengths  3
+
+Capabilities observed . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+
+Key product constraint . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+
+3. Prioritized Feature Portfolio                   5
+
+Priority definitions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+
+4. Detailed Missing Features and Recommendations   6
+
+5. Recommended Product Architecture                18
+
+Buy versus build principles . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+
+6. Phased 18-Month Roadmap                         18
+
+Suggested first 90 days . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+
+7. Measurement Framework                           19
+
+Measurement recommendation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+
+8. Major Risks and Mitigations                     20
+
+9. Recommended Market Position                     20
+
+Differentiation pillars . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+
+10. Decision Checklist Before Development          20
+
+Appendix A - Competitive Reference Points          21
+
+Reference caution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+
+Appendix B - Repository Evidence Reviewed          21
+
+                                                   Page 2
+Immigration Consultation - Product Gap Analysis
+
+1. Executive Summary
+
+The application has a credible domain-specific core. It already goes beyond a generic client database by supporting case
+intake, conditional checklists, document review, expiry alerts, consistency checks, consultant approvals, travel and work
+histories, relationship evidence, LMIA recruitment evidence, client checklists, and third-party portals. Its Microsoft Entra
+identity architecture and AI boundary controls also create a serious foundation for regulated work.
+
+           Overall finding: the platform is strong as a case-preparation workflow system, but it is not yet complete
+           enough to replace the primary practice-management stack used by an immigration firm. The largest gaps
+           are IRCC form automation, money movement, electronic signatures, calendar and communications, full
+           portal capabilities, team task management, and production-grade document operations.
+
+Competitive intensity
+
+Segment                              Pressure         Interpretation
+General immigration case management  High (8/10)
+                                                      Mature vendors already bundle CRM, forms, portals, billing, signatures,
+Canadian immigration workflow        Moderate (5/10)  communications, and integrations.
+automation
+                                                      There is room for deeper Canadian checklists, LMIA evidence,
+AI-assisted regulated workflow       Emerging         physical-presence calculations, expiry controls, and explainable quality
+                                                      checks.
+
+                                                      Differentiation is possible if every recommendation is sourced,
+                                                      reviewable, auditable, and subordinate to consultant judgment.
+
+ Top recommendations
+
+s Make IRCC package automation the product's central workflow: versioned forms, field mapping, validation, package
+     assembly, and filing readiness.
+
+s Close the commercial workflow with invoicing, payments, trust-account controls, retainers, and electronic signatures - using
+     integrations where regulated or commodity infrastructure already exists.
+
+s Create one operational timeline for tasks, deadlines, appointments, communications, document events, payments, and
+     approvals.
+
+s Upgrade the client experience from token-based task access to a secure, multilingual portal with messages, files,
+     appointments, signatures, invoices, and status visibility.
+
+s Ship security, privacy, data portability, content governance, monitoring, and recovery capabilities alongside revenue features
+     rather than postponing them.
+
+ 2. Assessment Basis and Current Product Strengths
+
+  This report is based on static code and repository inspection. A feature is treated as present only when there is meaningful
+  evidence in routes, API endpoints, services, entities, or user-interface components. Absence from the inspected code is
+  treated as a likely gap, not proof that no external or unreleased implementation exists. Runtime usability, scale, deliverability,
+  accessibility, and production configuration were not independently certified.
+
+                                                                                                                                Page 3
+Immigration Consultation - Product Gap Analysis
+
+Capabilities observed
+
+Area                         Observed capability                                                        Strategic value
+Case and client management
+Intake and checklists        Consultant-scoped clients and cases, service types, statuses, deadlines,   Provides the operating record for the
+Documents                    leads, dashboards.                                                         firm.
+Canadian workflows
+                             Template-driven intake, conditional questions, checklist generation,       Strong base for guided, auditable case
+Portals                      checklist approval and consultant sign-off.                                preparation.
+
+Automation and AI safety     Uploads, categorization/classification, review statuses, expiry and        Useful foundation, but incomplete as an
+Identity and administration  translation indicators.                                                    enterprise document system.
+
+                             Travel and work history, physical presence, relationship timeline,         Meaningful Canadian-domain
+                             recruitment evidence, candidate comparison, LMIA and police-certificate    differentiation.
+                             logic.
+                                                                                                        Early collaboration capability for
+                             Public checklist view and token-based party task portal.                   applicants, sponsors, hosts, and
+                                                                                                        employers.
+                             Consistency checks, classification, alerts, data masking, sensitive-field
+                             registry, audit services, consultant approval boundary.                    A defensible trust model for regulated AI
+                                                                                                        assistance.
+                             Microsoft Entra authentication, user provisioning, consultant/admin roles
+                             and organization dashboards.                                               A credible production identity foundation.
+
+Key product constraint
+
+           The present product is optimized around preparing a case correctly. Buyers, however, evaluate the
+           entire firm lifecycle: acquire the lead, book the consultation, retain and bill the client, collect evidence,
+           prepare forms, communicate, file, monitor, report, and close/archive the matter. Missing links in that chain
+           create duplicate work and reduce willingness to switch from an incumbent.
+
+                                                                                                                                                    Page 4
+Immigration Consultation - Product Gap Analysis
+
+3. Prioritized Feature Portfolio
+
+Priorit Feature domain                            Buyer value  Effort Why it matters
+y
+
+P0  IRCC forms and package automation             Very high    XL  Core differentiation and switching value
+
+P0  Billing, payments and trust controls          Very high    L   Required to run the business
+
+P0  Electronic signatures and retainers           High         M   Closes lead-to-client workflow
+
+P0  Security, privacy and operational resilience  Very high    L   Regulated-data release gate
+
+P1  Calendar, appointments and deadlines          High         M   Daily workflow and retention
+
+P1  Unified communications                        High         L   Client service and evidence trail
+
+P1  Secure full-service client portal             Very high    L   Client adoption and reduced admin work
+
+P1  Document management and OCR                   High         L   Case quality and staff efficiency
+
+P1  Tasks, workflow and team collaboration        High         L   Firm scalability
+
+P1  Rules, forms and knowledge governance         High         M   Accuracy and defensibility
+
+P2  Reporting, analytics and exports              Medium-high  M   Management visibility and procurement
+
+P2  Lead CRM and growth tools                     Medium-high  M   Revenue growth
+
+P2  Integrations and developer platform           High         L   Adoption and ecosystem leverage
+
+P2  Multi-tenant SaaS and subscription admin      High         XL  Required for commercial scale
+
+P2  Accessibility, localization and mobile        Medium-high  L   Market reach and client completion
+
+P3  Onboarding, migration and customer success Medium          M   Lower switching friction
+
+ Priority definitions
+
+s P0 - market-entry or release-gating capability; start immediately.
+s P1 - required for a coherent primary-platform experience; deliver after foundations.
+s P2 - scale, differentiation, and operational leverage; sequence by target customer.
+s P3 - important adoption capability that can follow a stable core or be delivered through services.
+
+                                                                                                             Page 5
+  Immigration Consultation - Product Gap Analysis
+
+ 4. Detailed Missing Features and Recommendations
+
+ 4.1 IRCC Form and Submission-Package Automation
+
+  PRIORITY P0 | ESTIMATED EFFORT XL | DELIVERY STRATEGY: BUILD THE ORCHESTRATION; LICENSE OR INTEGRATE PDF
+  TECHNOLOGY
+
+ Observed gap
+
+  No complete workflow was identified for populating official application forms, controlling form editions, validating form-specific
+  rules, producing barcodes where applicable, or assembling a submission-ready package.
+
+ Required capabilities
+
+s Maintain a versioned catalogue of federal and provincial forms with effective dates, source URLs, hashes, retirement dates,
+     and affected programs.
+
+s Map normalized intake answers to reusable person, address, education, employment, travel, family, and immigration-history
+     fields.
+
+s Populate supported PDF fields while preserving official form behavior; detect unsupported or altered source files.
+s Run cross-form validation: names, dates, passport details, addresses, family composition, gaps, signatures, and
+
+     program-specific requirements.
+s Generate a filing-readiness report separating errors, warnings, consultant decisions, client confirmations, and unresolved
+
+     evidence.
+s Assemble a package index with document order, naming conventions, size limits, translations, certified copies, and
+
+     case-specific notes.
+s Require explicit consultant approval before final package generation; retain the form version, mapping version, inputs, output
+
+     hash, and approver in the audit trail.
+
+              Recommendation: Begin with the 3-5 highest-volume Canadian programs and a canonical applicant data
+              model. Treat forms as governed product content, not hard-coded UI. Do not automate final portal
+              submission until reliability, terms of use, and operational support are proven.
+
+ Minimum viable release
+
+  One-click generation for a limited program set; version registry; mapping review screen; deterministic validation; package
+  index; consultant sign-off; generated-file audit record.
+
+ Success measures
+
+  Field reuse above 70%; preparation time reduced 30-50%; less than 1% mapping defects detected after approval; 100%
+  outputs linked to a form version and approver.
+
+ Key dependencies
+
+  Canonical data model, content-release workflow, PDF engine, secure generated-file storage, validation rules, audit log,
+  regression fixtures.
+
+                                                                                                                                                                                         Page 6
+  Immigration Consultation - Product Gap Analysis
+
+ 4.2 Billing, Payments, Trust Accounting, and Financial Controls
+
+  PRIORITY P0 | ESTIMATED EFFORT L | DELIVERY STRATEGY: BUY/INTEGRATE PAYMENTS; BUILD IMMIGRATION-SPECIFIC
+  BILLING WORKFLOW
+
+ Observed gap
+
+  No invoice, payment, ledger, expense, time-entry, refund, receipt, or trust-account entities were identified. A case can record
+  retainer status but not the financial lifecycle.
+
+ Required capabilities
+
+s Quotes, fee schedules, invoices, taxes, discounts, disbursements, credit notes, receipts, refunds, and write-offs.
+s Milestone and installment plans tied to case stage, with reminders and overdue status.
+s Hosted online payments through a compliant processor; never store raw card data.
+s Trust versus operating funds, client-level ledgers, transfers, reconciliation support, immutable adjustments, and exportable
+
+     audit history.
+s Time and expense capture where firms use hourly or hybrid billing.
+s Accounting exports or synchronization with QuickBooks/Xero and configurable chart-of-account mappings.
+s Role separation for creating, approving, refunding, and reconciling financial transactions.
+
+              Recommendation: Integrate a payment provider and accounting platform rather than building payment
+              rails or a general ledger. Build the case milestones, fee plan, client ledger views, controls, and audit trail
+              that are specific to immigration practice.
+
+ Minimum viable release
+
+  Fee plan, invoices, hosted payment link, receipts, installment status, accounting export, role-controlled refunds, and basic
+  client ledger. Defer full trust reconciliation until requirements are validated with licensed practitioners and bookkeepers.
+
+ Success measures
+
+  Invoice-to-payment time; online payment adoption; overdue balance; reconciliation exceptions; percentage of retained cases
+  with complete fee plan.
+
+ Key dependencies
+
+  Firm legal entity and tax settings, payment processor, accounting integration, permission model, notification delivery,
+  retention policy.
+
+ 4.3 Electronic Signatures and Retainer Automation
+
+  PRIORITY P0 | ESTIMATED EFFORT M | DELIVERY STRATEGY: INTEGRATE A SIGNATURE PROVIDER
+
+ Observed gap
+
+  Retainer date, document path, and engagement-letter status exist, but no evidence was found of template merge, signature
+  envelopes, signer authentication, completion certificates, or automatic document ingestion.
+
+ Required capabilities
+
+s Versioned retainer and consent templates with merge fields, clauses by service, language, fee arrangement, and signer role.
+s Multi-party signing order for applicant, co-applicant, sponsor, employer, and consultant.
+s Signature-envelope status, reminders, expiry, decline reason, identity evidence, and tamper-evident completion certificate.
+s Automatic storage of the signed document and certificate on the case, followed by lead conversion and billing triggers.
+
+                                                                                                                                                                                         Page 7
+  Immigration Consultation - Product Gap Analysis
+
+s Client-facing review that works on mobile and exposes the exact terms accepted.
+
+              Recommendation: Use DocuSign, Adobe Acrobat Sign, or another vetted provider. Keep
+              provider-neutral envelope and signer entities so the platform is not locked to one vendor.
+
+ Minimum viable release
+
+  Generate retainer, send to two signers, receive webhook status, store signed copy/certificate, update lead status, and create
+  the initial invoice milestone.
+
+ Success measures
+
+  Median days from consultation to signature; completion rate; manual follow-ups; failed envelope rate; signed documents
+  correctly attached.
+
+ Key dependencies
+
+  Template service, webhooks, secure portal, billing events, immutable document versions, consent records.
+
+ 4.4 Calendar, Consultation Booking, and Deadline Management
+
+  PRIORITY P1 | ESTIMATED EFFORT M | DELIVERY STRATEGY: INTEGRATE EXTERNAL CALENDARS; BUILD LEGAL DEADLINE
+  CONTROLS
+
+ Observed gap
+
+  Case deadlines and scheduled reminders exist, but no appointment model, availability rules, calendar view, external calendar
+  synchronization, conflict handling, or deadline calculation engine was identified.
+
+ Required capabilities
+
+s Public and invitation-only booking pages with service, duration, location, intake prerequisites, payment requirement, and staff
+     availability.
+
+s Two-way Microsoft 365 and Google Calendar synchronization with conflict prevention and timezone handling.
+s Case deadline calendar with source, rule, owner, confidence, reminders, dependencies, completion evidence, and change
+
+     history.
+s Consultations, internal reviews, client calls, biometrics, medicals, hearings, filing targets, and follow-ups on one timeline.
+s No-show, cancellation, rescheduling, waitlist, and automated reminder policies.
+
+              Recommendation: Treat deadlines as controlled records, not ordinary calendar events. Every legal/filing
+              deadline should carry its source, calculation inputs, owner, reviewer, and audit history.
+
+ Minimum viable release
+
+  Firm calendar, case appointments, booking link, Microsoft 365 sync, configurable reminders, deadline ownership, and
+  overdue escalation.
+
+ Success measures
+
+  No-show rate; missed deadlines; booking conversion; schedule conflicts; overdue items; consultant utilization.
+
+ Key dependencies
+
+  User availability, notification delivery, task engine, external OAuth consent, timezone normalization, audit logging.
+
+                                                                                                                                                                                         Page 8
+  Immigration Consultation - Product Gap Analysis
+
+ 4.5 Unified Communications and Correspondence Record
+
+  PRIORITY P1 | ESTIMATED EFFORT L | DELIVERY STRATEGY: INTEGRATE DELIVERY CHANNELS; BUILD THE CASE
+  COMMUNICATION TIMELINE
+
+ Observed gap
+
+  The application can draft and approve reminders and includes mail configuration, but a complete two-way inbox, delivery
+  record, reply capture, bounce handling, consent management, and case correspondence timeline were not identified.
+
+ Required capabilities
+
+s Send and receive email within a case; associate replies and attachments automatically or through staff review.
+s SMS and WhatsApp through approved providers with opt-in/opt-out, templates, delivery status, and channel fallback.
+s Shared firm inbox, assignment, internal notes, mentions, tags, service targets, and collision controls.
+s Reusable message templates by language, program, case stage, missing item, and party role.
+s Immutable correspondence log with sender, recipient, channel, status, related case/task/document, and approval
+
+     provenance.
+s Safe AI drafting with source context, sensitive-data boundaries, consultant review, and no autonomous legal advice.
+
+              Recommendation: Make communication a first-class case object. Keep provider adapters separate from
+              message records so channel vendors can change without losing history.
+
+ Minimum viable release
+
+  Outbound email, templates, approval, delivery/bounce status, reply capture, attachments, case timeline, and client
+  communication preferences.
+
+ Success measures
+
+  Response time; delivery failure rate; time spent locating correspondence; template reuse; percentage of messages linked to
+  a case.
+
+ Key dependencies
+
+  Email/SMS providers, webhook ingestion, portal identity, consent records, retention policy, antivirus scanning.
+
+ 4.6 Secure Full-Service Client and Third-Party Portal
+
+  PRIORITY P1 | ESTIMATED EFFORT L | DELIVERY STRATEGY: BUILD AS A CORE EXPERIENCE
+
+ Observed gap
+
+  Token-based checklist and party-task views are useful starting points, but no complete authenticated client workspace was
+  identified for messages, payments, signatures, appointments, downloads, family members, or consent settings.
+
+ Required capabilities
+
+s Secure account activation, MFA options, session/device controls, recovery, and lifecycle management for applicants and
+     invited parties.
+
+s Role-scoped access for principal applicant, spouse, dependent, sponsor, host, employer, interpreter, or authorized
+     representative.
+
+s Case status, next actions, checklist, uploads, replacement requests, messages, appointments, invoices, payments, and
+     signatures.
+
+s Family/group cases with shared and private information boundaries.
+
+                                                                                                                                                                                         Page 9
+  Immigration Consultation - Product Gap Analysis
+
+s Mobile-first forms with save/resume, progress, validation, autosave, and low-bandwidth behavior.
+s Consent, privacy notice, communication preference, data-access request, and invitation revocation.
+
+              Recommendation: Preserve the low-friction token flow for narrowly scoped uploads, but require
+              authenticated access for sensitive data, financial records, messages, and broad case visibility. Make
+              permissions explicit per party and per object.
+
+ Minimum viable release
+
+  Authenticated portal, checklist/uploads, secure messages, appointment view, invoice/payment link, signature status,
+  invitation/revocation, and multilingual shell.
+
+ Success measures
+
+  Portal activation; intake completion; upload turnaround; support contacts per case; mobile completion; unauthorized access
+  incidents.
+
+ Key dependencies
+
+  External identity, object-level authorization, communications, billing, signatures, document service, localization framework.
+
+ 4.7 Production Document Management, OCR, and Evidence Operations
+
+  PRIORITY P1 | ESTIMATED EFFORT L | DELIVERY STRATEGY: BUILD WORKFLOW; INTEGRATE STORAGE, OCR, AND MALWARE
+  SCANNING
+
+ Observed gap
+
+  Uploads, metadata, status review, and classification exist, but the inspected surface does not show preview/download
+  operations, versions, OCR search, duplicates, annotations, redaction, retention disposition, archive, or malware controls.
+
+ Required capabilities
+
+s Secure object storage with tenant/case isolation, encryption, checksums, signed URLs, lifecycle tiers, backup, and recovery
+     testing.
+
+s Browser preview, download, rotate, merge/split, page reorder, annotation, redaction, and replacement/version history.
+s OCR and indexed search across filename, metadata, and extracted text; language detection and low-confidence review.
+s Duplicate and near-duplicate detection, password-protected file handling, corruption checks, and malware quarantine.
+s Evidence bundles with labels, exhibit numbering, cover pages, index, source lineage, and export manifest.
+s Retention holds, archive, deletion approval, disposition certificate, and complete access/download audit.
+
+              Recommendation: Separate immutable original files from derived previews, OCR text, redactions, and
+              assembled packages. Never overwrite the evidentiary original.
+
+ Minimum viable release
+
+  Cloud object storage, preview/download, immutable versions, OCR, text search, malware scan, duplicate warning, access
+  log, and package export.
+
+ Success measures
+
+  Search success; average review time; duplicate rate; infected files blocked; storage cost per case; recovery test success.
+
+ Key dependencies
+
+  Blob storage, key management, OCR service, search index, antivirus service, retention policy, object-level permissions.
+
+                                                                                                                                                                                       Page 10
+  Immigration Consultation - Product Gap Analysis
+
+ 4.8 Tasks, Workflow Automation, and Team Collaboration
+
+  PRIORITY P1 | ESTIMATED EFFORT L | DELIVERY STRATEGY: BUILD DOMAIN WORKFLOW ENGINE INCREMENTALLY
+
+ Observed gap
+
+  Checklist items and reminders exist, but no general task entity, assignee queue, dependency graph, recurring work, workload
+  balancing, comments, mentions, approvals matrix, or workflow builder was identified.
+
+ Required capabilities
+
+s Tasks with owner, reviewer, due date, priority, stage, dependency, checklist, evidence, comments, mentions, and completion
+     definition.
+
+s Queues for unassigned work, overdue work, review requests, client waiting, consultant decisions, and blocked cases.
+s Reusable workflows by service type with event triggers: retained, payment received, intake complete, document uploaded,
+
+     signature completed, deadline approaching, or status changed.
+s Role and skill-based assignment, delegation, absence coverage, workload view, and escalation policies.
+s Four-eyes approval for high-risk actions such as filing readiness, refunds, deletion, and externally sent AI content.
+
+              Recommendation: Start with opinionated workflow templates rather than a fully visual no-code builder.
+              Instrument actual usage, then expose only the configuration customers repeatedly need.
+
+ Minimum viable release
+
+  Tasks, assignments, due dates, comments, dependencies, queues, workflow templates, event triggers, and manager
+  workload dashboard.
+
+ Success measures
+
+  Cycle time by stage; overdue tasks; reassignments; blocked time; cases per staff member; first-pass approval rate.
+
+ Key dependencies
+
+  Event/outbox architecture, notification service, granular roles, calendar, audit trail, workflow versioning.
+
+ 4.9 Rules, Forms, and Immigration Knowledge Governance
+
+  PRIORITY P1 | ESTIMATED EFFORT M | DELIVERY STRATEGY: BUILD GOVERNANCE AS A PRODUCT CAPABILITY
+
+ Observed gap
+
+  Checklist templates and conditional rules are present, but a full lifecycle for monitoring sources, proposing changes, impact
+  analysis, staged review, effective dating, rollback, and customer notification was not identified.
+
+ Required capabilities
+
+s Source registry for official pages, manuals, forms, program delivery instructions, and provincial guidance.
+s Effective-dated rules, form versions, checklist templates, citations, jurisdictions, owner, reviewer, confidence, and change
+
+     reason.
+s Draft-review-approve-publish-retire workflow with separation of duties and rollback.
+s Impact analysis identifying affected templates, open cases, generated forms, deadlines, and advice content.
+s Release notes and in-product alerts that distinguish informational changes from actions required on active cases.
+s Regression test packs for representative case profiles before content publication.
+
+                                                                                                                                                                                       Page 11
+  Immigration Consultation - Product Gap Analysis
+
+              Recommendation: Create a small content-operations function. Software alone cannot guarantee current
+              immigration content; ownership, review cadence, sources, and response targets are part of the product.
+
+ Minimum viable release
+
+  Source-linked, effective-dated templates and rules; two-person publication; change log; active-case impact report; rollback;
+  regression fixtures.
+
+ Success measures
+
+  Time from official change to publication; affected cases reviewed; rollback count; content defects; percentage of rules with
+  authoritative citation.
+
+ Key dependencies
+
+  Admin roles, rule versioning, notification service, case snapshots, automated tests, editorial process.
+
+ 4.10 Reporting, Analytics, Compliance Exports, and Data Portability
+
+  PRIORITY P2 | ESTIMATED EFFORT M | DELIVERY STRATEGY: BUILD STANDARD METRICS; INTEGRATE BI FOR ADVANCED
+  ANALYSIS
+
+ Observed gap
+
+  Operational dashboards exist, but no broad reporting catalogue, scheduled reports, profitability, conversion funnels, custom
+  dimensions, audit export, bulk export, or customer data portability workflow was identified.
+
+ Required capabilities
+
+s Lead funnel, retained revenue, accounts receivable, case inventory, cycle time, stage aging, deadlines, document
+     turnaround, workload, and client response metrics.
+
+s Filters by office, consultant, staff member, service type, source, date, status, and cohort.
+s Scheduled PDF/CSV reports and role-controlled exports with masking and export audit.
+s Compliance exports for access history, approvals, communications, financial ledger, content versions, and AI-assisted
+
+     actions.
+s Customer-controlled full export and documented import format to reduce lock-in concerns.
+
+              Recommendation: Define a governed metric dictionary before building charts. Use operational database
+              views or a reporting replica; do not let ad hoc analytics destabilize transactional workloads.
+
+ Minimum viable release
+
+  Ten standard reports, CSV export, scheduled delivery, funnel and stage-aging dashboards, audit export, and full matter
+  archive export.
+
+ Success measures
+
+  Report adoption; export completion; data reconciliation errors; decisions/actions created from dashboards; support requests
+  for missing data.
+
+ Key dependencies
+
+  Event timestamps, financial module, stable data model, export jobs, object storage, masking and permissions.
+
+                                                                                                                                                                                       Page 12
+  Immigration Consultation - Product Gap Analysis
+
+ 4.11 Lead CRM, Consultation Conversion, and Referral Management
+
+  PRIORITY P2 | ESTIMATED EFFORT M | DELIVERY STRATEGY: BUILD A FOCUSED IMMIGRATION SALES WORKFLOW
+
+ Observed gap
+
+  Lead statuses exist on cases, but no public lead capture, duplicate/conflict checks, consultation funnel, marketing consent,
+  campaign attribution, referral partner records, or conversion analytics were identified.
+
+ Required capabilities
+
+s Embeddable lead forms, source attribution, consent, duplicate detection, qualification, conflict-check flags, and spam
+     controls.
+
+s Consultation booking, payment, intake pre-screen, notes, outcome, follow-up cadence, and conversion to client/case without
+     re-entry.
+
+s Referral partners, source quality, consented updates, and configurable non-fee referral tracking.
+s Pipeline stages, lost reasons, next action, automated nurture templates, and aging alerts.
+s Revenue and conversion reporting by source, service, consultant, and cohort.
+
+              Recommendation: Keep marketing automation modest. Win on zero-rekey conversion from lead to
+              retained matter and strong consultation operations; integrate specialized campaign tools when needed.
+
+ Minimum viable release
+
+  Lead form, qualification, booking/payment link, consultation record, pipeline, follow-up tasks, source attribution, and one-click
+  conversion.
+
+ Success measures
+
+  Lead response time; booking and show rate; consultation-to-retainer conversion; acquisition source quality; days to
+  conversion.
+
+ Key dependencies
+
+  Calendar, payments, communications, deduplication, consent model, analytics.
+
+ 4.12 Integrations, APIs, Webhooks, and Marketplace Readiness
+
+  PRIORITY P2 | ESTIMATED EFFORT L | DELIVERY STRATEGY: BUILD A STABLE INTEGRATION PLATFORM; PARTNER FOR
+  COMMODITY FUNCTIONS
+
+ Observed gap
+
+  The repository exposes application and MCP APIs, but no customer-facing webhook framework, integration credentials, sync
+  status, retry/dead-letter controls, accounting/calendar/signature adapters, or public developer lifecycle was identified.
+
+ Required capabilities
+
+s Documented REST API and scoped service credentials with tenant, environment, rate, expiry, and revocation controls.
+s Signed webhooks for case, task, document, payment, signature, appointment, and client events; retries, idempotency, replay,
+
+     and dead-letter review.
+s Provider adapters for Microsoft 365, Google Workspace, payment, signature, accounting, cloud storage, SMS/WhatsApp, and
+
+     BI.
+s Integration health dashboard, last-sync status, mapping errors, credential expiry, and support diagnostics.
+s Sandbox, sample data, versioning policy, deprecation window, and partner certification checklist.
+
+                                                                                                                                                                                       Page 13
+  Immigration Consultation - Product Gap Analysis
+
+              Recommendation: Use an internal event/outbox model before adding many integrations. Avoid
+              point-to-point logic embedded in controllers; integrations must be retryable, observable, and idempotent.
+
+ Minimum viable release
+
+  Outbox events, signed webhooks, API credentials, Microsoft 365, one payment provider, one signature provider, accounting
+  export, and integration health page.
+
+ Success measures
+
+  Sync success; webhook latency; retries; credential incidents; integration adoption; support volume per connector.
+
+ Key dependencies
+
+  Event model, secrets management, tenant isolation, observability, API versioning, idempotency keys.
+
+ 4.13 Multi-Tenant SaaS, Firm Administration, and Subscription
+ Operations
+
+  PRIORITY P2 | ESTIMATED EFFORT XL | DELIVERY STRATEGY: DESIGN NOW; PHASE IMPLEMENTATION WITH
+  COMMERCIALIZATION
+
+ Observed gap
+
+  Organization dashboards and consultant scoping exist, but the inspected model does not demonstrate complete tenant
+  isolation, firm-level configuration, office hierarchy, subscription entitlements, usage metering, provisioning, data residency, or
+  tenant export/deletion.
+
+ Required capabilities
+
+s Hard tenant boundary on every record, query, cache key, file path, job, event, export, and log context.
+s Firm, office, team, user, role, permission, service catalogue, branding, numbering, timezone, locale, and retention settings.
+s Subscription plans, trials, seats, storage, usage, add-ons, entitlements, invoices, grace periods, suspension, and reactivation.
+s Self-service user invitation, role changes, offboarding, ownership transfer, domain verification, and security-policy settings.
+s Tenant backup/restore, export, legal hold, closure, deletion workflow, and evidence of disposition.
+
+              Recommendation: Make tenant ID structurally unavoidable in repositories and storage. Add automated
+              cross-tenant security tests before onboarding unrelated firms. Do not rely only on consultant IDs in URLs
+              for isolation.
+
+ Minimum viable release
+
+  Firm tenant, scoped repositories/storage, firm admin, roles, invitations, plan entitlements, usage counters, tenant export, and
+  automated isolation tests.
+
+ Success measures
+
+  Isolation test coverage; provisioning time; entitlement defects; tenant-level restore success; gross retention; cost per tenant.
+
+ Key dependencies
+
+  Identity claims, database strategy, storage conventions, billing platform, configuration service, observability context.
+
+                                                                                                                                                                                       Page 14
+  Immigration Consultation - Product Gap Analysis
+
+ 4.14 Security, Privacy, Compliance, and Operational Resilience
+
+  PRIORITY P0 | ESTIMATED EFFORT L | DELIVERY STRATEGY: BUILD CONTROLS AND OPERATIONAL EVIDENCE CONTINUOUSLY
+
+ Observed gap
+
+  The code shows Entra authentication, authorization services, audit entities, masking, metadata sanitation, and security plans.
+  Remaining production requirements include stronger tenant/object authorization, upload security, secrets, privacy workflows,
+  monitoring, recovery evidence, and incident operations.
+
+ Required capabilities
+
+s MFA/conditional access, least privilege, granular roles, object-level authorization, step-up for destructive or outward actions,
+     and rapid access revocation.
+
+s Key Vault/managed identity, secret rotation, encryption, secure headers, strict CORS, rate limiting,
+     dependency/code/container scanning, and penetration testing.
+
+s PII inventory, purpose/consent records, retention schedules, legal holds, access/correction/export/deletion workflows, and
+     privacy-impact assessments.
+
+s Comprehensive audit events for logins, reads, downloads, exports, changes, approvals, role changes, AI actions,
+     integrations, and administrator activity.
+
+s Centralized logs and metrics, alerting, runbooks, backup, point-in-time recovery, restore exercises, business continuity,
+     incident response, and breach assessment.
+
+s Vendor risk, subprocessors, data location, contractual controls, vulnerability disclosure, and secure software-development
+     evidence.
+
+              Recommendation: Treat security and privacy as release acceptance criteria. Maintain a
+              control-to-evidence register so customer questionnaires and audits can be answered with current artifacts,
+              not promises.
+
+ Minimum viable release
+
+  Tenant/object authorization, MFA policy, secrets vault, malware scanning, complete security audit events, data
+  export/deletion workflow, monitoring alerts, backup/restore test, and incident runbooks.
+
+ Success measures
+
+  Critical vulnerabilities; mean time to revoke/respond/recover; restore success; unauthorized access tests; audit coverage;
+  overdue control evidence.
+
+ Key dependencies
+
+  Tenant model, identity, storage, observability, legal/privacy review, operational ownership.
+
+ 4.15 Accessibility, Localization, Mobile Experience, and Inclusive
+ Intake
+
+  PRIORITY P2 | ESTIMATED EFFORT L | DELIVERY STRATEGY: BUILD INTO THE DESIGN SYSTEM AND CONTENT LIFECYCLE
+
+ Observed gap
+
+  No comprehensive localization, right-to-left support, WCAG conformance evidence, assistive-technology testing,
+  offline/low-bandwidth mode, or native/mobile application surface was identified.
+
+ Required capabilities
+
+                                                                                                                                                                                       Page 15
+  Immigration Consultation - Product Gap Analysis
+
+s WCAG 2.2 AA target: keyboard operation, focus management, labels, errors, contrast, zoom/reflow, status announcements,
+     and accessible documents.
+
+s Internationalized UI and content with English/French baseline, translated client templates, locale-aware
+     names/addresses/dates, and right-to-left readiness.
+
+s Mobile-first intake and uploads, camera capture guidance, resumable transfer, compression, save/resume, and
+     low-bandwidth behavior.
+
+s Plain-language instructions, examples, progress indicators, review summaries, and clear separation of consultant advice from
+     automated guidance.
+
+s Accessibility and translation regression tests integrated into release workflow.
+
+              Recommendation: Prioritize a responsive progressive web experience before native apps. Design the
+              canonical data model for global names, addresses, documents, languages, and family structures from the
+              outset.
+
+ Minimum viable release
+
+  Accessible design-system components, keyboard/screen-reader audit, English/French shell, mobile intake/uploads,
+  autosave, resume, and localization-ready content templates.
+
+ Success measures
+
+  Mobile completion; abandonment by step; accessibility defects; translated workflow coverage; upload failure by connection
+  type.
+
+ Key dependencies
+
+  Design system, translation management, content governance, portal redesign, automated accessibility testing.
+
+ 4.16 AI Governance and Advanced Assistance
+
+  PRIORITY P2 | ESTIMATED EFFORT M | DELIVERY STRATEGY: EXTEND THE EXISTING SAFETY BOUNDARY; AVOID AUTONOMOUS
+  LEGAL DECISIONS
+
+ Observed gap
+
+  The platform has a promising AI boundary, masking, validation, audit, classification, and consultant sign-off. It still needs
+  formal model/prompt versioning, evaluation sets, source grounding, feedback, cost controls, incident handling, and
+  user-facing explanation.
+
+ Required capabilities
+
+s AI use-case registry with owner, purpose, risk, allowed data, model, prompt version, tools, human review, retention, and
+     fallback.
+
+s Grounded summaries and drafting that cite the case records or approved knowledge sources used.
+s Evaluation suites for extraction, classification, consistency, hallucination, sensitive-data leakage, bias, and refusal behavior.
+s Confidence thresholds, deterministic validation, user feedback, override reasons, quality monitoring, and rollback by
+
+     model/prompt version.
+s Cost, latency, rate, provider outage, and data-residency controls; no training on customer content without explicit contractual
+
+     basis.
+s Clear UI labels showing generated content, limitations, source context, reviewer, and approval status.
+
+                                                                                                                                                                                       Page 16
+  Immigration Consultation - Product Gap Analysis
+
+              Recommendation: Use AI to reduce reading, rekeying, comparison, and drafting effort. Keep eligibility
+              conclusions, strategy, representations, filing approval, and client advice under licensed consultant control.
+
+ Minimum viable release
+
+  Versioned prompts/models, grounded case summary, document extraction review, regression evaluations, confidence
+  display, consultant approval, and AI audit export.
+
+ Success measures
+
+  Accepted-without-edit rate; material error rate; time saved; override reasons; sensitive-data incidents; cost per completed
+  case workflow.
+
+ Key dependencies
+
+  Approved knowledge sources, evaluation data, audit event model, consent/privacy controls, observability, vendor contracts.
+
+ 4.17 Customer Onboarding, Data Migration, Support, and Product
+ Operations
+
+  PRIORITY P3 | ESTIMATED EFFORT M | DELIVERY STRATEGY: PRODUCTIZE REPEATABLE ONBOARDING; SUPPLEMENT WITH
+  SERVICES
+
+ Observed gap
+
+  The frontend and backend README files remain generic placeholders, and no production onboarding wizard, import
+  framework, migration reconciliation, knowledge base, in-product support, status page, or release communication workflow
+  was identified.
+
+ Required capabilities
+
+s Firm setup wizard for offices, users, branding, service catalogue, fees, templates, calendars, communication channels,
+     retention, and security settings.
+
+s CSV and document import with validation, dry run, duplicate matching, mapping templates, error correction, totals
+     reconciliation, and signed migration report.
+
+s Migration adapters for prioritized incumbents where commercially justified.
+s Role-based onboarding checklist, sample case, guided tours, searchable help, release notes, status page, and support
+
+     escalation.
+s Telemetry for activation, feature adoption, workflow drop-off, reliability, and support themes, with privacy controls.
+
+              Recommendation: Treat migration as part of the product. A superior workflow does not win if moving
+              active matters is risky or opaque. Offer a reversible pilot using copied data before any cutover.
+
+ Minimum viable release
+
+  Setup wizard, CSV import, bulk document import, validation report, sample workspace, admin guide, user guide, release
+  notes, and support/status workflow.
+
+ Success measures
+
+  Time to first live case; import error rate; activation completion; support tickets in first 30 days; pilot-to-paid conversion.
+
+ Key dependencies
+
+  Stable data contracts, import jobs, tenant provisioning, documentation owner, product analytics, support process.
+
+                                                                                                                                                                                       Page 17
+Immigration Consultation - Product Gap Analysis
+
+5. Recommended Product Architecture
+
+The target architecture should support regulated records, long-running workflows, external integrations, and tenant isolation
+without turning every new feature into controller-level coupling.
+
+Layer            Recommendation                                                                           Reason
+Experience
+Domain services  Separate staff workspace, authenticated client portal, limited token-upload flow,        Different identities and risk profiles require
+                 public lead/booking surfaces, and admin/content operations.                              different authorization and UX.
+Canonical data
+Events           Case, party, intake, forms, documents, tasks, communications, calendar, billing,         Clear ownership reduces cross-feature
+                 signature, knowledge, reporting, and identity/tenant modules.                            coupling and supports staged extraction if
+Files                                                                                                     scale demands it.
+Authorization
+Content          Reusable person, family, address, employment, education, travel, immigration,            Eliminates rekeying and enables consistent
+Observability    identity-document, and organization records with provenance.                             cross-form validation.
+
+                 Transactional outbox plus versioned domain events; idempotent consumers;                 Supports reminders, webhooks,
+                 retries and dead-letter operations.                                                      integrations, analytics, and workflow
+                                                                                                          triggers reliably.
+
+                 Immutable originals plus derived previews/OCR/redactions/packages;                       Preserves evidence integrity while enabling
+                 checksums, encryption, signed access, malware quarantine, lifecycle policies.            efficient document operations.
+
+                 Tenant, role, relationship, case, party, and object-level policies evaluated             URL scoping alone is insufficient for
+                 server-side; audit every sensitive access.                                               regulated multi-tenant data.
+
+                 Effective-dated forms/rules/templates with sources, review, publication, impact          Immigration content changes
+                 analysis, rollback, and regression cases.                                                independently from application code.
+
+                 Correlated request, user, tenant, case, job, integration, and AI-operation telemetry Required to operate long-running
+
+                 with sensitive-data filtering.                                                           workflows and produce audit evidence.
+
+Buy versus build principles
+
+Build                                                                Buy or integrate
+
+Canadian workflow, canonical case data, checklist logic, package     Card payments, electronic signatures, email/SMS delivery, calendar
+readiness, consultant approvals, case timeline, content governance.  transport, OCR, malware scanning, accounting, commodity storage.
+
+Provider-neutral adapters, audit, permissions, firm configuration, and Infrastructure that requires certification, network reach, specialized
+
+user experience around external services.                            compliance, or large ongoing delivery operations.
+
+6. Phased 18-Month Roadmap
+
+Phase            Outcome                      Recommended scope                                              Exit criteria
+
+0: Foundation    Safe commercial baseline     Tenant/object authorization design; event/outbox foundation;   Isolation and restore tests pass;
+0-2 months                                    secrets; upload scanning; observability; backup/restore;       critical events audited; top
+                                              canonical applicant model; content ownership.                  program/forms selected; architecture
+                                                                                                             decisions approved.
+
+1: Retain and    Complete lead-to-retainer    Booking/calendar; e-signature; fee plans, invoices and hosted  A firm can book, retain, invoice,
+collect 2-5      workflow                     payments; outbound email; lead conversion; authenticated       collect payment, and onboard a client
+months                                        portal shell.                                                  without duplicate entry.
+
+2: Prepare and   Primary workspace for        Tasks/queues; portal intake/uploads/messages; document         Staff and clients can complete most
+collaborate 5-9  active matters               preview/version/OCR/search; full communication timeline;       preparation work without parallel
+months                                        deadline controls.                                             spreadsheets, inbox searches, or
+                                                                                                             shared drives.
+
+3: Form and      Distinctive                  Versioned forms; mapping review; validation; package           Selected programs produce
+package          application-quality product  assembly; filing-readiness report; content release and impact  repeatable, version-linked,
+automation 8-13                               workflow.                                                      consultant-approved packages with
+months                                                                                                       measured error rates.
+
+4: Scale and     Commercial multi-firm        Firm administration; subscriptions; reporting/export;          Multiple unrelated firms operate with
+intelligence     platform                     integrations/webhooks; localization; advanced grounded AI;     tested isolation, exportability, support
+12-18 months                                  migration tooling.                                             processes, and unit economics.
+
+                                                                                                                                                          Page 18
+Immigration Consultation - Product Gap Analysis
+
+Sequencing note: Form automation has the greatest strategic value, but it depends on canonical data,
+governed content, secure document generation, and audit controls. Discovery and prototypes should
+begin in Phase 0 while commercial workflow features are delivered in parallel.
+
+ Suggested first 90 days
+
+s Interview 8-12 target firms across solo, small, and mid-sized practices; quantify volume, programs, current tools, rekeying
+     time, error sources, payment flow, and migration constraints.
+
+s Select the first 3-5 programs using case volume, form stability, willingness to pay, and workflow differentiation - not only
+     technical ease.
+
+s Define canonical applicant/party data and provenance; map it against selected forms and existing intake questions.
+s Implement tenant and object authorization tests, an outbox/event model, secrets management, upload scanning, monitoring,
+
+     and restore evidence.
+s Prototype one end-to-end golden path: booked consultation -> signed retainer -> paid invoice -> portal intake -> documents ->
+
+     generated form -> readiness report -> consultant approval.
+s Choose signature, payment, calendar, communication, storage, OCR, and malware vendors using a documented
+
+     security/data-residency scorecard.
+
+ 7. Measurement Framework
+
+Objective                    Primary measures                                                      Guardrails
+Reduce preparation effort
+                             Hours per case; rekey events; document review time; form              Material defect rate; consultant override rate;
+Improve conversion and cash  completion time.                                                      client correction rate.
+flow
+Increase case quality        Lead response; booking/show rate; retainer conversion; days to        Refunds; disputes; consent complaints; failed
+                             payment; overdue balances.                                            payments.
+Improve client experience
+                             First-pass approval; readiness warnings resolved; completeness;       False positives; missed critical issues;
+Scale firms safely           consistency defects found before filing.                              outdated content usage.
+
+Operate AI responsibly       Portal activation; intake completion; upload turnaround; response     Abandonment; accessibility defects;
+                             time; satisfaction.                                                   unauthorized access; support burden.
+
+                             Cases per staff member; overdue work; cycle time; utilization; gross  Security incidents; isolation failures; restore
+                             retention.                                                            failures; support severity.
+
+                             Accepted outputs; time saved; evaluation scores; grounded citations. Material errors; leakage; unreviewed external
+                                                                                                                              actions; cost per workflow.
+
+Measurement recommendation
+
+Capture baseline values before launching each feature. Report median and percentile cycle times, not only averages.
+Segment by program and firm size. Every automation metric should be paired with a quality or safety guardrail so speed
+cannot hide defects.
+
+                                                                                                                                                           Page 19
+Immigration Consultation - Product Gap Analysis
+
+8. Major Risks and Mitigations
+
+Risk                            Impact                                      Mitigation
+
+Trying to match every incumbent Diffused roadmap and slow differentiation.  Anchor on the end-to-end golden path and Canadian
+feature                                                                     application-quality automation.
+
+Outdated forms or rules         Incorrect packages and loss of trust.       Effective-dated content, authoritative sources, two-person
+                                                                            review, impact analysis, and regression fixtures.
+
+Over-automating legal judgment  Professional, regulatory, and reputational harm. Human approval, grounded explanations, explicit limitations,
+                                                                                                    evaluations, and no autonomous filing/advice.
+
+Weak tenant/object isolation    Severe privacy incident.                    Structural tenant scoping, policy enforcement, automated
+                                                                            cross-tenant tests, access audit, and penetration testing.
+
+Integration fragility           Missed messages, appointments, payments, or Outbox, idempotency, retries, dead-letter operations, health
+
+                                signatures.                                 dashboard, and reconciliation jobs.
+
+Migration friction              Low conversion despite superior features.   Dry-run import, mapping, reconciliation, reversible pilot, archive
+                                                                            export, and migration services.
+
+Building commodity infrastructure High cost and compliance burden.          Buy payment, signature, delivery, OCR, and scanning
+                                                                            capabilities; preserve provider-neutral domain models.
+
+Poor mobile/accessibility       Client abandonment and greater staff workload. Mobile-first portal, autosave, low-bandwidth uploads, WCAG
+experience                                                                                          testing, plain-language content, localization.
+
+9. Recommended Market Position
+
+      Positioning statement: For Canadian immigration consultants and small-to-mid-sized firms that need to
+      prepare complete, consistent, current applications, Immigration Consultation is a compliance-first practice
+      platform that turns client data and evidence into consultant-reviewed filing packages. Unlike generic legal
+      CRMs, it embeds Canadian immigration workflows, content governance, and explainable quality controls.
+
+Differentiation pillars
+
+Pillar                        Proof the product should provide
+Current
+Complete                      Every form, rule, and checklist is versioned, source-linked, effective-dated, reviewed, and impact-assessed.
+Canadian
+Controlled AI                 The system identifies missing evidence, incomplete fields, unexplained gaps, inconsistencies, expiries, translations,
+Operational                   and unresolved decisions.
+
+                              Deep workflows for federal/provincial programs, LMIA evidence, physical presence, travel/work history, sponsorship
+                              parties, and local practice operations.
+
+                              AI output is grounded, measured, masked where appropriate, auditable, and approved by a consultant before
+                              external reliance.
+
+                              Booking, retainers, money, communications, tasks, documents, forms, reporting, and closure live on one case
+                              timeline.
+
+10. Decision Checklist Before Development
+
+s Which country and practitioner segment is the first commercial target? This report assumes Canadian immigration
+     consultants and firms.
+
+s Which programs represent the first 60-70% of target-firm volume and willingness to pay?
+
+s Is the product deployed per firm, offered as multi-tenant SaaS, or both? The answer changes isolation, operations, billing, and
+     support design.
+
+                                                                                                                                                     Page 20
+  Immigration Consultation - Product Gap Analysis
+
+s Which financial requirements apply to the target practitioners, provinces, payment flows, and trust arrangements? Validate
+     with qualified counsel/accounting professionals.
+
+s What data residency, retention, recovery, and subprocessor commitments will be sold contractually?
+s Which features are included versus integrated, and who owns support when an external provider fails?
+s What evidence must exist before the product claims a form, package, or case is ready?
+s What is the migration promise to firms with active matters, historical documents, communications, and financial records?
+
+ Appendix A - Competitive Reference Points
+
+  The market comparison should be refreshed during product discovery because vendor packaging and features change. The
+  following public vendor pages are useful starting points for validating buyer expectations:
+s Docketwise - immigration case management and product features
+s Cerenade - immigration software
+s INSZoom - immigration case management
+s Clio - immigration law software
+s College of Immigration and Citizenship Consultants - public resources and register
+
+Reference caution
+
+Vendor pages are marketing sources and are suitable for feature discovery, not independent proof of product quality,
+adoption, security, or regulatory compliance. Competitive claims should be validated through demonstrations, customer
+interviews, trial environments, contracts, and current documentation.
+
+Appendix B - Repository Evidence Reviewed
+
+Evidence area                        Representative repository locations
+Navigation and visible surfaces
+Frontend API catalogue               frontend/src/app/app.routes.ts; frontend/src/app/features/**
+Backend capabilities
+Identity and authorization           frontend/src/app/core/constants/api-endpoints.ts; frontend/src/app/core/services/api.service.ts
+
+Database and seeded product content  backend/src/main/java/com/immiauto/controller/**; service/**; entity/**; dto/**
+
+MCP/AI integration                   frontend/src/app/core/auth/**; backend/src/main/java/com/immiauto/config/SecurityConfig.java;
+                                     security/**
+Product documentation
+                                     backend/src/main/resources/db/migration/**; config/IntakeQuestionSeeder.java;
+                                     config/ConditionalRuleSeeder.java
+
+                                     MCPServer/**; backend services for AI boundary, masking, validation, auditing, and sensitive
+                                     fields
+
+                                     frontend/README.md; backend/README.md; docs/SoftwareForImmigrationConsultants/**
+
+End of report
+
+                                                                                                                                      Page 21
+

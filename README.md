@@ -179,10 +179,54 @@ Immigration-Consultation/
 │   ├── postgres/init/  # DB bootstrap scripts (app schema + migrations, keycloak db)
 │   ├── keycloak/       # Realm import TEMPLATE + configure-dcr.sh (MCP DCR bootstrap)
 │   └── librechat/      # librechat.yaml (Ollama endpoint + MCP server wiring)
-├── docs/               # Project documentation
+├── .claude/            # Development harness + project tracking (see below)
+├── .githooks/          # pre-commit, commit-msg, post-merge
 ├── docker-compose.yml  # Full local stack
+├── CLAUDE.md           # Contributor working guidelines
 └── .env.example        # Environment template
 ```
+
+---
+
+## Development harness
+
+The repo ships a **[Claude Code](https://claude.com/claude-code) harness** — agents, skills, git hooks, and a project-tracking structure under [`.claude/`](.claude/). It automates the conventions in [CLAUDE.md](CLAUDE.md) so they can't be forgotten.
+
+**You do not need it to build or run the application.** The Docker Compose stack above is self-contained. The harness matters if you are *contributing* to the codebase.
+
+### One-time setup on a fresh clone
+
+```bash
+git config core.hooksPath .githooks
+```
+
+That enables three hooks: `pre-commit` (secret scan + commit-author guard), `commit-msg` (blocks AI co-author attribution), and `post-merge` (cleans up merged worktrees).
+
+The secret scan additionally needs **gitleaks** — without it that check is skipped silently, though the author guard still runs:
+
+```bash
+winget install gitleaks
+```
+
+*(macOS: `brew install gitleaks`; see [gitleaks install docs](https://github.com/gitleaks/gitleaks#installing).)*
+
+### What's in the harness
+
+| | |
+| --- | --- |
+| **8 agents** ([`.claude/agents/`](.claude/agents/)) | Scoped roles with their own context — backend and frontend feature work, migrations, tests, security review, requirements analysis, docs sync, deploy verification |
+| **6 skills** ([`.claude/skills/`](.claude/skills/)) | On-demand procedures — vertical slice, requirement intake, release gate, content governance, status sync, worktrees |
+| **3 git hooks** ([`.githooks/`](.githooks/)) | Deterministic commit and merge gates |
+| **Project tracking** ([`.claude/`](.claude/)) | Requirements register, architecture, delivery plan, status dashboard, change log, and the source requirement corpus |
+
+**[`.claude/README.md`](.claude/README.md) is the index** — it explains the layout, the roster, and where each kind of work gets recorded.
+
+### Where the project stands
+
+[`.claude/status dashboard.md`](.claude/status%20dashboard.md) tracks 70 requirements against the code. Two things a new contributor should know up front:
+
+- **Test coverage is thin** — 6 test files for ~30 services and 17 controllers. Adding tests alongside your change is not optional here (CLAUDE.md §9).
+- **Flyway is disabled.** Migrations under `db/migration/postgresql/` are applied **manually**; a written migration is not a deployed one.
 
 ---
 

@@ -72,3 +72,15 @@ unmerged or uncommitted work.
   ancestry-based cleanup won't recognize the merge — verify via `gh pr view`
   (step 1) and remove manually.
 - Enable the hooks in a fresh clone (per-clone): `git config core.hooksPath .githooks`.
+
+## Recording your work
+
+Worktree mechanics are ephemeral and mostly need no record. Two exceptions:
+
+| What | Where |
+| --- | --- |
+| A worktree the hook could **not** clean (dirty, unmerged, or untracked as a worktree) | `.claude/progress/` — it needs a human decision, and silently leaving it rots the directory |
+| A git or worktree quirk that will bite again | `.claude/memory/<slug>.md` |
+
+The branch itself needs no entry — [`.claude/change.log.md`](../../change.log.md) records the *work*,
+not the branch it happened on.

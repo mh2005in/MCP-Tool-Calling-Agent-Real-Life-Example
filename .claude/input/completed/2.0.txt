@@ -1,0 +1,844 @@
+AI Intake & Document Follow-up Automation for
+         Immigration Consultants in Canada
+
+Application Type Deep Dive: Document Collection, Automation Boundaries, and MVP
+Requirements
+
+I'll treat this as a requirements/business-domain deep dive, not legal advice. I'll use current official IRCC/government sources for
+document-list structure and then translate that into software requirements and automation boundaries.
+
+Important: this is not immigration or legal advice. For the product, the system should always treat IRCC/ESDC official pages,
+latest forms, and the consultant's professional judgment as the source of truth. The software should collect, organize, remind,
+summarize, and flag missing items, but it should not decide eligibility or tell the client what strategy to choose.
+
+1. Core compliance principle for the product
+
+For every permit/application type, your product should follow this rule:
+
+The system may automate intake, document collection, document tracking, reminders, summaries, and draft
+communications. It must not provide immigration advice, eligibility decisions, legal interpretation, or guarantee
+outcomes.
+
+This matters because immigration consultants are regulated professionals. Your software should support the consultant, not
+replace them.
+
+Area                 Requirement
+Source of truth      Link checklist templates to official IRCC/ESDC source pages
+Human approval       Consultant must approve checklist before sending to client
+Versioning           Store checklist version, source URL, and date reviewed
+AI boundary          AI can summarize, classify, detect missing files, and draft emails
+No legal advice      AI must not recommend program choice or eligibility result
+Audit trail          Track who changed checklist, who approved it, and when
+Client disclaimer    Client sees "documents requested are subject to consultant review"
+
+2. High-level application type map
+
+Application type     Business volume  Document complexity                        Automation value  Risk level  MVP priority
+Study Permit         High             Medium                                     Very high         Medium      Very high
+Visitor Visa         High             Low-Medium                                 High              Medium      High
+Spousal Sponsorship  Medium-High      Very high                                  Very high         High        High, but later
+Express Entry        High             High                                       Very high         High        High, but needs careful design
+Work Permit          High             Medium-High                                High              High        High
+LMIA                 Medium           Very high                                  Very high         Very high   Later / premium module
+Citizenship          Medium           Medium                                     Medium            Medium      Medium
+PR Card / PRTD       Medium           Low-Medium                                 Medium            Low-Medium  Medium
+PGWP                 High             Medium                                     High              Medium      High
+Super Visa           Medium           Medium                                     High              Medium      Medium
+PNP                  Medium           High                                       High              High        Later
+
+For the first MVP, prioritize: Study Permit -> Visitor Visa -> Work Permit/PGWP -> Spousal Sponsorship -> Express Entry ->
+LMIA.
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                    Page 1 of 16
+3. Study Permit
+
+A study permit allows a foreign national to study at a designated learning institution in Canada. IRCC study permit guidance
+includes documents such as a letter of acceptance, proof of identity, proof of financial support, and in many cases a provincial or
+territorial attestation letter. For Quebec studies, applicants generally need a CAQ rather than the regular PAL/TAL process.
+
+Official-source anchor: IRCC study permit documents:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html; IRCC IMM 5483 checklist
+page: https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5483.html
+
+Common client profile
+
+Client type                 Examples
+New international student   Applying from outside Canada
+Student inside Canada       Extension or change of program
+Minor student               K-12 student
+Quebec student              Requires CAQ process
+Student with spouse/family  Study permit plus spouse open work permit or visitor records
+
+Common document categories
+
+Category                    Examples
+Identity                    Passport, digital photo, family information
+School                      Letter of acceptance from DLI
+Attestation                 PAL/TAL, or CAQ for Quebec where applicable
+Financial                   Bank statements, GIC, tuition receipt, sponsor letter, proof of income
+Purpose                     Study plan / statement of purpose
+Ties to home country        Employment, property, family, prior education
+Immigration history         Previous visas, refusals, travel history
+Medical/biometrics          If requested or required
+Representative              Use of Representative form if applicable
+
+Intake questions your software should ask
+
+Section                     Key questions
+Applicant identity          Name, DOB, citizenship, passport expiry
+Education                   DLI name, program, start/end date, level of study
+Location                    Province of school, Quebec or non-Quebec
+PAL/TAL/CAQ                 Has school issued PAL/TAL or CAQ?
+Finances                    Who pays tuition/living expenses? Funds available?
+Sponsor                     Relationship to sponsor, sponsor income/source
+History                     Prior refusals, overstays, previous Canadian applications
+Family                      Spouse/children accompanying?
+Country-specific            Applying from which country?
+
+Automation opportunities
+
+· Generate a preliminary document checklist based on school province, applicant country, funding source, and family status.
+· Track missing documents.
+· Send reminders for bank statements, tuition receipts, PAL/TAL/CAQ, passport, and sponsor documents.
+· Summarize client background for the consultant.
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                     Page 2 of 16
+· Draft missing-document emails.
+· Flag passport expiry, missing PAL/TAL, missing financial evidence, or inconsistent names.
+
+AI boundary
+
+Allowed AI support                                                               Not allowed
+
+Summarize the client's education history; List documents still missing; Draft    Say the client is eligible for a study permit; Claim refusal risk is low;
+a reminder asking for updated bank statements                                    Recommend school/program choices to improve approval chances
+
+MVP suitability
+
+Excellent first MVP. It has repetitive document collection, frequent missing-document issues, and a clear checklist structure.
+
+4. Visitor Visa / Temporary Resident Visa
+
+A visitor visa, also called a temporary resident visa, is for people who need a visa to travel to Canada temporarily. IRCC
+guidance uses visitor visa document checklists and may require country-specific supporting documents.
+
+Official-source anchor: IRCC visitor visa guide: https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms
+-guides/guide-5256-applying-visitor-visa-temporary-resident-visa.html; IRCC common supporting documents:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/application/common-supporting-documents.html
+
+Common client profile
+
+Client type                 Examples
+Family visitor              Visiting child, spouse, parent, sibling
+Tourism                     Vacation or travel
+Business visitor            Meetings, conferences
+Event visitor               Wedding, graduation, ceremony
+Previous refusal applicant  Reapplying after refusal
+
+Common document categories
+
+Category                    Examples
+Identity                    Passport, photo, family information
+Purpose of visit            Invitation letter, itinerary, event proof
+Financial support           Bank statements, employment letter, pay slips
+Host documents              Host PR card/citizenship proof, address, employment, invitation
+Ties to home country        Job, property, family, school, business
+Travel history              Previous visas, stamps, refusals
+Status documents            Current residence permit if applying outside citizenship country
+Representative              Use of Representative form if applicable
+
+Intake questions your software should ask
+
+Section                     Key questions
+Visit purpose               Tourism, family visit, business, event
+Host                        Is there a Canadian host? Relationship?
+Duration                    Planned arrival/departure
+Funding                     Self-funded or host-funded?
+Employment                  Current job, employer, leave approval
+Assets/ties                 Property, family, business, school
+Travel history              Countries visited, prior visas
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                                                             Page 3 of 16
+Section                  Key questions
+Refusals                 Any previous visa refusals?
+
+Automation opportunities
+
+· Generate host and applicant document checklists.
+· Request invitation letter details.
+· Track financial documents.
+· Detect missing travel dates or host proof.
+· Draft visitor-purpose summary for consultant review.
+· Send reminders for employment letter, bank statements, passport, and host ID.
+
+AI boundary                                                                      Not allowed
+
+ Allowed AI support                                                              Predict approval; Tell client how to overcome refusal; Recommend
+ Summarize purpose of visit; Identify missing host documents; Draft an           misrepresenting purpose of visit
+ invitation-letter questionnaire
+
+MVP suitability
+
+Very good second workflow. It is simpler than study permit and has high demand.
+
+5. Spousal Sponsorship
+
+Spousal sponsorship allows a Canadian citizen or permanent resident to sponsor a spouse, common-law partner, conjugal
+partner, or dependent child for permanent residence. This workflow is complex because it is not just a document checklist; it is a
+relationship-evidence package.
+
+Official-source anchor: IRCC spousal sponsorship package: https://ircc.canada.ca/english/information/applications/spouse.asp; IRCC guide
+5289: https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5289-sponsor-your-spouse-c
+ommon-law-partner-conjugal-partner-dependent-child-complete-guide.html
+
+Common document categories
+
+Category                 Examples
+Sponsor identity/status  Canadian passport, PR card, citizenship certificate
+Applicant identity       Passport, birth certificate, national ID
+Relationship status      Marriage certificate, common-law proof, divorce certificates
+Relationship evidence    Photos, chats, call logs, travel proof, joint accounts, lease, insurance
+Sponsor financial        Employment letter, tax documents, Option C/NOA where relevant
+Police/medical           Police certificates, medical exam instructions where applicable
+Dependents               Birth certificates, custody documents
+Forms                    Sponsorship and PR forms, declarations, representative form
+Quebec                   Extra Quebec sponsorship process if sponsor lives in Quebec
+
+Intake questions your software should ask
+
+Section                  Key questions
+Sponsor                  Citizen/PR? Living in Canada or abroad? Province?
+Applicant                Country, current status, prior marriages
+Relationship type        Married, common-law, conjugal
+Relationship timeline    First contact, first meeting, engagement, marriage/cohabitation
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                                                    Page 4 of 16
+Section                       Key questions
+Cohabitation                  Shared address? Dates? Proof?
+Dependents                    Any children? Custody issues?
+Previous sponsorship          Has sponsor sponsored before?
+Criminal/immigration history  Prior refusals, removals, criminality
+Quebec                        Does sponsor live in Quebec?
+
+Automation opportunities
+
+· Relationship timeline builder.
+· Evidence upload organizer.
+· Photo and chat-log categorization.
+· Missing relationship-proof tracker.
+· Form data collection.
+· Sponsor/applicant task separation.
+· Dependent-child checklist.
+· Consultant review dashboard.
+
+AI boundary
+
+Allowed AI support                                                               Not allowed
+
+Summarize relationship timeline; Categorize uploaded files as photos, chats, Tell client what facts to emphasize or hide; Generate fabricated relationship
+
+travel proof, or joint financial proof; Draft a missing-evidence reminder;       narratives; Advise whether relationship is genuine enough; Make sponsorship
+
+Create a relationship chronology for consultant review                           eligibility conclusions
+
+MVP suitability
+
+High value, but not first MVP. It is complex, emotionally sensitive, and high-risk. Build this after strong document versioning, audit
+logs, and human approval.
+
+6. Express Entry
+
+Express Entry is the system used for certain economic immigration programs. Depending on the situation, applicants may need
+identity, language, education, work, funds, police, medical, family, nomination, job offer, and representative documents. After
+invitation to apply, document needs become more formal and time-sensitive.
+
+Official-source anchor: IRCC Express Entry documents:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents.html; IRCC apply for permanent
+residence: https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/apply-permanent-residence.html;
+IRCC proof of funds:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html
+
+Common client profile
+
+Client type                            Examples
+Federal Skilled Worker                 Foreign work experience
+Canadian Experience Class              Canadian skilled work experience
+Federal Skilled Trades                 Trade experience
+PNP Express Entry                      Provincial nomination
+Applicant with spouse                  CRS and document complexity increase
+Applicant with dependents              Birth/custody documents needed
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                           Page 5 of 16
+Common document categories
+
+Category             Examples
+Identity             Passport, birth certificate, marital documents
+Language             IELTS/CELPIP/TEF/TCF results
+Education            ECA, diplomas, transcripts
+Work experience      Reference letters, pay slips, tax documents, contracts
+Proof of funds       Bank letters/statements if required
+Police certificates  Countries lived in
+Medical              Immigration medical exam
+Family               Marriage, divorce, common-law, children's birth certificates
+PNP/job offer        Nomination certificate, offer letter, employer documents
+Representative       IMM 5476 if applicable
+
+Intake questions your software should ask
+
+Section              Key questions
+Program path         FSW, CEC, FST, PNP?
+Work history         Employer, NOC/TEER, dates, hours, duties
+Education            Canadian or foreign? ECA completed?
+Language             Test type, date, scores
+Marital status       Spouse accompanying or not?
+Dependents           Children? Custody?
+Funds                Required or exempt?
+Travel/residence     Countries lived in for police certificate logic
+Prior applications   Refusals, inadmissibility, misrepresentation issues
+
+Automation opportunities
+
+· Work-history intake.
+· Reference-letter document tracker.
+· Police certificate country/date logic.
+· ECA/language expiry reminders.
+· Proof-of-funds checklist.
+· Family document checklist.
+· Post-ITA document tracker.
+· Consultant-facing summary of education/work/family profile.
+
+AI boundary
+
+Allowed AI support                                                               Not allowed
+
+Summarize work history; Extract job title, dates, employer name from             Decide NOC/TEER classification automatically; Calculate or guarantee CRS as
+
+reference letters; Flag missing dates or inconsistent employer names; Draft a final advice; Tell applicant they qualify; Suggest altering job duties to match
+
+request for missing reference-letter details                                     NOC
+
+MVP suitability
+
+Very valuable, but needs careful guardrails. Consultant approval must be mandatory for NOC, eligibility, CRS, and program
+strategy.
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada               Page 6 of 16
+7. Work Permit
+
+Work permits can be employer-specific or open. Employer-specific work permits generally require job-offer and employer-related
+information. LMIA-required work permits use an LMIA decision letter, while LMIA-exempt jobs may use an employer portal offer
+of employment number.
+
+Official-source anchor: IRCC work in Canada: https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada.html; IRCC
+forms/documents for work permit outside Canada:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit-outside/forms-documents.html; IRCC guide 5487: https://
+www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5487-applying-work-permit-outside-canad
+a.html
+
+Common client profile
+
+Client type                     Examples
+Employer-specific LMIA-based    Employer has positive LMIA
+Employer-specific LMIA-exempt   Employer portal offer number
+Open work permit                Spouse, certain public policies, vulnerable worker, etc.
+PGWP                            Post-graduation work permit
+Bridging open work permit       PR application in progress
+Intra-company transfer          LMIA-exempt category
+International Mobility Program  LMIA-exempt streams
+
+Common document categories
+
+Category                        Examples
+Identity                        Passport, photo, family info
+Job/employer                    Job offer, contract, LMIA or offer number
+Qualification                   Resume, education, credentials, licences
+Experience                      Employment letters, pay slips
+Status                          Current Canadian status if inside Canada
+Family                          Marriage certificate, spouse documents, children docs
+Medical/biometrics              If required
+Representative                  Use of Representative form
+
+Intake questions your software should ask
+
+Section                         Key questions
+Application location            Inside Canada, outside Canada, port of entry?
+Work permit type                Employer-specific or open?
+LMIA                            Required, exempt, or unknown?
+Employer                        Employer name, CRA/business details, job title
+Offer                           Wage, location, duties, NOC/TEER
+Applicant status                Current status in Canada, expiry date
+Family                          Spouse/children accompanying?
+Qualifications                  Education, license, work experience
+Prior refusals                  Any work permit or visa refusals?
+
+Automation opportunities
+
+· Separate employer tasks from applicant tasks.
+· Track LMIA letter or employer portal offer number.
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada           Page 7 of 16
+· Track passport/status expiry.
+· Collect job offer and contract.
+· Create inside/outside Canada checklist variants.
+· Send employer reminders and applicant reminders separately.
+
+AI boundary                                                                      Not allowed
+
+ Allowed AI support                                                              Decide LMIA exemption category; Advise whether job offer is genuine; Tell
+ Extract job title, wage, employer name from offer letter; Flag missing LMIA     applicant they can start working; Interpret maintained status rules without
+ number or offer number; Summarize applicant qualifications                      consultant review
+
+MVP suitability
+
+Good after study permit and visitor visa. Work permits introduce employer-side workflows, which increases product value.
+
+8. LMIA
+
+LMIA is primarily an employer-side process through Employment and Social Development Canada / Service Canada under the
+Temporary Foreign Worker Program. ESDC assesses whether the job offer and business are genuine and legitimate. This is a
+premium, high-risk workflow because business legitimacy, recruitment evidence, stream-specific requirements, and timing
+matter.
+
+Official-source anchor: ESDC business legitimacy:
+https://www.canada.ca/en/employment-social-development/services/foreign-workers/business-legitimacy.html; ESDC apply for LMIA - PR stream:
+https://www.canada.ca/en/employment-social-development/services/foreign-workers/permanent/apply.html; ESDC LMIA processing times:
+https://www.canada.ca/en/employment-social-development/services/foreign-workers/labour-market-impact-assessment-processing-times.html;
+ESDC TFWP: https://www.canada.ca/en/employment-social-development/services/foreign-workers.html
+
+Common client profile
+
+Client type                  Examples
+High-wage                    Wage at/above provincial median
+Low-wage                     Wage below provincial median
+Permanent residence support  Dual intent / PR support
+Global Talent Stream         Specialized tech/talent roles
+Agricultural                 Primary agriculture
+Caregiver                    Home child care / support
+Seasonal                     Seasonal agricultural worker
+
+Common document categories
+
+Category                     Examples
+Employer identity            Business number, CRA payroll account
+Business legitimacy          Business licence, CRA documents, lease, financial docs
+Job offer                    Wage, duties, location, hours, benefits
+Recruitment                  Job ads, screenshots, dates, applicant tracking
+Transition plan              For some high-wage cases
+Provincial requirements      Provincial registration/licensing where applicable
+Worker documents             Candidate resume, passport, qualifications
+Fees/signatures              Employer attestations, fee payment
+
+Intake questions your software should ask
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                           Page 8 of 16
+Section                  Key questions
+Employer                 Legal name, operating name, CRA BN, payroll account
+Business                 Industry, address, number of employees, revenue proof
+Job                      Title, wage, hours, location, duties, NOC/TEER
+Stream                   High-wage, low-wage, PR support, GTS, agriculture, caregiver
+Recruitment              Where advertised, dates, applicants, interview results
+Candidate                Name, qualifications, experience
+Compliance               Prior LMIA history, inspections, layoffs, business legitimacy
+
+Automation opportunities
+
+· Employer onboarding checklist.
+· Recruitment evidence tracker.
+· Job ad date calculator.
+· Candidate comparison matrix.
+· Missing business document alerts.
+· Stream-specific checklist logic.
+· Employer/candidate task separation.
+· Audit-ready recruitment record.
+
+AI boundary                                                                      Not allowed
+
+ Allowed AI support                                                              Decide whether employer qualifies; Decide wage compliance; Advise how to
+                                                                                 reject Canadian applicants; Generate misleading recruitment rationale;
+ Summarize recruitment efforts; Extract job ad dates from screenshots or         Manipulate job duties to fit a stream
+ uploaded files; Organize candidate resumes; Draft missing-document
+ reminder to employer
+
+MVP suitability
+
+Do not build first. LMIA is high-value but high-risk. It should be a later module for consultants who already handle employer files.
+
+9. Citizenship
+
+Canadian citizenship workflows include adult grants of citizenship, minor applications, citizenship certificates/proof of citizenship,
+and special cases. Adult citizenship applications commonly require identity documents, PR proof, travel history, language proof
+where applicable, tax-related information, and residence/physical-presence data for consultant review.
+
+Official-source anchor: IRCC CIT 0007 checklist:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/cit0007.html; IRCC adult citizenship
+documents: https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/adult-minor/how/adult-forms-documents.html
+
+Common client profile
+
+Client type                            Examples
+Adult citizenship grant                PR applying after meeting requirements
+Minor citizenship grant                Child application
+Citizenship certificate                Proof of citizenship
+Replacement certificate                Lost/damaged certificate
+Name change/update                     Certificate correction/update
+
+Common document categories
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada         Page 9 of 16
+Category           Examples
+Identity           Two pieces of ID
+PR proof           PR card, COPR, Record of Landing
+Travel history     Passports/travel documents during eligibility period
+Language           Proof of language ability if applicable
+Tax                Tax filing years
+Residence          Physical presence calculation support
+Name change        Legal name change documents
+Representative     If applicable
+
+Intake questions your software should ask
+
+Section            Key questions
+Age                Adult or minor?
+PR date            Date became permanent resident
+Absences           Travel outside Canada
+Tax years          Filed taxes for relevant years?
+Language           Age range and proof available?
+Prohibitions       Criminality, removal order, probation?
+Identity           Available IDs, name consistency
+Past applications  Prior citizenship application?
+
+Automation opportunities
+
+· Collect travel history.
+· Track IDs and passports.
+· Flag missing tax years.
+· Organize language proof.
+· Create a physical presence data-entry workflow for consultant review.
+· Remind client for expired passports or old travel records.
+
+AI boundary                                                                      Not allowed
+
+ Allowed AI support                                                              Certify physical presence eligibility; Decide if prohibitions apply; Provide legal
+ Summarize travel history; Detect date gaps; Organize ID documents               interpretation of residency rules
+
+MVP suitability
+
+Good medium-priority workflow. It is less urgent than study/visitor/work but good for repeatable document collection.
+
+10. PR Card Renewal / PRTD
+
+Permanent residents use PR card applications to get, renew, or replace a PR card. PR Travel Document workflows are related
+when a permanent resident is outside Canada without a valid PR card. This workflow is document-driven and often depends on
+card expiry, travel history, and the reason for replacement or renewal.
+
+Official-source anchor: IRCC PR card apply:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/permanent-residents/card/apply.html; IRCC guide 5445: https://www.canada.c
+a/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5445-applying-permanent-resident-card-card-first-applic
+ation-replacement-renewal-change-gender-identifier.html; IRCC IMM 5444:
+https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5444.html
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                        Page 10 of 16
+Common document categories
+
+Category            Examples
+PR proof            PR card, COPR, Record of Landing
+Identity            Passport, ID documents
+Photos              PR card photos
+Residence           Address history, travel history
+Lost/stolen         Police report or incident number if available
+Damaged card        Proof damaged card destroyed if replacing damaged card
+Name/gender change  Legal change documents
+Representative      If applicable
+
+Intake questions your software should ask
+
+Section             Key questions
+Application reason  Renewal, replacement, first card, PRTD
+Card expiry         Current PR card expiry date
+Travel              Days outside Canada
+Lost/damaged        Lost, stolen, destroyed, damaged?
+Urgency             Need urgent processing?
+Name changes        Any legal name/gender changes?
+Documents           COPR, Record of Landing, passport available?
+
+Automation opportunities
+
+· Track PR card expiry.
+· Collect travel history.
+· Flag card valid for more than 9 months for consultant review.
+· Collect lost/stolen/damaged card evidence.
+· Request photo specs.
+
+AI boundary
+
+Allowed AI support                                                               Not allowed
+
+Summarize travel history; Detect missing identity documents; Organize PR         Decide residency obligation compliance; Guarantee urgent processing; Tell a
+proof and photo uploads                                                          client whether they can travel
+
+MVP suitability
+
+Good add-on workflow. Lower complexity, useful for small consultants, but not as profitable as study/work/family.
+
+11. PGWP - Post-Graduation Work Permit
+
+PGWP is a common post-study work permit. It is an excellent add-on to the Study Permit module because it depends on study
+completion documents, current status, passport expiry, and timing-sensitive requirements. IRCC has special instructions for
+PGWP applicants, including language-test-related instructions in current guidance.
+
+Official-source anchor: IRCC guide 5580: https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guid
+es/guide-5580-applying-work-permit-student-guide.html
+
+Common document categories
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                    Page 11 of 16
+Category            Examples
+Identity            Passport, photo
+Study completion    Completion letter, final transcript
+School/program      DLI details, program length
+Current status      Study permit, visitor record if applicable
+Language            Required language test results unless exception applies
+Prior study         Transfers, leaves, part-time terms
+Representative      If applicable
+
+Intake questions your software should ask
+
+Section             Key questions
+Graduation          Completion date, transcript available?
+School              DLI, program length, level
+Status              Study permit expiry date
+Language            Test taken? Date? Scores?
+Study history       Full-time/part-time terms, authorized leaves
+Passport            Passport expiry date
+
+Automation opportunities
+
+· Study permit expiry alert.
+· Graduation document request.
+· Transcript/completion letter tracker.
+· Language test reminder.
+· Passport expiry warning.
+· Timeline checklist.
+
+AI boundary                                                                      Not allowed
+
+ Allowed AI support                                                              Decide PGWP eligibility; Interpret exceptions without consultant review; Tell
+ Track missing transcript/completion letter; Summarize study history; Flag       the client whether they can work before approval
+ passport expiry
+
+MVP suitability
+
+Excellent add-on to the Study Permit module.
+
+12. Super Visa
+
+Super Visa is a visitor category for parents and grandparents of Canadian citizens or permanent residents. Requirements and
+income thresholds can change, so the software should not hard-code final eligibility. It should collect documents and let the
+consultant confirm.
+
+Common document categories
+
+Category            Examples
+Applicant identity  Passport, photo, civil status
+Relationship        Birth certificate showing parent/child relationship
+Host status         Canadian citizenship/PR proof
+Host finances       NOA, employment letter, pay slips
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada  Page 12 of 16
+Category                                Examples
+Invitation                              Invitation letter
+Medical insurance                       Proof of qualifying insurance
+Medical exam                            If required
+Representative                          If applicable
+
+Intake questions your software should ask
+
+Section                                 Key questions
+Applicant                               Parent or grandparent details, passport, country of residence
+Host                                    Canadian citizen/PR status, relationship, household size
+Finances                                Host income documents and support evidence
+Insurance                               Policy details and proof of coverage
+Purpose/duration                        Planned visit dates and location
+History                                 Prior refusals, travel history, medical questions
+
+Automation opportunities
+
+· Host/applicant separated checklists.
+· Insurance proof tracker.
+· Invitation letter questionnaire.
+· Family relationship document tracker.
+· Income-document reminder.
+
+AI boundary                                                                      Not allowed
+
+ Allowed AI support                                                              Decide if income threshold is met; Guarantee visa outcome; Provide legal
+ Track missing host documents; Summarize relationship and visit details;         advice on inadmissibility or medical issues
+ Draft insurance-document reminder
+
+MVP suitability
+
+Good later add-on after Visitor Visa.
+
+13. Other application types worth considering
+
+Type                                    Why it matters                                                         MVP view
+Study permit extension
+                                        Expiry reminders, school documents, financial proof, status-sensitive  Good add-on
+Visitor record extension                deadlines
+Work permit extension
+                                        Simple and common for existing temporary residents                     Good add-on
+Family sponsorship for dependent
+children                                Useful but riskier because maintained status and employer conditions   Later
+Parent and Grandparent Sponsorship      require consultant review
+PNP
+                                        Similar to spousal sponsorship but different relationship/custody document Later
+Refugee / H&C; / inadmissibility cases  logic
+
+                                        High demand but intake windows and program rules change                Later
+
+                                        High value but complex because each province has separate streams,     Later SaaS module
+                                        forms, portals, and document logic
+
+                                        Legally sensitive, fact-heavy, high-risk                               Avoid for MVP
+
+14. Best MVP document checklist engine design
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                                   Page 13 of 16
+The product should not have one static checklist. It needs a rules-based checklist generator.
+
+Entity                       Description
+Application Type             Study Permit, Visitor Visa, Work Permit, etc.
+Subtype                      PGWP, employer-specific, LMIA-based, spouse sponsorship inland/outland
+Applicant Role               Principal applicant, spouse, dependent, sponsor, employer, host
+Trigger Question             Example: Are you applying in Quebec?
+Required Document            Passport, LOA, PAL/TAL, proof of funds
+Conditional Rule             If school province = Quebec, request CAQ
+Source URL                   Official IRCC/ESDC source
+Last Reviewed Date           Date consultant/admin reviewed rule
+Reviewer                     Consultant/admin user
+Client Status                Not requested, requested, uploaded, rejected, accepted
+Consultant Approval          Approved before sending to client
+
+15. Suggested software modules by application type
+
+Module                       Study   Visitor  Spousal                            Express Entry  Work Permit  LMIA         Citizenship
+Smart intake                 Yes     Yes      Yes                                Yes            Yes          Yes          Yes
+Document checklist           Yes     Yes      Yes                                Yes            Yes          Yes          Yes
+Client reminders             Yes     Yes      Yes                                Yes            Yes          Yes          Yes
+Sponsor/host/employer        No      Yes      Yes                                No             Yes          Yes          No
+portal
+Relationship timeline        No      No       Yes                                No             No           No           No
+Work history builder         No      No       No                                 Yes            Yes          Yes          No
+Travel history builder       Yes     Yes      Yes                                Yes            Yes          No           Yes
+Expiry alerts                Yes     Yes      Yes                                Yes            Yes          Yes          Yes
+AI summaries                 Yes     Yes      Yes                                Yes            Yes          Yes          Yes
+Evidence categorization      Medium  Medium   High                               High           Medium       High         Medium
+Compliance audit log         Yes     Yes      Yes                                Yes            Yes          Yes          Yes
+
+16. What each workflow needs from the AI system
+
+Safe AI features                     Safe use
+                                     Summarize client answers for consultant
+ Feature                             Example: This appears to be a passport
+ Intake summarization                Example: No bank statement uploaded yet
+ Document classification             Name/date mismatch, expired document, missing page
+ Missing document detection          Draft reminder; consultant approves
+ Inconsistency flagging              Extract dates from client-provided relationship/travel/work history
+ Email drafting                      Summarize translated content, but certified translation rules remain human-reviewed
+ Timeline extraction
+ Translation support
+
+Unsafe AI features to avoid
+
+Feature                              Why avoid
+Eligibility decision                 Regulated advice risk
+Approval probability                 Misleading and risky
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada                                                        Page 14 of 16
+Feature                            Why avoid
+Refusal strategy                   Legal/immigration advice
+NOC classification auto-decision   High-risk professional judgment
+LMIA wage/compliance conclusion    Employer compliance risk
+Relationship genuineness judgment  Sensitive legal assessment
+Document fabrication               Must never be supported
+
+ 17. Recommended build order                                                     Page 15 of 16
+
+ Phase 1: Study Permit MVP
+
+ · Client intake form
+ · Study permit checklist generator
+ · PAL/TAL/CAQ logic
+ · Financial document tracker
+ · Sponsor document tracker
+ · AI intake summary
+ · Missing document reminders
+ · Consultant approval
+
+ Phase 2: Visitor Visa
+
+ · Host profile
+ · Invitation letter questionnaire
+ · Purpose-of-visit intake
+ · Host/applicant document separation
+ · Travel history tracker
+
+ Phase 3: PGWP + Work Permit
+
+ · Status expiry alerts
+ · Employer-specific/open work permit distinction
+ · Employer document tasks
+ · LMIA / offer number tracking
+
+ Phase 4: Spousal Sponsorship
+
+ · Sponsor/applicant portals
+ · Relationship timeline builder
+ · Evidence categorization
+ · Dependent child logic
+ · Inland/outland package distinction
+
+ Phase 5: Express Entry
+
+ · Education/work history builder
+ · Language/ECA expiry tracker
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada
+· Police certificate country logic
+· Proof-of-funds checklist
+· Post-ITA checklist
+
+Phase 6: LMIA
+
+· Employer portal
+· Recruitment evidence tracker
+· Business legitimacy checklist
+· Job ad date tracker
+· Candidate matrix
+· Stream-specific rules
+
+18. Recommended first deep-dive sequence
+
+Do not try to fully design all application types at once. Use this sequence:
+· Study Permit
+· Visitor Visa
+· PGWP
+· Employer-specific Work Permit
+· Spousal Sponsorship
+· Express Entry
+· LMIA
+· Citizenship / PR Card
+The best first detailed workflow is Study Permit because it has enough complexity to prove value, but not as much risk as spousal
+sponsorship, Express Entry, or LMIA.
+
+Next workflow to map: lead intake -> consultation -> retainer -> client questionnaire -> document checklist -> document upload
+-> missing document follow-up -> consultant review -> application preparation support -> final review -> submission tracking.
+
+Source management note for the product
+
+The URLs included in this PDF are source anchors for requirements planning. In the actual product, document templates should
+store official source URL, date last reviewed, reviewer, rule version, and consultant approval status. Because IRCC and ESDC
+requirements can change, checklist content must be reviewed before production use.
+
+AI Intake & Document Follow-up Automation for Immigration Consultants in Canada  Page 16 of 16
+
