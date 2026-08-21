@@ -1,0 +1,127 @@
+SQL Server Express Free Install and Local
+Database Setup
+
+Windows-focused guide for installing Microsoft SQL Server Express and configuring this Spring Boot
+project to use a local SQL Server database.
+
+Free Edition And Current Version
+
+As of June 17, 2026, Microsoft's SQL Server downloads page lists SQL Server 2025 Express as the free
+Express edition.
+Microsoft describes Express as free and suitable for development, production desktop apps, web apps, and
+small server applications.
+Key SQL Server 2025 Express limits include the lesser of 1 socket or 4 cores, 1,410 MB buffer pool memory,
+and a 50 GB maximum relational database size.
+Official downloads page: https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+
+Download And Install On Windows
+
+1. Go to https://www.microsoft.com/en-us/sql-server/sql-server-downloads.
+2. Under SQL Server 2025 Express, choose Download now.
+3. Run the downloaded installer as Administrator.
+4. Choose Basic for the fastest local dev install, or Custom if you want full control.
+5. Use the default named instance, commonly SQLEXPRESS.
+6. Choose Mixed Mode Authentication if you want a SQL username/password for your app.
+7. Set and save the sa password, or add your Windows user as a SQL administrator.
+8. Finish the install.
+9. Download and install SQL Server Management Studio from the same Microsoft downloads page.
+10. Open SQL Server Configuration Manager and enable TCP/IP for the SQLEXPRESS instance if JDBC will
+connect over TCP.
+11. Restart the SQL Server service after changing network settings.
+
+SQL Server Express local setup guide                                                                Page 1
+Verify The Install
+
+Open PowerShell and test with sqlcmd if command-line tools are installed:
+
+                  sqlcmd -S localhost\SQLEXPRESS -E -Q "SELECT @@VERSION"
+
+If using SQL authentication, test with:
+
+                  sqlcmd -S localhost\SQLEXPRESS -U sa -P "YourSaPassword" -Q "SELECT name FROM sys.databas
+                  es"
+
+Create Local Database And App Login
+
+Connect as an administrator in SSMS or sqlcmd, then run:
+
+                  CREATE DATABASE immiauto;
+                  GO
+
+                  CREATE LOGIN immiauto_user
+                      WITH PASSWORD = 'ChangeThisStrongPassword123!',
+                      CHECK_POLICY = ON;
+
+                  GO
+
+                  USE immiauto;
+                  GO
+
+                  CREATE USER immiauto_user FOR LOGIN immiauto_user;
+                  GO
+
+                  ALTER ROLE db_owner ADD MEMBER immiauto_user;
+                  GO
+
+For local development, db_owner is simple and works with Hibernate ddl-auto=update. For production, use
+narrower permissions.
+
+SQL Server Express local setup guide  Page 2
+Spring Boot Project Configuration
+
+Add the SQL Server JDBC driver to backend/pom.xml:
+
+                  <dependency>
+                         <groupId>com.microsoft.sqlserver</groupId>
+                         <artifactId>mssql-jdbc</artifactId>
+                         <scope>runtime</scope>
+
+                  </dependency>
+
+Use this application.properties configuration for the named SQLEXPRESS instance:
+
+                  spring.datasource.url=jdbc:sqlserver://localhost;instanceName=SQLEXPRESS;databaseName=imm
+                  iauto;encrypt=true;trustServerCertificate=true
+                  spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
+                  spring.datasource.username=immiauto_user
+                  spring.datasource.password=ChangeThisStrongPassword123!
+
+                  spring.jpa.hibernate.ddl-auto=update
+                  spring.jpa.show-sql=true
+                  spring.jpa.properties.hibernate.format_sql=true
+                  spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
+
+                  spring.h2.console.enabled=false
+
+If you configure SQL Server Express to listen on fixed TCP port 1433, this URL is also valid:
+
+                  spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=immiauto;encrypt=true;
+                  trustServerCertificate=true
+
+Run the backend:
+
+                  cd C:\Users\mh200\Projects\Immigration-Consultation\backend
+                  .\mvnw spring-boot:run
+
+SQL Server Express local setup guide  Page 3
+Connection Summary
+
+                  Server: localhost\SQLEXPRESS
+                  Optional TCP port: 1433
+                  Database: immiauto
+                  Username: immiauto_user
+                  Password: ChangeThisStrongPassword123!
+                  JDBC URL: jdbc:sqlserver://localhost;instanceName=SQLEXPRESS;databaseName=immiauto;encryp
+                  t=true;trustServerCertificate=true
+
+Use the dedicated immiauto_user for the application. Keep sa or Windows administrator access only for
+administration.
+
+Official References
+
+SQL Server downloads: https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+SQL Server 2025 editions and Express limits: https://learn.microsoft.com/en-us/sql/sql-server/editions-and-com
+ponents-of-sql-server-2025?view=sql-server-ver17
+
+SQL Server Express local setup guide  Page 4
+

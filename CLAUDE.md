@@ -28,8 +28,12 @@ project-root/
 ├── frontend/     # Angular 18 SPA (served by nginx in Docker)
 ├── MCPServer/    # Spring Boot MCP server (AI tools)
 ├── docker/       # Per-service configs + DB/Keycloak/LibreChat bootstrap
-└── docs/         # Project documentation
+├── .claude/      # Development harness (agents, skills) + project tracking — §16
+└── .githooks/    # pre-commit, commit-msg, post-merge — §16
 ```
+
+There is **no `docs/` folder**. Documentation lives in [README.md](README.md) (how to run it), this
+file (how we work on it), and [.claude/](.claude/) (what we're building and where it stands).
 
 ---
 
@@ -174,11 +178,48 @@ Before implementing any method:
 
 Some guidelines here are backed by tooling, not just prose. Keep the tooling and the rules it encodes in sync — a stale agent/skill/hook is a bug.
 
+### How the harness runs
+
+- **Agents** are spawned with the Agent tool, one per `subagent_type`. Each runs in **its own context** — build noise, log dumps, and broad searches stay out of the main thread. Frontmatter fixes each agent's `tools` and `model`; the roster below marks which agents are **report-only** (no `Edit`/`Write`), and those must never be asked to apply a fix — they diagnose, the main thread decides.
+- **Skills** are invoked by name with the Skill tool, or by the user typing `/<skill-name>`. They load a procedure into the current turn rather than delegating, so they cost context but keep the work in one place. Prefer a skill when the procedure needs the conversation's context; prefer an agent when it doesn't.
+- **Hooks** fire from git, not from the assistant. They are the only gate that cannot be forgotten or argued with — which is why commit-time rules (§8 secrets, §11 author and attribution) live there rather than in prose.
+- **Parallelism:** independent agents launch in **one** batch; dependent ones wait for the result they depend on. Never spawn an agent to re-derive context the main thread already has — a cold agent re-reading the repo is the expensive path.
+- **Don't spawn an agent unless the work warrants it.** A task that is merely multi-step is not a delegation signal; scope, isolation, or parallelism are.
+
+### Harness setup (fresh clone, one-time)
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This is **per-clone config**, so a fresh clone has no hooks until you run it. The `pre-commit` secret scan additionally needs **gitleaks** — Windows `winget install gitleaks` (or `scoop`/`choco`), macOS `brew install gitleaks` (see https://github.com/gitleaks/gitleaks#installing). Without it that scan is **skipped silently**; the author guard still runs.
+
+There is no `.claude/settings.json` and no `.mcp.json` in this repo — the harness is entirely agents, skills, hooks, and the tracking structure. Build tooling paths are in §1.
+
 - **Current artifacts:**
-  - `deploy-verify` **agent** ([.claude/agents/deploy-verify.md](.claude/agents/deploy-verify.md)) — §12 rebuild-and-verify.
-  - `worktree` **skill** ([.claude/skills/worktree/SKILL.md](.claude/skills/worktree/SKILL.md)) — §13 worktree create/cleanup.
+  - **agents** ([.claude/agents/](.claude/agents/)):
+    - [`deploy-verify`](.claude/agents/deploy-verify.md) — §12 rebuild-and-verify. *(report-only)* `sonnet`
+    - [`requirements-analyst`](.claude/agents/requirements-analyst.md) — reconcile a requirement doc against the code; find drift. *(report-only)* `opus`
+    - [`backend-feature`](.claude/agents/backend-feature.md) — backend vertical slice: entity → repository → mapper → DTO → service → controller (§4–§7). `opus`
+    - [`frontend-feature`](.claude/agents/frontend-feature.md) — the Angular half of a slice (§6, §15). `sonnet`
+    - [`db-migration`](.claude/agents/db-migration.md) — V-numbered SQL; GUID PKs and generated identifier columns (§7). `sonnet`
+    - [`test-author`](.claude/agents/test-author.md) — tests, incl. the failing-without-the-fix rule (§9). `sonnet`
+    - [`security-reviewer`](.claude/agents/security-reviewer.md) — audit a diff against the hardening controls, the product boundary, and PIPEDA. *(report-only)* `opus`
+    - [`docs-sync`](.claude/agents/docs-sync.md) — reconcile README/CLAUDE.md/dashboard/changelog with the code (§14). `sonnet`
+  - **skills** ([.claude/skills/](.claude/skills/)):
+    - [`worktree`](.claude/skills/worktree/SKILL.md) — §13 worktree create/cleanup.
+    - [`feature-slice`](.claude/skills/feature-slice/SKILL.md) — the twelve-step vertical slice and definition of done.
+    - [`requirement-intake`](.claude/skills/requirement-intake/SKILL.md) — normalise a new requirement doc into the register.
+    - [`release-gate`](.claude/skills/release-gate/SKILL.md) — the phase/release acceptance checklist.
+    - [`content-governance`](.claude/skills/content-governance/SKILL.md) — draft→review→approve→publish→retire for governed immigration content.
+    - [`status-sync`](.claude/skills/status-sync/SKILL.md) — regenerate the dashboard **from the code**; check traceability.
   - **hooks** ([.githooks/](.githooks/)) — `pre-commit` (§8 secrets + §11 author guard), `commit-msg` (§11 attribution), `post-merge` (§13 worktree cleanup).
-- **Hook setup (fresh clone, one-time):** enable the hooks with `git config core.hooksPath .githooks` (per-clone config). The `pre-commit` secret scan additionally needs **gitleaks** — Windows `winget install gitleaks` (or `scoop`/`choco`), macOS `brew install gitleaks` (see https://github.com/gitleaks/gitleaks#installing); without it that scan is skipped (the author guard still runs).
+  - **project tracking** ([.claude/README.md](.claude/README.md) is the index) — six root summaries plus eight detail folders:
+    - **root summaries:** [Requirements.md](.claude/Requirements.md) (what), [Architecture.md](.claude/Architecture.md) (how it's built), [Plan.md](.claude/Plan.md) (in what order), [Delivery approach.md](.claude/Delivery%20approach.md) (how work is executed), [status dashboard.md](.claude/status%20dashboard.md) (where each item stands), [change.log.md](.claude/change.log.md) (what changed).
+    - **detail folders:** [requirements/](.claude/requirements/) · [design/](.claude/design/) (ADRs) · [plan/](.claude/plan/) · [progress/](.claude/progress/) · [qa/](.claude/qa/) · [operations/](.claude/operations/) (runbooks) · [input/](.claude/input/) (the source corpus — **read-only**) · [memory/](.claude/memory/) (durable project facts). **Each folder's README states its conventions** — read it before adding a file.
+    - **Every agent and skill records its output into this structure** — see each one's "Recording your work" section, and [Delivery approach.md](.claude/Delivery%20approach.md) §3a for the folder-to-agent map. That obligation is what stops the tracking going stale.
+    - **Statuses are verified against code, never taken from a document** — the 2026-08-21 audit found 11 open items inside work already marked complete.
+    - **Two memory scopes:** [.claude/memory/](.claude/memory/) holds shared, committed *project* facts (gotchas, constraints, dead ends); the assistant's user memory holds *personal* working preferences. A project fact recorded only in user memory is invisible to everyone else.
 - **Keep them updated.** When a change alters what an artifact encodes — parameters (service names/ports/endpoints), a workflow, or a rule — update that artifact in the **same change** so it can't drift (see the deploy-verify sync rule in §12/§15). When you add a new artifact, list it here.
 - **Spawn background/mechanical subagents on a cheaper model.** When launching a subagent for mechanical or well-scoped background work (bulk find-replace sweeps, build/verify, broad search), pass `model: sonnet` to the Agent tool — or set it in the agent's frontmatter — rather than inheriting the default. Reserve the stronger (Opus) model for tasks needing deep reasoning or ambiguous judgment. Defined agents set this in frontmatter (e.g. `deploy-verify` already runs on `sonnet`).
 - **When the user proposes a CLAUDE.md change, first classify it** — decide whether the rule is better delivered (or additionally enforced) as an agent, skill, or hook, say so, then follow the user's instruction (§3):

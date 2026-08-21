@@ -1,0 +1,143 @@
+PostgreSQL Free Version Install and Local
+Database Setup
+
+Windows-focused guide for installing PostgreSQL, confirming it is free, and configuring this Spring Boot
+project to use a local PostgreSQL database.
+
+Free License And Current Stable Version
+
+PostgreSQL is free and open source. It is released under the PostgreSQL License, a liberal open source
+license similar to BSD or MIT.
+As of June 17, 2026, the current stable major version is PostgreSQL 18, and the current minor release is 18.4.
+PostgreSQL 19 Beta 1 exists, but beta releases are not recommended for normal local application
+development.
+Official license page: https://www.postgresql.org/about/licence/
+Official versioning page: https://www.postgresql.org/support/versioning/
+
+Download And Install On Windows
+
+1. Go to https://www.postgresql.org/download/windows/.
+2. Choose Download the installer. PostgreSQL.org sends Windows users to the EDB interactive installer.
+3. On the EDB download page, select PostgreSQL 18.4 for Windows x86-64.
+4. Download and run the installer as Administrator.
+5. Choose an install directory, normally C:\Program Files\PostgreSQL\18.
+6. Select components: PostgreSQL Server, pgAdmin 4, Command Line Tools, and Stack Builder. Stack Builder
+is optional.
+7. Choose a data directory, normally C:\Program Files\PostgreSQL\18\data.
+8. Set and save the password for the built-in postgres superuser.
+9. Use port 5432 unless another PostgreSQL service is already using it.
+10. Use the Default Locale unless your project requires a specific locale.
+11. Finish installation. You can skip Stack Builder unless you need extra tools.
+
+PostgreSQL free local setup guide  Page 1
+Verify The Install
+
+Open a new PowerShell window and try:
+
+                  psql --version
+                  pg_isready -h localhost -p 5432
+
+If psql is not recognized, add this folder to your Windows PATH, then open a new PowerShell window:
+
+                  C:\Program Files\PostgreSQL\18\bin
+
+Create Local Database And App User
+
+Log in as the postgres superuser:
+
+                  psql -U postgres -h localhost -p 5432
+
+Run the following SQL:
+
+                  CREATE DATABASE immiauto;
+
+                  CREATE USER immiauto_user
+                     WITH PASSWORD 'ChangeThisStrongPassword123!';
+
+                  GRANT ALL PRIVILEGES ON DATABASE immiauto TO immiauto_user;
+
+                  \c immiauto
+
+                  GRANT ALL ON SCHEMA public TO immiauto_user;
+                  ALTER DEFAULT PRIVILEGES IN SCHEMA public
+
+                     GRANT ALL ON TABLES TO immiauto_user;
+                  ALTER DEFAULT PRIVILEGES IN SCHEMA public
+
+                     GRANT ALL ON SEQUENCES TO immiauto_user;
+
+Test the app user:
+
+                  psql -U immiauto_user -h localhost -p 5432 -d immiauto
+
+PostgreSQL free local setup guide                                                                    Page 2
+Spring Boot Project Configuration
+
+This project already includes the PostgreSQL JDBC driver in backend/pom.xml. The application.properties file
+currently uses H2 for development and also contains a commented PostgreSQL example.
+The existing dependency should look like this:
+
+                  <dependency>
+                         <groupId>org.postgresql</groupId>
+                         <artifactId>postgresql</artifactId>
+                         <scope>runtime</scope>
+
+                  </dependency>
+
+Use these application.properties database settings:
+
+                  spring.datasource.url=jdbc:postgresql://localhost:5432/immiauto
+                  spring.datasource.driver-class-name=org.postgresql.Driver
+                  spring.datasource.username=immiauto_user
+                  spring.datasource.password=ChangeThisStrongPassword123!
+
+                  spring.jpa.hibernate.ddl-auto=update
+                  spring.jpa.show-sql=true
+                  spring.jpa.properties.hibernate.format_sql=true
+                  spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+                  spring.h2.console.enabled=false
+
+Run The Backend
+
+                  cd C:\Users\mh200\Projects\Immigration-Consultation\backend
+                  .\mvnw spring-boot:run
+
+PostgreSQL free local setup guide  Page 3
+Connection Summary
+
+                  Host: localhost
+                  Port: 5432
+                  Database: immiauto
+                  Username: immiauto_user
+                  Password: ChangeThisStrongPassword123!
+                  JDBC URL: jdbc:postgresql://localhost:5432/immiauto
+
+Use the dedicated immiauto_user for the application. Keep the postgres superuser only for administration.
+
+Useful Local Commands
+
+                  # Check server readiness
+                  pg_isready -h localhost -p 5432
+
+                  # Connect as app user
+                  psql -U immiauto_user -h localhost -p 5432 -d immiauto
+
+                  # List databases inside psql
+                  \l
+
+                  # List tables inside psql
+                  \dt
+
+                  # Quit psql
+                  \q
+
+Official References
+
+PostgreSQL Windows installers: https://www.postgresql.org/download/windows/
+PostgreSQL versioning policy: https://www.postgresql.org/support/versioning/
+PostgreSQL license: https://www.postgresql.org/about/licence/
+EDB PostgreSQL downloads: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
+
+PostgreSQL free local setup guide                                                                          Page 4
+

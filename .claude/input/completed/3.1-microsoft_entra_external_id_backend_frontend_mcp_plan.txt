@@ -1,0 +1,817 @@
+  Microsoft Entra External ID Plan for Frontend, Backend,
+                               and MCP Server
+
+                                                                  Exported from implementation-plan response
+I'll lay out this as an implementation plan across three parts: frontend login, backend/API token validation, and MCP server
+authorization. I'll also verify current Microsoft/Spring details so the plan does not rely on stale setup assumptions.
+
+Target architecture
+
+    User / AI Agent
+          -> OAuth2/OIDC login
+
+    Microsoft Entra External ID
+          -> access token
+
+    Frontend
+          -> Bearer token
+
+    Backend API
+For MCP:
+
+    AI Agent / MCP Client
+          -> OAuth2/OIDC login
+
+    Microsoft Entra External ID
+          -> Bearer token
+
+    MCP Server
+          -> calls backend APIs with user context
+
+    Backend API
+Your session login can still exist for your normal web dashboard if you want, but for frontend SPA/API/MCP usage, the cleaner
+long-term model is:
+
+    Frontend -> access token -> Backend API
+    AI Agent -> access token -> MCP Server
+    MCP Server -> access token / internal token -> Backend API
+Microsoft OAuth2 authorization code flow is intended for apps that need authorized access to protected resources like web
+APIs, and Microsoft recommends exposing API scopes when protecting your own APIs. [1]
+
+Step 1: Create Microsoft Entra External ID tenant
+
+In Azure:
+
+    Microsoft Entra admin center
+    -> External ID
+    -> Create external tenant
+Create a customer/external tenant for your SaaS users.
+
+    yourcompany.ciamlogin.com
+You will use this tenant as the identity provider for:
+
+    frontend login
+    backend API access
+    MCP server access
+
+                                                                Microsoft Entra External ID Plan
+Step 2: Register three applications
+
+You should separate frontend, backend API, and MCP server.
+
+App registration 1: Frontend client
+
+    immigration-saas-frontend
+Type:
+
+    Single-page application
+Redirect URIs:
+
+    http://localhost:4200/auth/callback
+    http://localhost:3000/auth/callback
+    https://app.yourdomain.com/auth/callback
+This app does not need a client secret because browser apps are public clients.
+
+Frontend uses:
+
+    Authorization Code Flow + PKCE
+Microsoft authorization code flow supports browser-based sign-in and redirect-based authentication. [1]
+
+App registration 2: Backend API
+
+    immigration-saas-api
+Expose an API:
+
+    Application ID URI:
+    api://immigration-saas-api
+Create scopes:
+
+    cases.read
+    cases.write
+    documents.read
+    documents.write
+    checklists.generate
+    messages.draft
+Microsoft identity platform lets you expose a web API by registering the API and adding scopes for client access. [2] Then allow
+the frontend app to request these scopes.
+
+App registration 3: MCP server
+
+    immigration-saas-mcp
+Expose an API:
+
+    Application ID URI:
+    api://immigration-saas-mcp
+Create MCP-specific scopes:
+
+    mcp.tools.read
+    mcp.cases.read
+    mcp.documents.read
+    mcp.checklists.generate
+    mcp.messages.draft
+Do not start with dangerous scopes such as:
+
+documents.delete
+
+                                             Microsoft Entra External ID Plan
+    messages.send
+    case.submit
+For MVP, MCP tools should mostly be read, summarize, generate, and draft, not final irreversible actions.
+
+Step 3: Frontend changes
+
+Your frontend needs to replace custom login/API key behavior with Microsoft login.
+
+Frontend responsibilities
+
+1. Redirect user to Microsoft Entra External ID login
+2. Receive auth code
+3. Exchange code using PKCE
+4. Store access token safely in memory
+5. Call backend APIs with Bearer token
+6. Refresh token silently where supported
+7. Logout user from app and identity provider
+
+For Angular/React, use MSAL browser.
+
+Conceptually:
+
+    const loginRequest = {
+        scopes: [
+            "openid",
+            "profile",
+            "email",
+            "api://immigration-saas-api/cases.read",
+            "api://immigration-saas-api/documents.read"
+        ]
+
+    };
+API call:
+
+    GET /api/cases
+    Authorization: Bearer <access_token>
+
+Frontend pages affected
+
+    Login page
+    Auth callback page
+    Logout handler
+    Token acquisition service
+    Route guard
+    API HTTP interceptor
+    User profile display
+    Unauthorized / consent required page
+
+Important frontend decision
+
+For a simple SaaS frontend, I recommend:
+
+    Frontend uses MSAL
+    Backend validates JWT
+    No backend session needed for API calls
+This is cleaner than mixing frontend session cookies and OAuth tokens.
+
+                                                                Microsoft Entra External ID Plan
+Step 4: Backend API changes
+
+Your backend should become a Spring Security OAuth2 Resource Server.
+
+Spring Security JWT resource server support validates JWTs by discovering the authorization server public keys from issuer
+metadata. [3]
+
+Maven dependencies
+
+    <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+
+    </dependency>
+
+    <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+
+    </dependency>
+
+Backend application.yml
+
+    spring:
+        security:
+            oauth2:
+               resourceserver:
+                   jwt:
+                       issuer-uri: https://your-tenant.ciamlogin.com/your-tenant-id/v2.0
+
+You may also need audience validation depending on the exact token format:
+
+    app:
+        security:
+            audience: api://immigration-saas-api
+
+Backend security config
+
+    @Configuration
+    @EnableMethodSecurity
+    public class SecurityConfig {
+
+            @Bean
+            SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
+
+                   return http
+                          .csrf(csrf -> csrf.disable())
+                          .authorizeHttpRequests(auth -> auth
+                                 .requestMatchers("/actuator/health").permitAll()
+                                 .requestMatchers("/api/public/**").permitAll()
+                                 .requestMatchers("/api/**").authenticated()
+                                 .anyRequest().denyAll()
+                          )
+                          .oauth2ResourceServer(oauth -> oauth.jwt())
+                          .build();
+
+            }
+    }
+
+                                                                Microsoft Entra External ID Plan
+Scope-based method security
+
+    @PreAuthorize("hasAuthority('SCOPE_cases.read')")
+    @GetMapping("/api/cases/{caseId}")
+    public CaseDto getCase(@PathVariable String caseId) {
+
+            return caseService.getCase(caseId);
+    }
+For documents:
+
+    @PreAuthorize("hasAuthority('SCOPE_documents.read')")
+    @GetMapping("/api/cases/{caseId}/documents")
+    public List<DocumentDto> getDocuments(@PathVariable String caseId) {
+
+            return documentService.getDocuments(caseId);
+    }
+
+Step 5: Add application-level authorization
+
+OAuth token validation only proves:
+
+    This user is authenticated
+    This token was issued by your trusted Entra tenant
+    This token has certain scopes
+It does not automatically prove:
+
+    User can access this specific immigration case
+    User belongs to this consultant account
+    User belongs to this tenant
+    User can view this client document
+So you still need your own database-level authorization.
+
+    public CaseDto getCase(String caseId) {
+            String entraUserId = SecurityContextHolder.getContext()
+                   .getAuthentication()
+                   .getName();
+
+            AppUser user = userRepository.findByExternalSubject(entraUserId)
+                   .orElseThrow();
+
+            CaseEntity caseEntity = caseRepository.findById(caseId)
+                   .orElseThrow();
+
+            if (!caseAccessService.canReadCase(user, caseEntity)) {
+                   throw new AccessDeniedException("No access to case");
+
+            }
+
+            return mapper.toDto(caseEntity);
+    }
+Your local user table should map Entra users to your app users:
+
+    app_user
+    - id
+
+                                                                Microsoft Entra External ID Plan
+    - external_subject
+    - email
+    - display_name
+    - tenant_id
+    - role
+    - status
+    - created_at
+
+Step 6: MCP server changes
+
+Your MCP server should also become an OAuth2 Resource Server.
+
+Current MCP authorization guidance says MCP servers must expose OAuth 2.0 Protected Resource Metadata and include
+authorization server information. [4]
+
+So your MCP server should support:
+
+    Bearer token validation
+    Protected resource metadata
+    Tool-level authorization
+    User-level audit logging
+
+MCP server auth flow
+
+    AI Agent / MCP Client
+          -> connects to MCP server
+
+    MCP server says auth is required
+          ->
+
+    MCP client opens Microsoft login
+          ->
+
+    User logs in
+          ->
+
+    MCP client receives access token
+          ->
+
+    MCP client calls tools using Bearer token
+Tool call:
+
+    POST /mcp
+    Authorization: Bearer <access_token>
+
+Step 7: MCP protected resource metadata
+
+Add endpoint:
+
+    GET /.well-known/oauth-protected-resource
+Example response:
+
+    {
+        "resource": "https://mcp.yourdomain.com",
+        "authorization_servers": [
+            "https://your-tenant.ciamlogin.com/your-tenant-id/v2.0"
+        ],
+        "scopes_supported": [
+                                                                Microsoft Entra External ID Plan
+            "mcp.tools.read",
+            "mcp.cases.read",
+            "mcp.documents.read",
+            "mcp.checklists.generate",
+            "mcp.messages.draft"
+        ],
+        "bearer_methods_supported": [
+            "header"
+        ]
+    }
+Also support resource-specific metadata if your MCP client expects it:
+
+    GET /.well-known/oauth-protected-resource/mcp
+Keep this endpoint public.
+
+Step 8: MCP Spring Security config
+
+    spring:
+        security:
+            oauth2:
+               resourceserver:
+                   jwt:
+                       issuer-uri: https://your-tenant.ciamlogin.com/your-tenant-id/v2.0
+
+    app:
+        security:
+            audience: api://immigration-saas-mcp
+
+Security config:
+
+    @Configuration
+    @EnableMethodSecurity
+    public class McpSecurityConfig {
+
+            @Bean
+            SecurityFilterChain mcpSecurity(HttpSecurity http) throws Exception {
+
+                   return http
+                          .csrf(csrf -> csrf.disable())
+                          .authorizeHttpRequests(auth -> auth
+                                 .requestMatchers(
+                                         "/.well-known/**",
+                                         "/actuator/health"
+                                 ).permitAll()
+                                 .requestMatchers("/mcp/**").authenticated()
+                                 .anyRequest().denyAll()
+                          )
+                          .oauth2ResourceServer(oauth -> oauth.jwt())
+                          .build();
+
+            }
+    }
+
+                                                                Microsoft Entra External ID Plan
+Step 9: Secure MCP tools by scope  Required scope
+                                   mcp.cases.read
+Example MCP tools:                 mcp.documents.read
+                                   mcp.checklists.generate
+    get_case_summary               mcp.messages.draft
+
+    list_missing_documents
+
+    generate_document_checklist
+
+    draft_client_followup_message
+
+ MCP tool
+ get_case_summary
+ list_missing_documents
+ generate_document_checklist
+ draft_client_followup_message
+
+Example:
+
+    @PreAuthorize("hasAuthority('SCOPE_mcp.cases.read')")
+    public CaseSummaryToolResult getCaseSummary(String caseId) {
+
+            return caseToolService.getCaseSummary(caseId);
+    }
+For drafting:
+
+    @PreAuthorize("hasAuthority('SCOPE_mcp.messages.draft')")
+    public DraftMessageResult draftFollowUpMessage(String caseId) {
+
+            return messageToolService.draftFollowUpMessage(caseId);
+    }
+Do not allow the MCP server to directly send emails/messages at first. Make it draft only.
+
+Step 10: MCP server calling backend APIs
+
+You have two main options.
+
+Option A: MCP passes user token to backend
+
+    AI agent
+          -> user access token for backend API
+
+    MCP server
+          -> same token
+
+    Backend API
+This only works cleanly if the token audience is accepted by the backend API.
+
+But normally, OAuth access tokens are audience-specific:
+
+    Token for MCP server -> audience api://immigration-saas-mcp
+    Token for backend API -> audience api://immigration-saas-api
+So passing the MCP token directly to the backend may fail if the backend validates audience strictly.
+
+Option B: MCP uses On-Behalf-Of flow
+
+This is the better standards-based approach:
+
+    AI agent gives token to MCP server
+    MCP server exchanges it for backend API token
+    MCP server calls backend API
+
+                                                                Microsoft Entra External ID Plan
+Microsoft OAuth2 On-Behalf-Of flow is designed for the scenario where a web API calls another web API using the user identity
+and permissions. [5]
+
+Flow:
+
+    User token for MCP server
+          ->
+
+    MCP server uses OBO
+          ->
+
+    New token for backend API
+          ->
+
+    Backend validates token
+This is the cleaner production design.
+
+Option C: Internal service token + user context
+
+For MVP, this can be simpler:
+
+    MCP validates user token
+    MCP calls backend using internal service credential
+    MCP includes user ID in signed/internal header
+    Backend trusts MCP only from private network
+Example:
+
+    Authorization: Bearer <internal_service_token>
+    X-User-Subject: <entra-user-sub>
+    X-Tenant-Id: <tenant-id>
+    X-Request-Source: mcp-server
+But you must protect this strongly:
+
+    private networking
+    backend only accepts this from MCP server
+    signed headers or mTLS if possible
+    audit logging
+    no public trust of X-User-* headers
+For your early Azure MVP, I would choose:
+
+    Phase 1: MCP validates user token and calls backend with internal service credential
+    Phase 2: Move to Microsoft OBO flow
+OBO is better, but internal service auth is easier for a first working version.
+
+Step 11: Token and claims design
+
+You need these claims available either from Entra or your database:
+
+    sub / oid: external user ID
+    email
+    name
+    scp: scopes
+    roles: optional app roles
+    tid: tenant ID
+In your application database, map:
+
+    external_user_id -> app_user -> tenant/account -> role -> permissions
+                                                                Microsoft Entra External ID Plan
+Example internal roles:
+
+    PLATFORM_ADMIN
+    CONSULTANT_OWNER
+    CONSULTANT_STAFF
+    CLIENT
+Example app permissions:
+
+    CASE_READ
+    CASE_WRITE
+    DOCUMENT_READ
+    DOCUMENT_UPLOAD
+    DOCUMENT_DELETE
+    MESSAGE_DRAFT
+    MESSAGE_SEND
+    BILLING_MANAGE
+Do not rely only on OAuth scopes for business rules. Use scopes for API/tool category access, and your database for case-level
+permissions.
+
+Step 12: Frontend/backend/MCP local development setup
+
+Use these redirect URIs:
+
+    Frontend:
+    http://localhost:3000/auth/callback
+    http://localhost:4200/auth/callback
+
+    Backend:
+    http://localhost:8080
+
+    MCP:
+    http://localhost:8081/mcp
+Local ports:
+
+    Frontend: 3000 or 4200
+    Backend API: 8080
+    MCP server: 8081
+Local environment variables:
+
+    ENTRA_TENANT_ID=...
+    ENTRA_FRONTEND_CLIENT_ID=...
+    ENTRA_BACKEND_AUDIENCE=api://immigration-saas-api
+    ENTRA_MCP_AUDIENCE=api://immigration-saas-mcp
+    ENTRA_ISSUER=https://your-tenant.ciamlogin.com/<tenant-id>/v2.0
+
+Step 13: Azure deployment shape
+
+Cheap MVP deployment:
+
+    Azure App Service Linux - Frontend or Static Web App
+    Azure App Service Linux - Backend API
+
+                                                                Microsoft Entra External ID Plan
+    Azure App Service Linux - MCP Server
+    Azure PostgreSQL Flexible Server
+    Azure Blob Storage
+    Microsoft Entra External ID
+    Application Insights
+Lower-cost variant:
+
+    Frontend: Azure Static Web Apps
+    Backend API: Azure App Service Linux B1
+    MCP Server: same App Service as backend initially, separate path /mcp
+    Database: PostgreSQL B1ms
+For cost, I would initially deploy:
+
+    Backend API and MCP server in same Spring Boot deployment
+    Different routes:
+
+        /api/**
+        /mcp/**
+Later separate them when usage grows. This avoids paying for two App Service instances at the beginning.
+
+Step 14: Required code modules
+
+Frontend
+
+    auth/
+        msal-config.ts
+        auth.service.ts
+        auth.interceptor.ts
+        auth.guard.ts
+        callback.component.ts
+
+Backend API
+
+    security/
+        SecurityConfig.java
+        JwtAuthoritiesConverter.java
+        CurrentUserProvider.java
+
+user/
+   AppUser.java
+   AppUserRepository.java
+   UserProvisioningService.java
+
+authorization/
+   CaseAccessService.java
+   TenantAccessService.java
+
+MCP server
+
+security/
+
+McpSecurityConfig.java
+
+OAuthProtectedResourceMetadataController.java
+
+McpCurrentUserProvider.java
+
+                                 Microsoft Entra External ID Plan
+    tools/
+        CaseSummaryTool.java
+        MissingDocumentsTool.java
+        ChecklistTool.java
+        DraftMessageTool.java
+
+    audit/
+        McpToolAuditLog.java
+        McpToolAuditService.java
+
+Step 15: Audit logging for MCP
+
+This is very important.
+
+Create table:
+
+    mcp_tool_audit_log
+    - id
+    - user_id
+    - tenant_id
+    - tool_name
+    - input_reference
+    - case_id
+    - document_id
+    - result_status
+    - ip_address
+    - user_agent
+    - created_at
+Log every tool call:
+
+    who used it
+    which tenant
+    which case
+    which tool
+    what permission/scope
+    success/failure
+Do not store full sensitive prompts/responses unless you really need them. Store references and summaries instead.
+
+Step 16: Permission model for immigration SaaS
+
+Client user
+
+Can:
+
+    view own checklist
+    upload own documents
+    view own case status
+    ask limited AI questions about uploaded documents/status
+Cannot:
+
+                                                                Microsoft Entra External ID Plan
+    view other clients
+    generate legal advice
+    submit applications
+    send official communication as consultant
+
+Consultant user
+
+Can:
+
+    manage own clients
+    generate checklists
+    view missing documents
+    draft follow-up messages
+    summarize case files
+
+MCP agent
+
+Start with:
+
+    Read/summarize/draft only
+Avoid:
+
+    delete
+    submit
+    send
+    approve
+    change legal status
+
+Step 17: Recommended phase plan
+
+Phase 1: Frontend + backend auth
+
+Implement:
+
+    Entra External ID tenant
+    Frontend app registration
+    Backend API app registration
+    Frontend login
+    Backend JWT validation
+    User mapping in database
+    Role-based access
+Goal:
+
+    User logs in and can call /api/cases securely
+
+Phase 2: MCP auth
+
+Implement:
+
+    MCP app registration
+    MCP resource scopes
+    MCP JWT validation
+    Protected resource metadata endpoint
+    Tool-level scope checks
+    MCP audit logs
+
+                                                                Microsoft Entra External ID Plan
+Goal:
+
+    AI agent connects to MCP server using OAuth token instead of API key
+
+Phase 3: MCP -> backend API integration
+
+Start with:
+
+    internal service credential + validated user context
+Then improve to:
+
+    Microsoft On-Behalf-Of flow
+Goal:
+
+    MCP tool calls backend APIs securely on behalf of the logged-in user
+
+Phase 4: production hardening
+
+Add:
+
+    refresh token handling
+    consent screen review
+    MFA for consultants/admins
+    rate limits
+    tenant-level authorization
+    tool-call audit logs
+    document access controls
+    sensitive action confirmation
+    private networking if separated
+    Application Insights alerts
+
+Final recommended implementation
+
+For your product, I would implement this:
+
+    Frontend:
+    MSAL + Authorization Code Flow with PKCE
+
+    Backend API:
+    Spring Boot OAuth2 Resource Server
+    JWT validation
+    Scopes + database permissions
+
+    MCP Server:
+    Spring Boot OAuth2 Resource Server
+    OAuth protected resource metadata
+    MCP-specific scopes
+    Tool-level authorization
+    Audit logging
+
+    MCP -> Backend:
+    Start with internal service auth
+    Later upgrade to Microsoft On-Behalf-Of flow
+The key design decision is:
+
+                                                                Microsoft Entra External ID Plan
+    Do not use API keys for customer MCP access.
+    Do not use browser session cookies for MCP access.
+    Use Entra External ID OAuth2/OIDC access tokens.
+That gives you a cheap, Azure-friendly, SaaS-ready authentication architecture.
+
+Sources
+
+[1] Microsoft Learn - OAuth 2.0 authorization code flow: https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow
+[2] Microsoft Learn - Configure an application to expose a web API: https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-configure-
+app-expose-web-apis
+[3] Spring Security Reference - OAuth2 Resource Server JWT: https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/
+jwt.html
+[4] Model Context Protocol - Authorization specification: https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization
+[5] Microsoft Learn - OAuth 2.0 On-Behalf-Of flow: https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow
+
+                                                                Microsoft Entra External ID Plan
+

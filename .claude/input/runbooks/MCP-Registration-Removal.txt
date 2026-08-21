@@ -1,0 +1,88 @@
+                   Immigration MCP Server
+
+Registration Removal & Teardown Guide (Microsoft Entra)
+
+How to remove an MCP client connection or fully decommission the MCP server's Entra registrations. Pick the
+scope: Part A disconnects one client, Part B tears down the whole MCP server registration, Part C is an
+emergency cut-off without deleting anything.
+
+Reference values
+
+Tenant ID         : <ENTRA_TENANT_ID>
+
+MCP API (resource): api://<MCP_API_CLIENT_ID> (immigration-saas-mcp)
+
+Backend API       : api://<BACKEND_API_CLIENT_ID> (immigration-saas-api)
+
+Pre-reg client : immigration-mcp-client = <MCP_PREREG_CLIENT_ID>
+
+MCP endpoint      : http://localhost:8084/mcp
+
+Part A -- Remove a single client (disconnect one consumer)
+
+1 Remove it from Claude Code: claude mcp remove immigration-mcp (add -s user / -s
+
+    project if you added it at that scope). Verify with claude mcp list.
+
+2 Delete local artifacts: any .mcp.json entry, and unset MCP_ACCESS_TOKEN if you used the env-var
+
+    form.
+
+3 Revoke the client in Entra -- either remove just the permission or delete the app:
+
+    · App registrations -> immigration-mcp-client -> API permissions -> remove the mcp.* permissions; or
+    · Delete the whole registration (App registrations -> immigration-mcp-client -> Delete).
+
+4 If it was pre-authorized: immigration-saas-mcp -> Expose an API -> Authorized client applications ->
+
+    remove this client's entry.
+
+5 Tokens already issued are short-lived bearer tokens (~1h) and expire on their own; to cut off immediately
+
+    see Part C.
+
+Part B -- Fully decommission the MCP server registration
+
+1 Disconnect all clients first (Part A for each).
+2 Stop the MCP service (port 8084) and remove its env: ENTRA_MCP_CLIENT_SECRET (and the
+
+    mcp.obo.* values if removing OBO).
+
+3 App registrations -> immigration-saas-mcp:
+
+    · Certificates & secrets -> delete the client secret (OBO).
+    · API permissions -> remove the delegated permission to immigration-saas-api.
+    · Expose an API -> remove the five mcp.* scopes (or the App ID URI).
+
+4 Delete the immigration-saas-mcp app registration (this also removes its service principal / Enterprise
+
+    application).
+
+5 (Optional, code) Backend: revert Phase-3 changes if you no longer want /v1/mcp/** served -- otherwise
+
+    it simply stops receiving tokens. Remove the audit endpoint/table only if decommissioning fully.
+
+Part C -- Emergency revoke (cut off access now, keep the registrations)
+
+· Disable the client: Enterprise applications -> immigration-mcp-client -> Properties -> Enabled for users
+
+    to sign-in? = No. Blocks new sign-ins/tokens.
+· Revoke consent: Enterprise applications -> immigration-mcp-client -> Permissions -> Review/Revoke
+
+    the admin consent.
+
+· Revoke a user's sessions (kills refresh tokens): Entra -> Users -> the user -> Revoke sessions.
+· Rotate the OBO secret: immigration-saas-mcp -> Certificates & secrets -> delete/recreate. This breaks
+
+    the MCP server's backend calls until you update ENTRA_MCP_CLIENT_SECRET (affects the server, not
+    individual clients).
+
+Notes
+
+· Access-token expiry window: deleting/disabling a client or revoking consent stops NEW tokens and refresh, but an
+already-issued JWT access token keeps working until it expires (~1h). There is no per-token revocation for bearer JWTs.
+· Soft-delete: a deleted Entra app registration can be restored within ~30 days (Microsoft Entra ID -> App registrations ->
+Deleted applications).
+· Removing the MCP registrations does NOT affect the frontend/backend portal auth (immigration-saas-frontend /
+immigration-saas-api) -- those are independent.
+

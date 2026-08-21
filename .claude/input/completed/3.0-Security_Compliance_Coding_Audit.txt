@@ -1,0 +1,208 @@
+Security, Compliance & Coding-Standards Audit
+
+Immigration-Consultation -- Spring Boot backend + Angular 18 frontend
+Handles immigration PII (passport numbers, date of birth, contact data).
+
+Date: 2026-06-19
+
+Critical: 5  High: 4       Medium: 6                                       Compliance: 5  Standards
+
+s Security Issues -- Critical
+
+        1. The entire REST API is unauthenticated
+        SecurityConfig.java:24-30 permits /v1/** and /v1/mcp/** with permitAll(). Since every
+        business endpoint lives under /api/v1/..., the whole application -- clients, cases, documents,
+        consultants, intake PII -- is open to anonymous callers. anyRequest().authenticated() is dead code
+        (everything matches /v1/** first), and CSRF is disabled. The // TODO: Add proper authentication
+        for production comment confirms this is unfinished. This is the root cause that makes most findings
+        below exploitable.
+
+        2. Broken access control / IDOR via caller-supplied consultantId
+        Authorization is enforced by comparing against consultantId, which is a path variable the caller fully
+        controls (ClientController.java, CommonService.verifyOwnershipOrAdmin). With no authenticated
+        identity, an attacker simply passes any consultantId (including a known admin's) to read or modify
+        every client/case/document in the system. The ownership checks are structurally meaningless without
+        authentication.
+
+        3. MCP API key disclosure + self-service admin provisioning
+        GET /v1/consultants/profile/{id} (getOwnProfile), PUT /update/{id}, and POST
+        /regenerate-api-key/{id} all return ConsultantDto including mcpApiKey in cleartext, with no auth.
+        An attacker enumerates consultant IDs and harvests every MCP key, then calls /v1/mcp/** as any
+        consultant. Additionally POST /v1/consultants/create is open and accepts admin from the request
+        body -- anyone can mint an admin consultant and receive a working API key.
+
+        4. Privilege escalation through mass-assignment of admin
+        createConsultant / updateConsultant copy dto.isAdmin() straight onto the entity. The admin flag
+        -- the only thing gating cross-tenant requireAdmin() access -- is settable by the client.
+
+        5. MCP API keys stored in plaintext
+        Consultant.mcpApiKey is persisted unhashed, long-lived, with no expiry/rotation policy, and echoed in
+        DTOs. A DB read or any DTO leak yields directly usable credentials. The lookup is also a plain DB
+        equality (not constant-time) -- secondary to the plaintext storage problem.
+
+s Security Issues -- High
+
+Immigration-Consultation -- Security, Compliance & Coding-Standards Audit                                       Page 1
+        6. Hardcoded default secrets committed to git
+        application.properties:15 ships a DB_PASSWORD default ChangeThisStrongPassword123! and
+        spring.security.user.password=change-me. Both application.properties and
+        application-dev.properties are git-tracked. If env vars are unset, these defaults are live.
+
+        7. Party portal: no authorization, full PII CRUD, non-expiring tokens
+        PartyPortalController exposes create/read/update/delete of party profiles with zero ownership
+        checks in PartyPortalService. getPortalByToken returns the full unmasked profile (email, phone,
+        notes). Access tokens are random UUIDs but never expire, can't be revoked, and deleteParty
+        hard-deletes with no audit.
+
+        8. Weak/partial upload validation, no malware scanning
+        DocumentService verifies magic bytes only for pdf/jpg/png (FILE_SIGNATURES);
+        docx/xls/txt/rtf/odt etc. are accepted on extension alone, so a malicious payload renamed
+        .txt/.rtf is stored unchecked. No AV/content scanning of client-supplied immigration documents.
+        (Filename sanitization itself is reasonable.)
+
+        9. No audit logging despite regulated PII
+        CommonService.logAudit and the AuditLog entity exist, but logAudit is never called anywhere in
+        the backend (only the frontend references audit, for templates). There is no record of who viewed or
+        changed client PII -- a direct PIPEDA accountability gap.
+
+s Security Issues -- Medium
+
+        10. Verbose SQL logging
+        spring.jpa.show-sql=true + format_sql=true in the main profile
+        (application.properties:21-22) logs queries (and bound PII) in all environments.
+
+        11. Error messages leak internals
+        GlobalExceptionHandler returns raw ex.getMessage() for not-found/illegal-arg/security exceptions,
+        e.g. "Consultant not found: 5" and "Access denied: this client does not belong to you"
+        -- enabling enumeration and ownership inference.
+
+        12. No rate limiting / lockout
+        There is no throttling on the MCP key check or any endpoint  key/ID brute-forcing and enumeration
+        are unimpeded.
+
+        13. CORS config is duplicated
+        A global CorsConfig (allowedHeaders("*"), allowCredentials(true)) and per-controller
+        @CrossOrigin. Two sources of truth; ensure the origin is never widened to * while credentials are
+        allowed.
+
+        14. Missing input validation
+        updateClient, updateConsultant, createParty, updateParty take @RequestBody with no @Valid.
+
+Immigration-Consultation -- Security, Compliance & Coding-Standards Audit                                     Page 2
+          15. Unbounded list/search
+          findAll() / search endpoints have no pagination (e.g. getAllClientsForAdmin), a DoS and
+          data-exposure vector.
+
+   SQL injection risk is low: repositories use Spring Data derived queries (no @Query / native SQL found), so queries
+  are parameterized.
+
+ s Compliance Issues (PIPEDA / sensitive-data handling)
+
+q No access accountability -- audit logging unused (#9); no authentication (#1)  no traceability of PII access.
+    Fails the safeguards/accountability principles.
+
+q PII unencrypted at rest (app level) -- passportNumber, dateOfBirth, contact data stored plaintext
+    (Client.java:43-71); no field-level encryption.
+
+q Inconsistent masking -- masking is applied only on the MCP/AI boundary (DataMaskingService,
+    AiBoundaryService, DocumentMetadataSanitizer -- genuinely good controls), but the primary REST API returns
+    full unmasked PII to anyone (#1, #2).
+
+q No retention/deletion policy -- hard deletes (e.g. deleteParty) with no soft-delete or audit; no consent tracking
+    for AI processing of client data.
+
+q Secrets in source control (#6) -- confidentiality exposure.
+
+ s Coding-Standards Findings
+
+  Against your CLAUDE.md rules:
+
+q "Always use spring mapper to transform DTOentity" -- violated in create paths:
+    ClientService.createClient, PartyPortalService.createPartyProfile, and
+    McpDataService.createAndMaskClient build entities by hand with .builder() instead of a MapStruct mapper.
+
+q "Never generate entities with length constraints" -- violated: @Column(length = 15) on
+    Client.clientNumber and Consultant.consultantNumber.
+
+q "Check CommonUtil/CommonService and reuse" -- McpDataService re-implements the ownership check
+    inline (twice) instead of reusing CommonService.verifyOwnershipOrAdmin. Also there is no CommonUtil class
+    despite the rule referencing it.
+
+q  Sequence naming (clients_seq, consultants_seq) follows tablename_seq.  Constructor injection via
+    Lombok throughout.
+
+  General Java/Spring standards:
+
+q Inconsistent routing -- PartyPortalController hardcodes @RequestMapping("/api") and bypasses
+    ApiPaths//v1. With context-path=/api, its real path becomes /api/api/cases/..., which (a) doesn't match the
+    frontend's /api/v1/... base and (b) escapes the /v1/** security matchers -- a latent routing bug plus a
+    security-rule gap.
+
+q Inconsistent exception types -- ConsultantService throws raw RuntimeException  generic 500, while the
+    rest of the code uses EntityNotFoundException.
+
+q Untyped responses -- getConsultantByNumber returns Map instead of a DTO, contradicting the
+    DTO-everywhere convention.
+
+q Secret in a general DTO -- mcpApiKey lives on the shared ConsultantDto rather than a dedicated key-issuance
+    response, making leaks easy.
+
+q Misleading naming -- getOwnProfile(Long id) implies "self" but accepts any arbitrary id.
+
+  Recommendations (prioritized)
+
+Immigration-Consultation -- Security, Compliance & Coding-Standards Audit  Page 3
+Must-fix before any non-local deployment
+
+1 Implement real authentication (JWT/OAuth2 resource server or session login). Derive the consultant identity
+
+     from the authenticated principal -- never from a path variable; remove consultantId from URLs or validate it
+     against the principal.
+
+2 Lock down SecurityConfig: require auth on all business endpoints; keep only Swagger/health public (and disable
+
+     Swagger in prod). Re-enable CSRF if you move to cookie sessions.
+
+3 Stop returning mcpApiKey in DTOs; show it once on generation. Hash stored keys (e.g. SHA-256) and add
+
+     expiry/rotation.
+
+4 Remove admin from request-mapping; gate role changes behind an authenticated admin path. Restrict POST
+
+     /consultants/create.
+
+5 Purge default secrets from application.properties / -dev.properties, rotate them, and git-history-scrub. Require
+
+     env vars with no insecure fallback.
+
+High
+
+6 Add ownership/authorization to all party-portal operations; give portal tokens expiry + revocation; mask the token
+
+     response.
+
+7 Wire logAudit into all PII read/write paths (or use Hibernate Envers / Spring Data auditing) for a compliance trail.
+8 Extend upload validation to all accepted types and add malware scanning; consider storing documents outside
+
+     the web root / in object storage with signed access.
+
+9 Encrypt sensitive columns at rest (JPA AttributeConverter or DB-level TDE) -- at minimum passportNumber.
+
+Medium / standards
+
+10 Set show-sql=false (use a logger profile for dev); sanitize error responses to generic messages + server-side
+
+     logging.
+
+11 Add rate limiting (Bucket4j / gateway) and pagination on list/search endpoints.
+12 Fix PartyPortalController to use ApiPaths + /v1; consolidate CORS into the global config only.
+13 Route all create/update DTOentity conversions through MapStruct; reuse CommonService ownership logic in
+
+     McpDataService; replace raw RuntimeException; remove entity length constraints; add @Valid to update/create
+     bodies.
+
+Suggested starting point: authentication (#1­#2), since it underpins most of the critical findings. Concrete changes can be outlined for
+approval before any edits.
+
+Immigration-Consultation -- Security, Compliance & Coding-Standards Audit  Page 4
+

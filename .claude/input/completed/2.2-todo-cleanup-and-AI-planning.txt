@@ -1,0 +1,160 @@
+    TODO List: AI Integration via MCP Server &
+                        Access Control
+
+Immigration Consultation -- AI Intake & Document Follow-up Automation
+
+Legend: Existing = already built | Partial = structure exists but needs work | New = must be built from scratch
+
+0. Access Control & Data Integrity
+
+#  Task                                                  Stack Status Details
+
+0.1 Prevent duplicate client creation -- check by name,  Backend New  Before creating a new client, validate uniqueness by
+          DOB, and email                                 Backend New  matching full name + date of birth + email. Return
+                                                         Backend New  existing client if match found. Add unique constraint or
+0.2 Restrict checklist template management to admin                   service-level check.
+          consultants only
+                                                                      Only consultants with admin role can create, update,
+0.3 Allow admin consultants to view other consultants'                delete, or approve ChecklistTemplates. Add
+          clients and cases in detail                                 role-based access control on template CRUD
+                                                                      endpoints.
+
+                                                                      Admin consultants can access any consultant's client
+                                                                      list and full case details. Non-admin consultants can
+                                                                      only see their own. Add admin override to client/case
+                                                                      query endpoints.
+
+A. Data Masking Layer
+
+#  Task                                                  Stack Status Details
+
+A.1 Create SensitiveFieldRegistry                        Backend New  Define which questionKey values and document
+                                                         Backend New  categories are PII (passport_number, SIN, DOB, full
+A.2 Create DataMaskingService                            Backend New  name, address, etc.)
+                                                         Backend New
+A.3 Create DocumentMetadataSanitizer                     Backend New  Masks/redacts PII fields from IntakeResponse
+                                                                      answers before sending to MCP. E.g., passport
+A.4 Create CaseSummaryProjection                                      number  ***MASKED***, full name  initials, DOB
+                                                                       age range
+A.5 Create MaskedIntakeResponseDTO
+                                                                      Strips filePath, storedFileName, and any embedded
+                                                                      PII from Document metadata before exposing to MCP.
+                                                                      Only exposes: category, type, status, expiryDate,
+                                                                      mimeType
+
+                                                                      A read-only DTO that projects ImmigrationCase data
+                                                                      without client identity fields -- exposes serviceType,
+                                                                      subtype, caseStatus, checklist state, intake answers
+                                                                      (masked)
+
+                                                                      DTO that replaces sensitive answers with masked
+                                                                      values while preserving section structure, question
+                                                                      keys, and non-sensitive answers
+B. MCP API Controller
+
+#  Task                                                   Stack Status Details
+
+B.1 Create McpApiController under /api/v1/mcp/...         Backend New  Single controller exposing all AI-consumable
+                                                                       endpoints. All responses go through masking layer
+B.2 GET /api/v1/mcp/cases/{caseId}/intake-summary         Backend New
+                                                                       Returns masked intake responses grouped by section
+B.3 GET /api/v1/mcp/cases/{caseId}/documents              Backend New  for summarization
+
+B.4 GET /api/v1/mcp/cases/{caseId}/checklist-status       Backend New  Returns sanitized document metadata list (no file
+                                                                       paths, no PII, just category/type/status/expiry)
+B.5 GET /api/v1/mcp/cases/{caseId}/consistency-report Backend New
+                                                                       Returns checklist items with completion status,
+B.6 GET /api/v1/mcp/cases/{caseId}/timeline               Backend New  missing items, required vs optional
+
+B.7 POST /api/v1/mcp/cases/{caseId}/classify-document Backend New      Returns existing consistency check results (expired
+                                                                       docs, missing required, duplicates)
+B.8 GET /api/v1/mcp/cases/{caseId}/reminders/pending Backend New
+                                                                       Returns travel/work/relationship history entries (dates
+B.9 POST /api/v1/mcp/validate-output                      Backend New  and categories only, names masked)
+
+B.10 Add authentication/authorization for MCP endpoints Backend New    Accepts document metadata (filename, mimeType,
+                                                                       size), returns classification suggestion
+
+                                                                       Returns pending reminders for draft generation
+                                                                       context
+
+                                                                       Passes AI-generated text through AiBoundaryService,
+                                                                       returns sanitized result
+
+                                                                       API key or token-based auth scoped only to MCP
+                                                                       server access
+
+C. MCP Server
+
+#  Task                                                   Stack  Status Details
+                                                          MCP
+C.1 Initialize MCP server project (TypeScript or Python)         New   Standalone MCP server that connects to the backend
+                                                                 New   API
+C.2 Configure MCP server connection to backend API        MCP    New
+C.3 Tool: summarize_intake                                MCP    New   Base URL, auth token, HTTP client setup
+                                                                 New
+C.4 Tool: classify_document                               MCP    New   Calls B.2, sends masked intake data to LLM, returns
+                                                                 New   structured summary for consultant
+C.5 Tool: detect_missing_documents                        MCP    New
+                                                                       Calls B.7 + LLM for fuzzy classification when
+C.6 Tool: check_inconsistencies                           MCP          rule-based returns "Uncategorized"
+
+C.7 Tool: draft_reminder_email                            MCP          Calls B.4 + B.2, uses LLM to identify implicitly missing
+                                                                       docs based on intake context
+C.8 Tool: extract_timeline                                MCP
+                                                                       Calls B.5 + B.3, uses LLM to flag name/date
+                                                                       mismatches, gaps, and cross-document issues
+
+                                                                       Calls B.8 + B.4, generates reminder email text for
+                                                                       consultant approval
+
+                                                                       Calls B.6, uses LLM to identify date gaps or overlaps
+                                                                       in travel/work history
+#  Task                                                Stack    Status Details
+                                                       MCP
+C.9 Tool: summarize_translation                                 New  Takes translated document text (provided by user),
+                                                                New  summarizes key content
+C.1 Tool: get_case_overview                            MCP      New
+0                                                      MCP      New  Calls B.2 + B.3 + B.4, returns a holistic case summary
+                                                       MCP           for consultant dashboard
+C.1 Implement AI guardrail middleware
+1                                                                    All LLM responses pass through B.9 (validate-output)
+                                                                     before returning to user
+C.1 Add LLM provider configuration (Anthropic/OpenAI)
+2                                                                    API key management, model selection, prompt
+                                                                     template storage
+
+D. Integration & Security
+
+#  Task                                                Stack Status Details
+
+D.1 Add MCP server config to Claude Code settings      Config   New  Register the MCP server in .claude/settings.json or
+                                                                     mcp.json so Claude Code can discover and call its
+D.2 Write masking unit tests                           Backend New   tools
+D.3 Write MCP API integration tests
+D.4 Write MCP tool integration tests                   Backend  New  Verify all PII fields are masked correctly, no leakage in
+D.5 Add rate limiting to MCP API endpoints             MCP      New  edge cases
+
+                                                       Backend New   Test each endpoint returns properly masked data
+
+                                                                     Test each tool end-to-end: API call  LLM  guardrail
+                                                                      response
+
+                                                                     Prevent excessive API calls from the MCP server
+
+Summary
+
+Total: 35 tasks (3 access control + 5 masking + 10 API + 12 MCP tools + 5 integration/security)
+
+Build Order:
+1. 0.1­0.3 (Access control & data integrity) -- no dependencies
+2. A.1­A.5 (Masking layer) -- foundation for MCP API
+3. B.1­B.10 (MCP API controller) -- depends on masking
+4. C.1­C.2, C.12 (MCP server scaffold + LLM config)
+5. C.3­C.11 (MCP tools) -- depends on API being ready
+6. D.1­D.5 (Integration, tests, security)
+
+Note: Existing rule-based services (DocumentClassificationService, ConsistencyCheckService, PoliceCertificateService,
+LmiaCalculatorService, AiBoundaryService) are retained as-is. They are deterministic logic that the MCP server will complement,
+not replace.
+

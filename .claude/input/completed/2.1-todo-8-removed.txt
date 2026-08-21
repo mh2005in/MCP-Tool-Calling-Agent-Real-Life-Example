@@ -1,0 +1,248 @@
+                                           TODO List: PDF Requirements vs. Current Codebase
+
+                                                       Immigration Consultation - AI Intake & Document Follow-up Automation
+
+Legend: Existing = already built | Partial = structure exists but needs work | New = must be built from scratch
+Note: Section 8 - AI Integration has been removed as requested.
+
+1. Compliance & Guardrails (Section 1, 16)
+
+#    Task                                                                                          Stack          Status   Details
+                                                                                                   Backend        New      PDF requires linking templates to official IRCC/ESDC source pages with version tracking
+1.1  Add sourceUrl and lastReviewedDate fields to ChecklistTemplate                                Backend        New      Track who reviewed the template and which version it is
+                                                                                                   Backend        Partial  Reminder approval exists, but no explicit 'approve checklist before client sees it' flag
+1.2  Add reviewerConsultantId and ruleVersion fields to ChecklistTemplate                          Frontend       New      Must display on every client-facing checklist view
+                                                                                                   Backend        New      System prompt / output filter when AI is integrated
+1.3  Add consultant approval gate before checklist is sent to client
+                                                                                                   Backend        Partial  AuditLog entity exists but isn't wired to checklist template modifications
+1.4  Add client-facing disclaimer text: 'documents requested are subject to consultant review'
+
+1.5  Implement AI boundary enforcement - block AI from outputting eligibility decisions, approval
+
+     predictions, or legal advice
+
+1.6  Add audit log entries for checklist template changes (who changed, who approved, when)
+
+2. Application Type & Subtype Expansion (Section 2, 14)
+
+#    Task                                                                                          Stack          Status   Details
+                                                                                                   Backend        New      Current enum has 8 values; PDF lists 11 application types
+2.1  Add missing ServiceType enum values: PGWP, SUPER_VISA, PR_CARD_PRTD, PNP                      Backend        New      e.g., PGWP, employer-specific, LMIA-based, inland/outland spousal
+                                                                                                   Backend        New      Principal applicant, spouse, dependent, sponsor, employer, host
+2.2  Add Subtype field to ImmigrationCase                                                          Backend        New      Replace static templates with conditional rules: trigger questions -> required documents ->
+                                                                                                                           conditional rules
+2.3  Add ApplicantRole enum and field                                                              Backend        New      e.g., 'If school province = Quebec, request CAQ'
+                                                                                                   Backend        New      Questions that drive which checklist items are included
+2.4  Build rules-based checklist generator engine (Section 14)                                     Frontend       New      Dynamic form that adjusts based on type + subtype
+
+2.5  Create ConditionalRule entity
+
+2.6  Create TriggerQuestion entity
+
+2.7  Frontend application type selector with subtype options
+
+3. Intake Form Engine (Section 3-12 intake questions)
+
+#    Task                                                                                          Stack          Status   Details
+                                                                                                                  New      PDF defines specific questions per type (identity, education, finances, history, etc.)
+3.1  Build structured intake questionnaire templates per application type                          Backend        New      9 sections with specific question keys
+                                                                                                                  New      8 sections
+3.2  Study Permit intake sections: identity, education, location, PAL/TAL/CAQ, finances, sponsor,  BE/FE          New      9 sections
+                                                                                                                  New      9 sections
+     history, family, country                                                                                     New      9 sections
+                                                                                                                  New      7 sections (employer-focused)
+3.3  Visitor Visa intake sections: visit purpose, host, duration, funding, employment, assets/ties, travel BE/FE
+
+     history, refusals
+
+3.4  Spousal Sponsorship intake sections: sponsor, applicant, relationship type/timeline, cohabitation, BE/FE
+
+     dependents, previous sponsorship, criminal history, Quebec
+
+3.5  Express Entry intake sections: program path, work history, education, language, marital status, BE/FE
+
+     dependents, funds, travel/residence, prior applications
+
+3.6  Work Permit intake sections: application location, WP type, LMIA, employer, offer, status, family, BE/FE
+
+     qualifications, prior refusals
+
+3.7  LMIA intake sections: employer, business, job, stream, recruitment, candidate, compliance     BE/FE
+
+                                                                                                                                                                                                                     Page 1
+#    Task                                                                                            Stack     Status   Details
+                                                                                                               New      8 sections
+3.8  Citizenship intake sections: age, PR date, absences, tax years, language, prohibitions, identity, BE/FE   New      7 sections
+                                                                                                               New      6 sections
+     past applications                                                                                         New      6 sections
+                                                                                                               New      Single form component driven by application-type question config
+3.9  PR Card/PRTD intake sections: application reason, card expiry, travel, lost/damaged, urgency, BE/FE       New      Safe AI feature per Section 16
+
+     name changes, documents                                                                                   Status   Details
+                                                                                                               Partial  DataSeeder has 17 items, but PDF lists more categories
+3.10 PGWP intake sections: graduation, school, status, language, study history, passport             BE/FE     Partial  13 items exist, needs host doc separation
+                                                                                                               Partial  15 items exist, but relationship evidence categories are missing
+3.11 Super Visa intake sections: applicant, host, finances, insurance, purpose/duration, history     BE/FE     New      No templates seeded yet
+                                                                                                               New      No templates seeded
+3.12 Build dynamic intake form renderer that loads questions from templates                          Frontend  New      No templates seeded
+                                                                                                               New      No templates seeded
+3.13 AI intake summarization - summarize client answers for consultant                               Backend   New      No templates seeded
+                                                                                                               New      No templates seeded
+4. Document Checklist Templates (Section 3-12 document categories)                                             New      No templates seeded
+
+#    Task                                                                                            Stack     Status   Details
+                                                                                                               Partial  getMissingChecklistItems exists; needs AI classification layer
+4.1  Expand Study Permit checklist templates: add attestation (PAL/TAL/CAQ), purpose,                Backend   Partial  expiryDate field exists on Document; no scheduled alert job
+                                                                                                               New      Specific to PGWP workflow
+     ties-to-home, immigration history, representative                                                         New      Track expiry dates for ECA and language results
+                                                                                                               New      Alert when card valid > 9 months, or near expiry
+4.2  Expand Visitor Visa checklist: add host documents, status documents, purpose-of-visit evidence Backend    New      Rules engine output from trigger questions
+                                                                                                               New      Draft email content, require consultant approval before send
+4.3  Expand Spousal Sponsorship checklist: add relationship evidence (photos/chats/call              Backend   New      'This appears to be a passport'
+                                                                                                               New      Cross-document validation
+     logs/travel/joint accounts), sponsor financial, police/medical, Quebec, dependent docs                    New      Determine which police certificates needed based on countries lived in
+
+4.4  Create Express Entry checklist templates: language, ECA, work experience, proof of funds,       Backend
+
+     police certificates, PNP/job offer, medical
+
+4.5  Create Work Permit checklist templates: job/employer, qualifications, experience, status,       Backend
+
+     inside/outside Canada variants
+
+4.6  Create LMIA checklist templates: employer identity, business legitimacy, recruitment, transition Backend
+
+     plan, provincial requirements, worker docs, fees
+
+4.7  Create Citizenship checklist templates: PR proof, travel history, language, tax, residence, name Backend
+
+     change
+
+4.8  Create PR Card/PRTD checklist templates: PR proof, photos, residence, lost/stolen/damaged       Backend
+
+     evidence
+
+4.9  Create PGWP checklist templates: study completion, school/program, current status, language, Backend
+
+     prior study
+
+4.10 Create Super Visa checklist templates: relationship, host status/finances, invitation, medical  Backend
+            insurance
+
+5. Automation Features (Section 3-12 automation opportunities)
+
+#    Task                                                                                            Stack
+                                                                                                     Backend
+5.1  Missing document detection and tracking                                                         Backend
+                                                                                                     Backend
+5.2  Passport/document expiry alerting system                                                        Backend
+                                                                                                     Backend
+5.3  Study permit expiry alert (PGWP timing)                                                         Backend
+                                                                                                     Backend
+5.4  ECA / language test expiry reminders (Express Entry)                                            Backend
+                                                                                                     Backend
+5.5  PR card expiry tracking (PR Card/PRTD)                                                          Backend
+
+5.6  Auto-generate preliminary checklist based on intake answers
+
+5.7  AI-drafted missing-document reminder emails
+
+5.8  AI document classification (detect document type from upload)
+
+5.9  AI inconsistency flagging (name mismatch, date gaps, expired docs, missing pages)
+
+5.10 Police certificate country/date logic (Express Entry)
+
+                                                                                                                                                                                                Page 2
+#    Task                                                                                              Stack     Status   Details
+                                                                                                       Backend   New      Calculate recruitment ad posting periods
+5.11 Job ad date calculator (LMIA)                                                                     BE/FE     New      Collect travel history for residency obligation calculation
+
+5.12 Physical presence data-entry workflow (Citizenship)                                                         Status   Details
+                                                                                                                 New      Host can upload their own docs (PR proof, employment, invitation)
+6. Multi-Party Portals (Section 5, 7, 8, 12, 15)                                                                 New      Sponsor uploads identity, financial, status docs separately
+                                                                                                                 New      Employer uploads LMIA, business docs, job offer; separate task list
+#    Task                                                                                              Stack     New      Different checklist items assigned to different parties
+                                                                                                       BE/FE     New      Guided form to collect invitation letter details
+6.1  Host profile and portal (Visitor Visa, Super Visa)                                                BE/FE
+                                                                                                       BE/FE     Status   Details
+6.2  Sponsor portal (Spousal Sponsorship)                                                              Backend   New      First contact -> first meeting -> engagement -> marriage/cohabitation
+                                                                                                       Frontend  New      Sub-categorization within relationship evidence
+6.3  Employer portal (Work Permit, LMIA)                                                                         New      Employer, NOC/TEER, dates, hours, duties per position
+                                                                                                                 New      Country, entry/exit dates, purpose
+6.4  Employer/applicant/host task separation                                                                     New      Track per-employer: letter received, dates match, duties described
+                                                                                                                 New      Job ads, screenshots, dates, applicant tracking, interview results
+6.5  Invitation letter questionnaire builder (Visitor Visa)                                                      New      Compare Canadian vs. foreign candidates
+                                                                                                                 New      Time-sensitive 60-day document submission after ITA
+7. Specialized Workflow Modules (Section 5, 6, 15)
+                                                                                                                 Status   Details
+#    Task                                                                                              Stack     New      Renders different question sets per type
+                                                                                                       BE/FE     Partial  Document upload exists; needs client-facing UX with checklist view
+7.1  Relationship timeline builder (Spousal Sponsorship)                                               BE/FE     Partial  Dashboard exists; needs AI summary cards and richer views
+                                                                                                       BE/FE     New      Admin manages checklist rules
+7.2  Evidence upload organizer - categorize as photos, chats, travel proof, joint financial (Spousal)  BE/FE     New      Visual timeline builder
+                                                                                                       Backend   New      Multi-entry form for employment history
+7.3  Work history builder (Express Entry, Work Permit, LMIA)                                           BE/FE     New      Country/date/purpose entry table
+                                                                                                       BE/FE     New      Drag-and-drop or tag-based categorization
+7.4  Travel history builder (Citizenship, PR Card, Express Entry, Study, Visitor)                      Backend   New      Role-based document task lists
+                                                                                                                 New      Review + approve gate
+7.5  Reference letter document tracker (Express Entry)
+
+7.6  Recruitment evidence tracker (LMIA)
+
+7.7  Candidate comparison matrix (LMIA)
+
+7.8  Post-ITA document tracker (Express Entry)
+
+9. Frontend Features
+
+#    Task                                                                                              Stack
+                                                                                                       Frontend
+9.1  Dynamic intake form component driven by application type config                                   Frontend
+                                                                                                       Frontend
+9.2  Client-facing document upload portal with checklist progress                                      Frontend
+                                                                                                       Frontend
+9.3  Consultant review dashboard - AI summaries, pending approvals, missing docs                       Frontend
+                                                                                                       Frontend
+9.4  Checklist template admin UI - CRUD with source URL, version, reviewer                             Frontend
+                                                                                                       Frontend
+9.5  Relationship timeline UI (Spousal)                                                                Frontend
+
+9.6  Work history builder UI (Express Entry)
+
+9.7  Travel history builder UI
+
+9.8  Evidence categorization UI (photo/chat/travel proof tagging)
+
+9.9  Employer/host/sponsor separate task views
+
+9.10 Consultant approval UI for checklists (approve before sending to client)
+
+10. Lead-to-Client Workflow (Section 18)
+
+                                                                                                                                                                                                 Page 3
+#  Task                                                                                                     Stack    Status   Details
+                                                                                                                     Partial  LeadStatus + CaseStatus exist but the full pipeline UI isn't wired
+10.1 Map full workflow: lead intake -> consultation -> retainer -> questionnaire -> checklist -> upload BE/FE
+            -> follow-up -> review -> prep -> final review -> submission tracking                                    New      Between consultation booked and client retained
+                                                                                                                     New      Between file-ready and submission
+10.2 Retainer/engagement letter tracking step                                                               Backend  New      Explicit approval before marking submitted
+
+10.3 Application preparation support step                                                                   BE/FE
+
+10.4 Final review step with consultant sign-off                                                             Backend
+
+Summary by Priority (per PDF Section 17)
+
+Priority                                   Tasks
+Phase 1 - Study Permit MVP                 Tasks 2.4-2.6, 3.1-3.2, 4.1, 5.1-5.2, 5.6-5.9, 9.1-9.3, 1.1-1.6
+Phase 2 - Visitor Visa                     Tasks 3.3, 4.2, 6.1, 6.5
+Phase 3 - PGWP + Work Permit               Tasks 2.1 (PGWP enum), 3.6, 3.10, 4.5, 4.9, 5.3, 6.3-6.4
+Phase 4 - Spousal Sponsorship              Tasks 3.4, 4.3, 6.2, 7.1-7.2
+Phase 5 - Express Entry                    Tasks 3.5, 4.4, 5.4, 5.10, 7.3-7.5, 7.8
+Phase 6 - LMIA                             Tasks 3.7, 4.6, 5.11, 6.3, 7.6-7.7
+
+The biggest foundational work is the rules-based checklist engine (2.4-2.6), which unblocks most checklist automation and dynamic intake workflows.
+
+                                                                                                                                                                                                  Page 4
+

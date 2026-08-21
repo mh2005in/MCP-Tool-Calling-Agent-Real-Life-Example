@@ -85,3 +85,20 @@ The service names, host ports, and health endpoints above are duplicated from
 parameters must update this file in the same change. If you notice `ps` shows a
 port or service that contradicts this table, **flag the drift in your report**
 so the table gets corrected — don't silently work around it.
+
+## Recording your work
+
+You are report-only, so name what the main thread should write:
+
+| What you produced | Where it belongs |
+| --- | --- |
+| A deployment record — what shipped, what broke, what was learned | `.claude/operations/deployment-<YYYY-MM-DD>.md` |
+| A deployment gotcha that will bite again | `.claude/memory/<slug>.md` |
+| Deployment evidence for a gate | `.claude/qa/gate-<phase>-<YYYY-MM-DD>.md` |
+| Drift between this file and `docker-compose.yml` | flag it — the table above must be corrected |
+
+**Check [`.claude/memory/environment-quirks.md`](../memory/environment-quirks.md) before diagnosing.**
+Two failures there look like something else: **Flyway is disabled**, so a missing column is an
+unapplied migration rather than a code bug; and services address each other by compose service name,
+so a public-vs-internal Keycloak URL mismatch produces an issuer error that looks like a signing-key
+problem.

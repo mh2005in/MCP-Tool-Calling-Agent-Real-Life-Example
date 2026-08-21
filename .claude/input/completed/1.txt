@@ -1,0 +1,561 @@
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+AI Intake & Document Follow-up Automation
+
+ Stage 1: Business Domain Understanding and Immigration Consultant Workflow
+
+Scope: from the important product boundary through the recommended next deep dive into Study Permit
+workflow and document collection.
+
+1. Important boundary for this product
+
+This product should not decide eligibility, recommend immigration programs, calculate legal strategy, or
+tell clients what to do.
+
+In Canada, paid immigration advice and representation is restricted to authorized representatives such as
+lawyers, Quebec notaries, and licensed immigration consultants in good standing with the College of
+Immigration and Citizenship Consultants. IRCC lists RCICs as authorized paid representatives.
+
+Therefore, this product should position itself as:
+
+Client intake, document collection, follow-up, and file organization automation for
+immigration consultants - with human review and consultant approval.
+
+It should not be positioned as:
+
+AI immigration advisor.
+
+That distinction is critical.
+
+2. Typical client journey
+
+Most immigration consultants follow some version of this flow:
+
+Lead inquiry
+-> Pre-screening / basic intake
+-> Consultation or eligibility discussion
+-> Retainer / service agreement
+-> Detailed intake form
+-> Personalized document checklist
+-> Document collection
+-> Document review and missing item follow-up
+-> Forms/application preparation
+-> Client review/signatures
+-> Submission through correct IRCC portal
+-> Post-submission follow-up
+-> Additional document requests / updates
+-> Decision / closure / next-step service
+
+Different immigration programs require different forms and instructions, and applicants may need to
+submit multiple forms together depending on the program. IRCC also maintains online portals for
+authorized representatives, including the APR portal and PR portal, used for different application types.
+
+For this product, the highest-value area is not submission itself. It is the messy middle:
+
+                                                             Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+intake -> checklist -> document chasing -> file readiness
+
+That is where consultants lose time.
+
+3. What happens at each workflow stage
+
+Stage A - Lead inquiry
+
+Clients usually come from WhatsApp, phone, referral, website form, Facebook, Instagram, Google Business
+Profile, or community groups.
+
+The inquiry is often vague, such as: "Can I apply for PR?", "Can you help with study permit?", "My work
+permit is expiring soon?", "I got refusal, what can I do?", or "I want to sponsor my spouse."
+
+Area                                    Example questions
+Identity                                Name, location, country of citizenship
+Status                                  Inside Canada or outside Canada
+Current situation                       Visitor, student, worker, out of status, spouse abroad
+Goal                                    Study, work, PR, sponsorship, visitor visa, citizenship
+Urgency                                 Expiry date, deadline, refusal date, invitation deadline
+Contact                                 Email, phone, WhatsApp
+Language preference                     English, Punjabi, Hindi, Urdu, French, etc.
+
+Automation opportunity: capture the inquiry, classify service type, ask missing basic questions, and
+prepare a consultant-facing lead summary.
+
+Do not automate: "You are eligible for X program."
+
+Stage B - Pre-screening
+
+This is where consultants decide whether the client is worth a paid consultation or full file.
+
+Service type                            Pre-screening data
+Study permit                            School admission, country, funds, education history,
+                                        refusal history
+Work permit                             Job offer, LMIA status, employer details, current status
+Express Entry                           Age, education, language test, work experience,
+                                        NOC/TEER, marital status
+Spousal sponsorship                     Sponsor status, relationship history, marriage/common-
+                                        law evidence
+Visitor visa                            Purpose of visit, ties to home country, funds, travel
+                                        history
+Citizenship                             PR date, days in Canada, tax filing, language proof
+LMIA                                    Employer business, recruitment efforts, wage, job duties,
+                                        location
+
+Automation opportunity: structured pre-screening form and consultant review packet.
+Safe AI use: summarize answers and flag missing information.
+Unsafe AI use: "Based on this, you qualify."
+
+                                                             Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+Stage C - Consultation / eligibility review
+
+This is usually a paid or free call. The consultant asks deeper questions and explains possible options. This
+
+stage is legally sensitive. The software should support the consultant, not replace them.
+
+Possible automation:
+
+Before call:
+- collect intake answers
+- organize documents already uploaded
+- summarize client timeline
+- highlight missing facts
+
+After call:
+- generate internal notes draft
+- draft follow-up email
+- create task list
+- generate document checklist draft for consultant approval
+
+Professional conduct guidance emphasizes that service agreements should clearly explain the process,
+eligibility requirements, and necessary documents for the program involved. This means document
+expectations and process clarity are already part of the consultant workflow.
+
+Stage D - Retainer / service agreement
+
+Before full representation, consultants typically need a formal service agreement or retainer. Client-file
+rules indicate that a licensee opens a client file when the retainer agreement is signed.
+
+For the product, this creates two phases:
+
+Lead / prospect record
+-> becomes client file after retainer signed
+
+This distinction matters for the data model, compliance, access control, and audit trail.
+
+MVP implication: do not overbuild retainer generation at first. Instead, allow the consultant to mark:
+
+Lead status: New / Pre-screened / Consultation booked / Retainer sent / Client retained /
+Closed
+
+Later, the product can integrate e-signature and templates.
+
+Stage E - Detailed intake
+
+After the client signs, the consultant collects detailed history. This is usually long and painful.
+
+Category                                              Data collected
+Personal identity                                     Full name, date of birth, citizenship, passport, marital
+                                                      status
+Contact                                               Address history, phone, email
+Family                                                Spouse, children, parents, dependents
+Immigration history                                   Previous visas, refusals, removals, overstays
+Education                                             Schools, degrees, dates, transcripts
+Employment                                            Employers, job titles, duties, dates, NOC/TEER-related
+                                                      info
+Travel history                                        Countries visited, dates
+Status in Canada                                      Current permit, expiry, UCI, application numbers
+
+                     Prepared for business domain and MVP planning
+                      AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+Criminality/security                                Charges, convictions, military service, government roles
+
+Medical                                             Medical exams or health issues if relevant
+
+Financial                                           Funds, income, bank statements, sponsor income
+
+Relationship evidence                               For spousal/common-law cases
+
+Employer info                                       For LMIA/work permit cases
+
+Automation opportunity: adaptive forms. Do not ask everyone every question. Ask based on service type.
+
+If service = spousal sponsorship:
+   ask relationship timeline, cohabitation, wedding, communication, family knowledge
+
+If service = study permit:
+   ask education history, admission, tuition, funds, study plan info
+
+If service = Express Entry:
+   ask language test, ECA, work experience, spouse factors
+
+Stage F - Document checklist
+
+This is the core of the product. IRCC publishes application forms and document instructions by program,
+and requirements vary by application type. Common supporting documents include passports, birth
+certificates, marriage certificates, national ID cards, divorce documents, death certificates, adoption
+records, and name change documents.
+
+Consultants usually customize checklists based on:
+
+program type
+client country
+family composition
+refusal history
+inside/outside Canada
+spouse/dependents
+employment situation
+school/employer details
+previous applications
+document expiry dates
+
+Example base checklist categories:
+
+Category                                            Example documents
+Identity                                            Passport, national ID, birth certificate
+Civil status                                        Marriage certificate, divorce certificate, children birth
+                                                    certificates
+Immigration status                                  Permits, visas, UCI, previous applications
+Education                                           Diplomas, transcripts, ECA
+Language                                            IELTS, CELPIP, TEF, TCF results
+Employment                                          Reference letters, pay stubs, tax slips, contracts
+Financial                                           Bank statements, proof of income, tuition payment
+Relationship                                        Photos, chats, travel records, joint documents
+Employer                                            Business license, CRA docs, job offer, recruitment
+                                                    evidence
+Refusal                                             Refusal letter, GCMS notes if available
+Country-specific                                    Police certificates, translations, affidavits
+
+                       Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+MVP opportunity: checklist builder with reusable templates and case-specific customization.
+
+Stage G - Document collection
+
+This is where consultants waste a lot of time.
+
+client sends documents in WhatsApp
+client sends photos instead of scans
+file names are unclear
+documents are expired
+documents are incomplete
+documents are in the wrong language
+documents are too large
+client forgets what is still missing
+consultant repeatedly follows up manually
+assistant cannot tell file readiness quickly
+
+Some IRCC upload contexts accept formats such as PDF, JPG, TIFF, PNG, DOC, or DOCX, and apply file size
+limits. This suggests a useful product feature:
+
+File validation:
+- accepted format
+- file size warning
+- expiry date detection
+- document type classification
+- naming convention
+- missing required item
+
+The product should not submit to IRCC automatically. It should prepare a clean, organized package for the
+consultant.
+
+Stage H - Review and follow-up
+
+The consultant reviews uploaded files and marks each item:
+
+Not uploaded
+Uploaded
+Needs review
+Accepted
+Rejected
+Expired
+Incorrect document
+Translation required
+Notarization required
+Client action needed
+Consultant action needed
+
+This creates a structured follow-up loop. Instead of manually repeating missing-document emails, the
+system can generate consultant-approved reminders such as:
+
+Hi [Client Name],
+We reviewed your uploaded documents. The following items are still required:
+
+1. Passport biographical page
+2. Marriage certificate
+3. Updated bank statement
+
+The following uploaded item needs correction:
+- Bank statement: the document does not clearly show your name.
+
+                                                             Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+Please upload the corrected documents using your secure client portal.
+
+The consultant should approve the message before sending.
+
+Stage I - Application preparation
+
+The consultant prepares forms and portal entries. For example, Express Entry PR applicants fill out the
+application, upload documents, pay fees, and submit the application. Authorized representatives use
+different representative portals depending on application type.
+
+This product should not try to replace IRCC portals in the MVP. Instead, it should help with:
+
+- client data completeness
+- document readiness
+- standardized file names
+- internal checklist
+- consultant notes
+- export package
+
+Later SaaS versions could support structured form-data exports, but portal automation is risky and may
+break if IRCC changes flows.
+
+Stage J - Post-submission follow-up
+
+After submission, clients often ask whether there is any update, whether IRCC received the application,
+what to do with a new passport, how to update an address, or what to do when IRCC requests another
+document.
+
+IRCC provides web forms and account flows for submitting additional documents or updates in certain
+scenarios. Product opportunity:
+
+Post-submission tracker:
+- application submitted date
+- application number
+- portal used
+- biometrics status
+- medical status
+- additional document request
+- deadline
+- client update request
+- consultant follow-up tasks
+
+4. The biggest pain points
+
+Pain point 1 - Unstructured client communication
+
+Clients use WhatsApp, email, SMS, phone calls, and random attachments. Impact: the consultant loses track
+of what was sent.
+
+Product response: secure client portal, upload links, and checklist-based document collection.
+
+Pain point 2 - Repeated follow-ups
+
+Consultants repeatedly ask for the same missing documents. Impact: low-value admin work.
+
+                                                             Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+Product response: automatic reminders for missing checklist items.
+
+Pain point 3 - Poor document quality
+
+Common problems include blurry photos, cropped passports, expired passports, wrong documents,
+missing translations, wrong file formats, files that are too large, and documents that are not named
+properly.
+
+Product response: document quality checks and consultant review queue.
+
+Pain point 4 - Clients do not understand checklist wording
+
+A client may not know what proof of relationship, proof of funds, or employment reference letter means.
+
+Product response: consultant-approved plain-language explanations. These explanations must be generic
+and not case-specific legal advice.
+
+Pain point 5 - Consultants lack quick file visibility
+
+Consultants need to know which files are ready, which clients are stuck, which documents are missing,
+which deadlines are close, and which assistant needs to follow up.
+
+Product response: dashboard by case status, missing documents, upcoming deadlines, and unread client
+replies.
+
+5. Where automation is safest           Safe automation
+                                        Ask factual questions
+ Area                                   Summarize client-provided facts
+ Intake                                 Suggest template for consultant approval
+ Lead summary                           Classify file type and detect missing upload
+ Checklist                              Draft reminder messages
+ Documents                              Show case progress
+ Follow-up                              Remind consultant/client
+ Dashboard                              Rename and organize files
+ Deadlines                              Flag document may need translation
+ File naming                            Capture client consent to store/process data
+ Translation status                     Log actions and approvals
+ Consent
+ Audit
+
+6. Where automation is risky            Why avoid
+                                        Could become immigration advice
+ Risky area                             Regulated advice risk
+ Eligibility decision                   Can influence immigration outcome
+ Program recommendation                 Legal/immigration advice risk
+ CRS strategy                           Operational and compliance risk
+ Refusal response strategy              High liability
+ Auto-submission to IRCC                Error and liability risk
+ Auto-answering client legal questions  Misleading and dangerous
+ Generating final forms without review
+ Guaranteed approval language
+
+Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+The product should always say:
+
+AI-generated content must be reviewed and approved by the licensed consultant before being
+sent to the client or used in a file.
+
+7. First domain conclusion
+
+The best starting wedge is not a full immigration CRM.
+
+The best starting wedge is:
+
+AI-assisted intake and document follow-up for small Canadian immigration consultants
+
+The product/service helps them:
+
+collect client information
+generate consultant-reviewed checklists
+collect documents securely
+detect missing/incorrect documents
+send follow-up reminders
+prepare clean case files
+track deadlines
+
+It should not decide immigration options or replace the consultant.
+
+8. Recommended first niche
+
+For the MVP, do not start with every immigration service type. Pick one or two high-volume, document-
+heavy workflows.
+
+Niche                   Why it is good                        Complexity
+Study permit            High volume, document-heavy,          Medium
+Spousal sponsorship     many consultants serve this market    High
+Visitor visa            Very document-heavy, lots of follow-  Low-medium
+Express Entry post-ITA  up, strong pain point                 Medium-high
+Work permit / LMIA      Common, simpler checklist, quick      High
+                        turnaround
+                        Strong document checklist need,
+                        deadline pressure
+                        Valuable but employer-side
+                        complexity
+
+Recommendation for the first pilot: start with study permit + visitor visa, then expand to spousal
+sponsorship.
+
+Study permit and visitor visa cases are common, easier to standardize, and good for testing intake,
+checklist, upload, reminder, and document review workflows. Spousal sponsorship is attractive but more
+complex because relationship evidence can be highly case-specific.
+
+9. MVP workflow we should design first
+
+For the first version, the workflow should be:
+
+                                                             Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+Consultant creates case
+-> selects service type
+-> sends intake link to client
+-> client completes intake
+-> system summarizes intake for consultant
+-> consultant approves/customizes checklist
+-> client uploads documents
+-> system tracks missing documents
+-> AI drafts follow-up reminders
+-> consultant approves reminders
+-> dashboard shows file readiness
+-> consultant exports organized file package
+
+This is focused, valuable, and realistic.
+
+10. Service-business-first version
+
+Before building a full SaaS, sell this as a managed automation service.
+
+Example offer:
+
+We automate your immigration client intake and document follow-up process in 7 days.
+
+You manually configure:
+
+Google Forms / Typeform / Fillout
+Airtable / Notion / Google Sheets
+Google Drive folder structure
+Zapier / Make automations
+Email templates
+WhatsApp follow-up templates
+Document checklist templates
+AI summary prompts
+
+This lowers risk because you learn the real workflow before spending months building.
+
+11. Recommended next step
+
+The next stage should be service type breakdown and document mapping. Take three to five immigration
+service types and map:
+
+intake questions
+required/common documents
+conditional documents
+common missing items
+follow-up messages
+consultant review points
+automation opportunities
+
+Suggested starting service types:
+
+1. Study permit
+2. Visitor visa
+3. Spousal sponsorship
+
+                                                             Prepared for business domain and MVP planning
+                                     AI Intake & Document Follow-up Automation - Immigration Consultants in Canada
+
+Later service types:
+4. Express Entry post-ITA
+5. Work permit / LMIA
+6. Citizenship
+My recommendation: next, we should map Study Permit workflow + document collection in detail because
+it is likely the best first MVP pilot niche.
+
+Reference links used in the original analysis
+
+ Authorized representatives - IRCC:
+     https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-
+     representative/learn-about-representatives.html
+
+ IRCC application forms and guides:
+     https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-
+     guides.html
+
+ Authorized paid representatives portal - IRCC: https://www.canada.ca/en/immigration-refugees-
+     citizenship/corporate/partners-service-providers/authorized-paid-representatives-portal.html
+
+ Professional conduct: managing client expectations - CICC:
+     https://college-ic.ca/whats-on/bulletin/tips-for-professional-conduct-managing-client-expectations?
+     category=Understanding-the-Profession
+
+ Client File Management Regulation - CICC:
+     https://college-ic.ca/ICCRC/Assets/Documents/Regulations/Client%20File%20Management%20Regulation
+     .pdf
+
+ Common supporting documents - IRCC:
+     https://www.canada.ca/en/immigration-refugees-citizenship/services/application/common-supporting-
+     documents.html
+
+ IRCC web form: https://www.canada.ca/en/immigration-refugees-citizenship/corporate/contact-ircc/
+     web-form.html
+
+ Upload additional documents - IRCC Help Centre:
+     https://ircc.canada.ca/english/helpcentre/answer.asp?qnum=1624&top=38
+
+                                                             Prepared for business domain and MVP planning
+

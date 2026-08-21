@@ -1,0 +1,86 @@
+                   Immigration MCP Server
+
+Client Pre-Registration & Connection Guide (Microsoft Entra)
+
+This guide registers an OAuth client in Microsoft Entra so a tool (e.g. Claude Code) can call the Entra-secured
+HTTP MCP server. We use pre-registration (not Dynamic Client Registration) because Entra does not
+support open DCR, and the set of clients is small and known.
+
+Reference values
+
+Tenant ID            : <ENTRA_TENANT_ID>
+MCP API (audience)   : api://<MCP_API_CLIENT_ID> (immigration-saas-mcp)
+MCP scopes           : mcp.tools.read mcp.cases.read mcp.documents.read
+
+MCP server endpoint     mcp.checklists.generate mcp.messages.draft
+Registered client    : http://localhost:8084/mcp (Streamable HTTP)
+                     : immigration-mcp-client = <MCP_PREREG_CLIENT_ID>
+
+Prerequisites (server side)
+
+· Backend running on :8080 and MCP server on :8084.
+· immigration-saas-mcp manifest has accessTokenAcceptedVersion: 2.
+· For Phase-3 On-Behalf-Of: immigration-saas-mcp has a client secret (env
+
+    ENTRA_MCP_CLIENT_SECRET) and a delegated permission to immigration-saas-api (e.g. cases.read,
+    admin-consented).
+
+· immigration-saas-api has email / upn added as optional Access-token claims (so the user maps to a
+
+    consultant).
+
+Step 1 -- Register the client app (Entra portal)
+
+1 App registrations -> New registration -> name immigration-mcp-client -> Register.
+2 Authentication -> Advanced settings -> Allow public client flows -> Yes -> Save. (Enables the
+
+    device-code flow; no redirect URI or secret needed.)
+
+3 API permissions -> Add a permission -> My APIs -> immigration-saas-mcp -> Delegated -> check the
+
+    five mcp.* scopes -> Add -> Grant admin consent.
+
+4 (Optional, removes the consent prompt) On immigration-saas-mcp -> Expose an API -> Add a client
+
+    application -> paste this client's id -> check the scopes -> Add.
+
+5 Copy the new Application (client) ID (already done: <MCP_PREREG_CLIENT_ID>).
+
+Step 2 -- Get an access token
+
+Use the device-code helper script (the client id is already filled in):
+
+            .\scripts\get-mcp-token.ps1
+
+It prints a code + URL; sign in once and the access token is copied to your clipboard. Verify at https://jwt.ms:
+aud = api://95c00e44-..., ver = 2.0, and scp lists the mcp.* scopes. Tokens last about 1 hour.
+
+Step 3 -- Connect Claude Code
+
+With the token on the clipboard:
+
+            claude mcp add --transport http immigration-mcp \
+                http://localhost:8084/mcp \
+                --header "Authorization: Bearer <PASTE_TOKEN>"
+
+Add -s user to make it available across all projects. Alternatively, put it in a project .mcp.json using
+"Authorization": "Bearer ${MCP_ACCESS_TOKEN}" and set that env var.
+
+Step 4 -- Verify the chain
+· Run claude mcp list -> immigration-mcp appears.
+· In a session, the MCP tools (list_clients, get_case_overview, ...) are available.
+· Call list_clients -> expect masked client data (backend masks all PII).
+· Confirm an audit row: SELECT tool_name, result_status, external_subject FROM
+
+    immiauto_db.mcp_tool_audit_log ORDER BY id DESC;
+
+Notes
+
+· Token expiry (~1h): re-run the script and update the header (claude mcp remove immigration-mcp then re-add, or
+edit .mcp.json).
+· If a tool returns "Forbidden: requires 'mcp.cases.read'" despite a valid token, or you get an OBO/backend 401, or audit
+rows show a null subject -- the MCP SDK is running the tool handler off the HTTP request thread (the `caveat 2' threading
+issue). The fix is a transport context-extractor in the MCP server.
+· Pre-registration was chosen over DCR: Entra has no open Dynamic Client Registration. To onboard unknown third-party
+clients self-service, a broker (e.g. Keycloak) federated to Entra with gated DCR would be required.
+

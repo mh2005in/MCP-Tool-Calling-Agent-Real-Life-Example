@@ -1,0 +1,86 @@
+  Immigration Consultation -- Phase 4 Hardening
+                                 Plan
+
+Production hardening for the Microsoft Entra auth architecture (frontend, backend, MCP)
+
+Phases 1­3 (Entra OAuth for the SPA + backend, the HTTP MCP server, and MCP->backend On-Behalf-Of)
+are code-complete. Phase 4 is the production-readiness pass. Items are grouped by area and roughly
+priority-ordered within each group. Not yet implemented -- this is the plan.
+
+A. Identity / Entra
+
+1 MFA via Conditional Access -- require MFA for all users, with a stricter policy for admins and sensitive
+
+    operations (Entra -> Protection -> Conditional Access).
+
+2 Step-up / sensitive-action confirmation -- require re-auth (claims challenge / acr) before destructive or
+
+    outward actions (delete, status change, future 'send'); backend checks the claim, frontend triggers
+    acquireToken with prompt.
+
+3 Refresh-token handling -- confirm the SPA requests offline_access and MSAL silent renewal works; on
+
+    silent-renew failure route to login cleanly. Document the ~1h MCP-token refresh for connected clients.
+
+4 Secrets to Key Vault + managed identity -- move ENTRA_MCP_CLIENT_SECRET, DB password, and
+
+    mail credentials into Azure Key Vault; use App Service managed identity; define a secret-rotation policy.
+
+5 Consent & app branding review -- review requested scopes, add publisher verification + app branding
+
+    so the consent screen is trustworthy.
+
+B. Backend
+
+6 Rate limiting -- per-user/IP limits (e.g. Bucket4j or a gateway) on auth-sensitive and write endpoints;
+
+    throttle repeated 401/403.
+
+7 Tenant-level authorization -- if multi-org, enforce isolation using token tid / AppUser.tenantId (scope
+
+    every query by tenant) + a tenant @PreAuthorize check. Single-tenant today -- design now, enforce when
+    needed.
+
+8 Document access controls -- authorize per-document view/download (not just per-case), short-lived
+
+    signed URLs for blob downloads, and malware scanning on upload.
+
+9 Security audit coverage -- extend audit logging to security events (login, consultant disable/enable,
+
+    role/permission changes, admin actions), complementing the MCP audit log.
+
+10 CORS + security headers -- restrict app.cors.allowed-origins to prod domains; add HSTS/CSP/secure
+
+    headers; enforce HTTPS.
+
+C. MCP server
+
+11 Confirm caveat 2 -- in real use (Forbidden-with-valid-token / OBO 401 / null audit oid) add the transport
+
+    context-extractor if the tool handler runs off the request thread.
+
+12 Tool rate limits + audit review -- throttle tool calls; ensure every call is audited (already wired); consider
+
+    per-tool quotas.
+
+13 Private networking / mTLS -- once backend + MCP are separately deployed, restrict the MCP->backend
+
+    path to a private network (or mTLS); do not expose /v1/mcp/** publicly.
+D. Ops / monitoring
+
+14 Application Insights -- instrument backend + MCP; dashboards + alerts on auth-failure spikes, 403s
+
+    from disabled users, OBO failures, latency.
+
+15 Dependency & code scanning -- OWASP dependency-check / Snyk in CI; run a security review on the
+
+    diff before each release.
+
+16 Token/session revocation runbook -- combine Entra 'revoke sessions' (kills refresh tokens) with the
+
+    app-level DisabledUserFilter (immediate cutoff); document the operational procedure.
+
+· Carryover from Phase 1: secure ChecklistController.deleteItem (done), audit WorkflowController for IDOR (done).
+Remaining Phase-1 nicety: none blocking.
+· Suggested first wave: MFA (A1) + secrets-to-Key-Vault (A4) + rate limiting (B1) + App Insights alerts (D1).
+
