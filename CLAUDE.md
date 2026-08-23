@@ -42,6 +42,7 @@ file (how we work on it), and [.claude/](.claude/) (what we're building and wher
 - **Always be interactive.** 
 - Before making any change, **describe the change to the user and ask permission using ask question tool** before proceeding.
 - Always **evaluate the impact** of a change on other modules and plan accordingly.
+- **Update every document the change affects, in the same change** — README, this file, and the [.claude/](.claude/) tracking docs. The change-type→document map is in §14a.
 - After completing work, **provide a summary of all changes along with the affected filenames**.
 
 ---
@@ -148,7 +149,36 @@ Before implementing any method:
 
 ---
 
-## 14. Documentation (README)
+## 14. Documentation
+
+> **Every change updates every document it affects — in the same change, not as a follow-up.**
+> A change is not done when the code works; it is done when the documentation still tells the truth.
+
+### 14a. Which docs move with which change
+
+Work out the blast radius before you start, not after. **If a row applies, that document is part of the change.**
+
+| A change that… | Must also update |
+| --- | --- |
+| Alters setup, run steps, ports, env vars, stack, or architecture | [README.md](README.md) — see §14b |
+| Changes a convention, rule, or workflow | **This file** — the section that owns the rule |
+| Adds/changes/removes an agent, skill, or hook | The artifact itself **and** the §16 roster |
+| Adds, changes, or completes a requirement | [.claude/Requirements.md](.claude/Requirements.md) + [.claude/requirements/](.claude/requirements/) |
+| Changes structure, layering, or an architectural decision | [.claude/Architecture.md](.claude/Architecture.md) + an ADR in [.claude/design/](.claude/design/) |
+| Re-sequences work or changes a phase | [.claude/Plan.md](.claude/Plan.md) + [.claude/plan/](.claude/plan/) |
+| Moves any requirement's status | [.claude/status dashboard.md](.claude/status%20dashboard.md) + [.claude/progress/](.claude/progress/) |
+| Ships anything, or records a decision — **including a deferral or rejection** | [.claude/change.log.md](.claude/change.log.md) |
+| Adds tests, a review, or a gate result | [.claude/qa/](.claude/qa/) |
+| Adds or changes an operational procedure | [.claude/operations/](.claude/operations/) |
+| Teaches a durable gotcha, constraint, or dead end | [.claude/memory/](.claude/memory/) |
+
+- **Delegate the reconciliation to the [`docs-sync`](.claude/agents/docs-sync.md) agent** and refresh status with the [`status-sync`](.claude/skills/status-sync/SKILL.md) skill (§16). Neither replaces the obligation — they execute it.
+- **Statuses are verified against code, never copied from a document.** The 2026-08-21 audit found 11 open items inside work already marked complete. A "done" claim you haven't seen in the code is not evidence.
+- **A summary and its detail must not disagree.** When they do, the code decides which is right — then fix both. Detail that contradicts its summary is worse than missing detail, because someone will act on it.
+- **[.claude/input/](.claude/input/) is read-only.** Never edit a source document to reflect a decision; decisions go in [.claude/change.log.md](.claude/change.log.md) and the affected doc.
+- **Don't duplicate across documents — link.** Each fact has one home (§10). Duplication is how documentation drifts.
+
+### 14b. README — the newcomer's entry point
 
 > **[README.md](README.md) is the entry point for someone who has never seen this project. Keep it accurate — update it in the same change that alters how the project is set up, run, or understood.**
 

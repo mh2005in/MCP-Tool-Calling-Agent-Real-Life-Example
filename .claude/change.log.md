@@ -18,6 +18,40 @@
 
 ## Unreleased
 
+### 2026-08-21 · `DOCS` · Broaden §14 from README-only to all documentation
+
+**Requirement:** working-convention change; no application code touched.
+
+`CLAUDE.md` §14 governed only `README.md`, so nothing in the always-on rules obliged a change to
+update the `.claude/` tracking docs. The obligation existed per-artifact (each agent and skill has a
+"Recording your work" section) but not as a project-wide rule — which is precisely the kind of gap
+that lets documentation drift while every individual instruction is followed.
+
+- **§14 retitled** "Documentation (README)" → "Documentation", with the lead rule: *every change
+  updates every document it affects, in the same change*. Split into **§14a** (which docs move with
+  which change — an eleven-row change-type→document map) and **§14b** (the original README guidance,
+  unchanged).
+- **§14a carries the four rules that keep the structure honest:** statuses are verified against code
+  and never copied from a document; a summary and its detail must not disagree; `.claude/input/` is
+  read-only; don't duplicate across documents — link.
+- **§3 gains a one-line pointer** to §14a, connecting the change workflow to the obligation.
+- Execution stays delegated to the [`docs-sync`](agents/docs-sync.md) agent and
+  [`status-sync`](skills/status-sync/SKILL.md) skill — §14 states the duty, they perform it.
+
+**Classified per §16** as a CLAUDE.md rule rather than a hook: whether the *right* docs were updated
+*correctly* needs judgment, and a hook can only check that some file changed. A warn-only pre-commit
+check was considered and declined — a nagging hook gets bypassed until it is noise.
+
+**Files:** [CLAUDE.md](../CLAUDE.md)
+
+---
+
+## Released
+
+### Merged as [PR #8](https://github.com/mh2005in/MCP-Tool-Calling-Agent-Real-Life-Example/pull/8) — 2026-08-21 (`05472a9`)
+
+The five entries below shipped together in that pull request.
+
 ### 2026-08-21 · `DOCS` `FIX` · Document the development harness; correct stale structure blocks
 
 Documented the Claude Code harness in the two entry-point files, and fixed a documentation defect
@@ -141,7 +175,6 @@ question, not an engineering one.
 
 ---
 
-## Released
 
 ### 2026-07-31 · `REFACTOR` `FIX` — GUID primary keys and error-status correctness
 
