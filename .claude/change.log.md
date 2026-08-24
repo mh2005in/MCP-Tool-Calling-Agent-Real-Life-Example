@@ -18,6 +18,63 @@
 
 ## Unreleased
 
+### 2026-08-24 · `AUDIT` `DOCS` · Re-verification and rewrite of the tracking documents
+
+**Requirements moved:** `BL-03` → `VERIFIED`; `F41-03`…`F41-11` → `VERIFIED` (9); `F41-01`, `F41-13` → `PARTIAL`; `DR-01` → `SUPERSEDED`; `DR-12`…`DR-15` created. **No application code was touched.**
+
+A second verification pass, checking each status against the code rather than against the requirement
+corpus. The 2026-08-21 pass established that documents **overstate** completeness. This one found they
+**understate** it too.
+
+**The correction that reshaped the plan.** The register recorded `F41-03`…`F41-11` as `OPEN` while
+simultaneously describing Milestone 5 as "code-complete" — a contradiction sitting in adjacent rows of
+the same table, inherited from a backlog document that listed the M5 tasks as remaining. Reading
+`CasePackageService` settled it: `persistIssues()` :249, `approvePackage()` :157 with the unresolved-error
+gate and acknowledgement requirement, `buildZip()` :272 with size enforcement, `buildIndex()` :204,
+`resolveIssue()` :135, and `getPackageForDownload()` :189 all exist, with the matching endpoints and the
+`package-approval` Angular component. **Nine delivered items were being tracked as unstarted work.**
+
+- **Phase 1 shrinks from thirteen items to five** — `F41-01`, `F41-02`, `F41-12`, `F41-13`, `GAP-09` — and from months 2–5 to months 2–4.
+- **`DR-01` closed as an accepted deviation.** The `TriggerQuestion` entity was never built, but the capability is delivered as `IntakeQuestionTemplate.isTriggerQuestion` + `ConditionalRule.triggerQuestionKey` with repository finders and full evaluation in `ChecklistGeneratorService`. It was raised by grepping for a *filename*; searching for the *concept* found it. `BL-03` promoted. → [ADR-003](design/ADR-003-trigger-question-as-flag.md)
+- **Inventory was understated by roughly a third** — 32 entities not 22, 37 services not 30, 26 `@PreAuthorize` not 22. Architecture.md §5.1's tenant-retrofit cost argument depends on those numbers, so it was restated against counted values.
+- **`GAP-*` tallies were arithmetically wrong** — 7 partial / 10 open, not 6 / 11.
+
+**Four new drift items**
+
+| ID | Finding |
+| --- | --- |
+| `DR-12` | `application.properties` :68-70 still documents per-consultant MCP API keys; `V5` dropped that column |
+| `DR-13` | The insecure DB-password fallback is in `application-dev.properties` :5 as well — a `DR-09` fix touching one file leaves it live |
+| `DR-14` | **Zero frontend test files.** `DR-10` counted backend and MCP only, so the gap was invisible |
+| `DR-15` | `app.routes.ts` claims `FormsPackageWorkspaceComponent` replaced the route; it does not exist |
+
+**Portfolio:** 70 → **74 requirements**; 10 → **20 verified**, 13 → **15 partial**, 45 → **36 open**,
+1 blocked, 1 → **2 superseded**. None of that movement is work completed — it is the difference
+between trusting a backlog document and reading the code.
+
+**Two habits recorded so this does not recur** ([Delivery approach.md](Delivery%20approach.md) §10a):
+reconcile contradictions when you write them, and count rather than estimate. Also added: a **step 0**
+to the vertical slice — grep for the symbol before implementing it — and a **two-grade `VERIFIED`**
+distinction, since twenty requirements now carry that status with six test files behind them.
+
+**Files**
+
+| File | Change |
+| --- | --- |
+| [Requirements.md](Requirements.md) | Rewritten — delivered/partial/open split per group, acceptance criteria on every open drift item, `BR-*` enforcement mapped to code, portfolio summary up front |
+| [status dashboard.md](status%20dashboard.md) | Rewritten — movement table, corrected inventory with deltas, `F41` delivered-vs-outstanding split |
+| [Plan.md](Plan.md) | Phase 1 re-scoped and shortened; Phase 0.5 extended to 5 weeks; risks and critical path restated |
+| [Architecture.md](Architecture.md) | Counts corrected; §2.2 "what the security layer does not do"; §3 forms domain as-built with the M5 lifecycle; §5.2 what the forms domain still needs; §7 ADR index; debt register re-ranked |
+| [Delivery approach.md](Delivery%20approach.md) | §2.1 step 0; §3.1 two grades of `VERIFIED`; §5 pattern D (verification pass); §8 rewritten with real counts and a priority order; §10a what two passes taught |
+| `progress/2026-08-24-verification-run.md` | **New** — the evidence, with `file:line` for every claim, and a section on what the run did *not* verify |
+| `design/ADR-001…004` | **New** — Keycloak over Entra; XFA engine deferred; trigger-question deviation; PostgreSQL-only (proposed, needs `D-4`) |
+| `requirements/F41-01.md`, `F41-13.md` | **New** — the two contested `PARTIAL` items, with acceptance criteria and current-state evidence |
+| `plan/phase-0.5-drift.md` | **New** — 8 slices, week map, phase risks, exit checklist |
+| `qa/DR-10-test-foundation.md` | **New** — test plan in priority order, characterisation tests for the nine promoted items first |
+| [README.md](README.md) | Status block refreshed |
+
+---
+
 ### 2026-08-21 · `DOCS` · Broaden §14 from README-only to all documentation
 
 **Requirement:** working-convention change; no application code touched.

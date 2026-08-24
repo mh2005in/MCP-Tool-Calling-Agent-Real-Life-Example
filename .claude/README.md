@@ -56,13 +56,18 @@ write to it. Read that before adding a file.
 
 > **Statuses come from code, never from a document.**
 
-Every `VERIFIED` in the dashboard was confirmed by looking at the code. That is the only reason the
-dashboard is trustworthy — the 2026-08-21 audit found **11 open items inside work that documents had
-already marked complete**, four of them High severity. One backlog entry named a single mis-routed
-controller; there were three.
+Every `VERIFIED` in the dashboard was confirmed by looking at the code. Two verification passes have
+now proved the rule necessary **in both directions**:
 
-A count of zero is a finding. Zero pagination, zero rate limiters, zero malware scanners were each
-findings.
+- **2026-08-21** — documents *overstate* completeness. Found 11 open items inside work already marked complete, four of them High severity. One backlog entry named a single mis-routed controller; there were three.
+- **2026-08-24** — documents *understate* it too. Found **9 delivered items recorded as `OPEN`**, because a backlog listed them as remaining tasks and nobody opened `CasePackageService`. The register called Milestone 5 "code-complete" and its tasks "outstanding" in adjacent rows of the same table.
+
+A status copied from a document is wrong in whichever direction that document was wrong. Neither
+optimism nor pessimism is the safe default.
+
+A count of zero is a finding. Zero pagination, zero rate limiters, zero malware scanners, and zero
+frontend tests were each findings. **A count carried forward from memory is not a count** — "22
+entities" and "30 services" were both wrong by roughly a third.
 
 ---
 
@@ -97,17 +102,19 @@ folder and which root doc it updates. That obligation is what keeps this folder 
 
 ---
 
-## Where things stand (2026-08-21)
+## Where things stand (2026-08-24)
 
 | | |
 | --- | --- |
 | Baseline | 🟢 All four P0 validation defects and all five Critical security findings genuinely fixed |
-| Biggest exposure | 🔴 **6 test files** for ~30 services and 17 controllers (`DR-10`) |
-| Nearest value | 🟡 Section 4.1 at M5/M6 — 13 scoped items from done |
+| Biggest correction | 🔵 **Section 4.1 Milestone 5 is complete** — 9 items tracked as `OPEN` are delivered |
+| Biggest exposure | 🔴 **6 backend/MCP test files and 0 frontend** for 37 services, 17 controllers, 27 components (`DR-10`, `DR-14`) |
+| Nearest value | 🟡 Section 4.1 needs **5 items**, not 13 — `F41-01`, `F41-02`, `F41-12`, `F41-13`, `GAP-09` |
 | Hard blocker | ⛔ `F41-14` — needs a licensing decision (`D-1`), not engineering |
-| Open decisions | 6 · `D-1`…`D-6` — four should close before Phase 2 |
+| Open decisions | 5 of 6 open · `D-1`…`D-4`, `D-6`. `D-5` decided (Keycloak) |
 
-70 requirements: 10 verified · 13 partial · 45 open · 1 blocked · 1 superseded.
+**74 requirements: 20 verified · 15 partial · 36 open · 1 blocked · 2 superseded.**
+Evidence: [`progress/2026-08-24-verification-run.md`](progress/2026-08-24-verification-run.md).
 
 ---
 
